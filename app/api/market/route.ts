@@ -10,6 +10,7 @@ export async function GET(request: Request) {
       { status: 401 }
     );
   }
+
   try {
     const apiKey = process.env.TWELVE_DATA_API_KEY;
 
@@ -20,65 +21,68 @@ export async function GET(request: Request) {
       );
     }
 
-    const url =
-      `https://api.twelvedata.com/exchange_rate` +
-      `?symbol=AUD/THB` +
-      `&apikey=${apiKey}`;
+    const symbols = [
+      "AUD/THB",
+      "AUD/USD",
+      "USD/THB",
+    ];
 
-    const response = await fetch(url, {
-      cache: "no-store",
-    });
+    const results = [];
 
-    const data = await response.json();
+    for (const symbol of symbols) {
+      const url =
+        `https://api.twelvedata.com/exchange_rate` +
+        `?symbol=${encodeURIComponent(symbol)}` +
+        `&apikey=${apiKey}`;
 
-    if (!data.rate || !data.timestamp) {
-      return NextResponse.json(
-        {
-          error: "Invalid response from Twelve Data",
-          raw: data,
-        },
-        { status: 500 }
-      );
-    }
+      const response = await fetch(url, {
+        cache: "no-store",
+      });
 
-    const rate = Number(data.rate);
+      const data = await response.json();
 
-    const marketTimestamp = new Date(
-      Number(data.timestamp) * 1000
-    ).toISOString();
+      if (!data.rate || !data.timestamp) {
+        results.push({
+          symbol,
+          saved: false,
+          error: data,
+        });
 
-    const { error } = await supabaseAdmin
-      .from("market_prices")
-      .upsert(
-        {
-          symbol: "AUD/THB",
-          rate,
-          market_timestamp: marketTimestamp,
-          source: "twelvedata",
-        },
-        {
-          onConflict: "symbol,market_timestamp",
-        }
-      );
+        continue;
+      }
 
-    if (error) {
-      console.error(error);
+      const rate = Number(data.rate);
 
-      return NextResponse.json(
-        {
-          error: "Could not save price to Supabase",
-          details: error.message,
-        },
-        { status: 500 }
-      );
+      const marketTimestamp = new Date(
+        Number(data.timestamp) * 1000
+      ).toISOString();
+
+      const { error } = await supabaseAdmin
+        .from("market_prices")
+        .upsert(
+          {
+            symbol,
+            rate,
+            market_timestamp: marketTimestamp,
+            source: "twelvedata",
+          },
+          {
+            onConflict: "symbol,market_timestamp",
+          }
+        );
+
+      results.push({
+        symbol,
+        rate,
+        marketTimestamp,
+        saved: !error,
+        error: error?.message ?? null,
+      });
     }
 
     return NextResponse.json({
-      symbol: "AUD/THB",
-      rate,
-      marketTimestamp,
-      source: "twelvedata",
-      saved: true,
+      updated: true,
+      results,
     });
   } catch (error) {
     console.error(error);
