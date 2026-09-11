@@ -97,6 +97,236 @@ export default async function Home() {
     }
   }
 
+    let crossCurrencyScore: number | null = null;
+  let crossCurrencyChange1H: number | null = null;
+
+  async function getLatestSymbolPrice(symbol: string) {
+    const { data } = await supabaseAdmin
+      .from("market_prices")
+      .select("rate, market_timestamp")
+      .eq("symbol", symbol)
+      .order("market_timestamp", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    return data;
+  }
+
+  async function getSymbolPriceNearTime(
+    symbol: string,
+    targetTime: number
+  ) {
+    const tolerance = 20 * 60 * 1000;
+
+    const { data } = await supabaseAdmin
+      .from("market_prices")
+      .select("rate, market_timestamp")
+      .eq("symbol", symbol)
+      .gte(
+        "market_timestamp",
+        new Date(targetTime - tolerance).toISOString()
+      )
+      .lte(
+        "market_timestamp",
+        new Date(targetTime + tolerance).toISOString()
+      );
+
+    if (!data || data.length === 0) {
+      return null;
+    }
+
+    return data.reduce((closest, item) => {
+      const itemDiff = Math.abs(
+        new Date(item.market_timestamp).getTime() - targetTime
+      );
+
+      const closestDiff = Math.abs(
+        new Date(closest.market_timestamp).getTime() - targetTime
+      );
+
+      return itemDiff < closestDiff ? item : closest;
+    });
+  }
+
+  const [audUsdNow, usdThbNow] = await Promise.all([
+    getLatestSymbolPrice("AUD/USD"),
+    getLatestSymbolPrice("USD/THB"),
+  ]);
+
+  if (audUsdNow && usdThbNow) {
+    const referenceTime = Math.min(
+      new Date(audUsdNow.market_timestamp).getTime(),
+      new Date(usdThbNow.market_timestamp).getTime()
+    );
+
+    const oneHourAgo = referenceTime - 60 * 60 * 1000;
+
+    const [audUsd1H, usdThb1H] = await Promise.all([
+      getSymbolPriceNearTime("AUD/USD", oneHourAgo),
+      getSymbolPriceNearTime("USD/THB", oneHourAgo),
+    ]);
+
+    if (audUsd1H && usdThb1H) {
+      const currentCross =
+        Number(audUsdNow.rate) * Number(usdThbNow.rate);
+
+      const pastCross =
+        Number(audUsd1H.rate) * Number(usdThb1H.rate);
+
+      crossCurrencyChange1H =
+        ((currentCross - pastCross) / pastCross) * 100;
+
+      if (crossCurrencyChange1H >= 0.3) {
+        crossCurrencyScore = 100;
+      } else if (crossCurrencyChange1H >= 0.2) {
+        crossCurrencyScore = 75;
+      } else if (crossCurrencyChange1H >= 0.1) {
+        crossCurrencyScore = 50;
+      } else if (crossCurrencyChange1H >= 0.05) {
+        crossCurrencyScore = 25;
+      } else if (crossCurrencyChange1H <= -0.3) {
+        crossCurrencyScore = -100;
+      } else if (crossCurrencyChange1H <= -0.2) {
+        crossCurrencyScore = -75;
+      } else if (crossCurrencyChange1H <= -0.1) {
+        crossCurrencyScore = -50;
+      } else if (crossCurrencyChange1H <= -0.05) {
+        crossCurrencyScore = -25;
+      } else {
+        crossCurrencyScore = 0;
+      }
+    }
+  }
+
+    function get1HScore(change: number) {
+    if (change >= 0.30) return 100;
+    if (change >= 0.20) return 75;
+    if (change >= 0.10) return 50;
+    if (change >= 0.05) return 25;
+
+    if (change <= -0.30) return -100;
+    if (change <= -0.20) return -75;
+    if (change <= -0.10) return -50;
+    if (change <= -0.05) return -25;
+
+    return 0;
+  }
+
+  function get4HScore(change: number) {
+    if (change >= 0.70) return 100;
+    if (change >= 0.40) return 75;
+    if (change >= 0.20) return 50;
+    if (change >= 0.10) return 25;
+
+    if (change <= -0.70) return -100;
+    if (change <= -0.40) return -75;
+    if (change <= -0.20) return -50;
+    if (change <= -0.10) return -25;
+
+    return 0;
+  }
+
+  const priceScore1H =
+    change1H !== null ? get1HScore(change1H) : null;
+
+  const priceScore4H =
+    change4H !== null ? get4HScore(change4H) : null;
+
+  let priceMomentumScore: number | null = null;
+
+  if (priceScore1H !== null && priceScore4H !== null) {
+    priceMomentumScore = Math.round(
+      priceScore1H * 0.6 + priceScore4H * 0.4
+    );
+  } else if (priceScore1H !== null) {
+    priceMomentumScore = priceScore1H;
+  } else if (priceScore4H !== null) {
+    priceMomentumScore = priceScore4H;
+  }
+
+    let rangePosition: number | null = null;
+  let meanReversionScore: number | null = null;
+
+  if (
+    latestPrice &&
+    intradayLow !== null &&
+    intradayHigh !== null &&
+    intradayHigh > intradayLow
+  ) {
+    const currentRate = Number(latestPrice.rate);
+
+    rangePosition =
+      ((currentRate - intradayLow) /
+        (intradayHigh - intradayLow)) *
+      100;
+
+    // อยู่ใกล้ High → Mean Reversion เป็นลบ
+    // อยู่ใกล้ Low → Mean Reversion เป็นบวก
+    meanReversionScore = Math.round(
+      -(rangePosition - 50) * 2
+    );
+
+    // ป้องกันเกินช่วง -100 ถึง +100
+    meanReversionScore = Math.max(
+      -100,
+      Math.min(100, meanReversionScore)
+    );
+  }
+
+    const coreFactors = [
+    {
+      score: priceMomentumScore,
+      weight: 35,
+    },
+    {
+      score: crossCurrencyScore,
+      weight: 20,
+    },
+    {
+      score: meanReversionScore,
+      weight: 5,
+    },
+  ];
+
+  const availableCoreFactors = coreFactors.filter(
+    (factor) => factor.score !== null
+  );
+
+  const availableCoreWeight = availableCoreFactors.reduce(
+    (sum, factor) => sum + factor.weight,
+    0
+  );
+
+  let coreFxScore: number | null = null;
+
+  if (availableCoreWeight > 0) {
+    const weightedTotal = availableCoreFactors.reduce(
+      (sum, factor) =>
+        sum + Number(factor.score) * factor.weight,
+      0
+    );
+
+    coreFxScore = Math.round(
+      weightedTotal / availableCoreWeight
+    );
+  }
+
+  let coreBias = "Waiting for data";
+
+  if (coreFxScore !== null) {
+    if (coreFxScore >= 40) {
+      coreBias = "Strong Bullish";
+    } else if (coreFxScore >= 15) {
+      coreBias = "Bullish";
+    } else if (coreFxScore <= -40) {
+      coreBias = "Strong Bearish";
+    } else if (coreFxScore <= -15) {
+      coreBias = "Bearish";
+    } else {
+      coreBias = "Neutral";
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white p-8">
       <div className="max-w-5xl mx-auto">
@@ -169,11 +399,24 @@ export default async function Home() {
           </div>
 
           <div className="bg-slate-900 rounded-xl p-6">
-            <p className="text-slate-400">FX Score</p>
-            <p className="text-5xl font-bold text-green-400 mt-2">+18</p>
+            <p className="text-slate-400">Core FX Score</p>
+            <p className="text-5xl font-bold mt-2">
+  {coreFxScore !== null
+    ? `${coreFxScore > 0 ? "+" : ""}${coreFxScore}`
+    : "--"}
+</p>
 
-            <p className="mt-4 text-green-400">Bullish</p>
-            <p className="text-slate-400">Confidence: Medium-Low</p>
+<p className="mt-4">
+  {coreBias}
+</p>
+
+<p className="text-slate-400">
+  Core Coverage: {availableCoreWeight}/60
+</p>
+
+<p className="text-xs text-slate-500 mt-1">
+  Price + Cross Currency + Mean Reversion
+</p>
           </div>
         </div>
 
@@ -181,13 +424,58 @@ export default async function Home() {
           <h2 className="text-xl font-semibold">Score Breakdown</h2>
 
           <div className="mt-4 space-y-2">
-            <p>Price / Momentum: <span className="text-green-400">+45</span></p>
-            <p>Cross Currency: <span className="text-green-400">+20</span></p>
+            <p>
+  Price / Momentum:{" "}
+  <span>
+    {priceMomentumScore !== null
+      ? `${priceMomentumScore > 0 ? "+" : ""}${priceMomentumScore}`
+      : "--"}
+  </span>
+</p>
+
+<p className="text-sm text-slate-500">
+  1H Score:{" "}
+  {priceScore1H !== null
+    ? `${priceScore1H > 0 ? "+" : ""}${priceScore1H}`
+    : "--"}
+  {" | "}
+  4H Score:{" "}
+  {priceScore4H !== null
+    ? `${priceScore4H > 0 ? "+" : ""}${priceScore4H}`
+    : "--"}
+</p>
+            <p>Cross Currency:{" "}
+                <span>
+                  {crossCurrencyScore !== null
+                    ? `${crossCurrencyScore > 0 ? "+" : ""}${crossCurrencyScore}`
+                    : "--"}
+                </span>
+            </p>
+            <p className="text-sm text-slate-500">
+                1H Cross Change:{" "}
+                {crossCurrencyChange1H !== null
+                ? `${crossCurrencyChange1H >= 0 ? "+" : ""}${crossCurrencyChange1H.toFixed(3)}%`
+                : "--"}
+            </p>
             <p>Relative Market: <span className="text-red-400">-10</span></p>
             <p>Macro / Policy: 0</p>
             <p>Commodity: <span className="text-green-400">+30</span></p>
             <p>Risk: <span className="text-red-400">-45</span></p>
-            <p>Mean Reversion: <span className="text-red-400">-20</span></p>
+            <p>
+  Mean Reversion:{" "}
+  <span>
+    {meanReversionScore !== null
+      ? `${meanReversionScore > 0 ? "+" : ""}${meanReversionScore}`
+      : "--"}
+  </span>
+</p>
+
+<p className="text-sm text-slate-500">
+  Range Position:{" "}
+  {rangePosition !== null
+    ? `${rangePosition.toFixed(1)}%`
+    : "--"}
+</p>
           </div>
         </div>
 
