@@ -1,3 +1,4 @@
+import "server-only";
 import { createClient } from "@supabase/supabase-js";
 
 const supabaseUrl = process.env.SUPABASE_URL;
@@ -11,13 +12,14 @@ if (!supabaseServiceKey) {
   throw new Error("Missing SUPABASE_SERVICE_ROLE_KEY");
 }
 
-export const supabase = createClient(
+export const supabaseAdmin = createClient(
   supabaseUrl,
   supabaseServiceKey,
   {
     auth: {
       persistSession: false,
       autoRefreshToken: false,
+      detectSessionInUrl: false,
     },
   }
 );

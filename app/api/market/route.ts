@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { supabase } from "@/lib/supabase-server";
+import { supabaseAdmin } from "@/lib/supabase-server";
 
 export async function GET() {
   try {
@@ -39,7 +39,7 @@ export async function GET() {
       Number(data.timestamp) * 1000
     ).toISOString();
 
-    const { error } = await supabase
+    const { error } = await supabaseAdmin
       .from("market_prices")
       .upsert(
         {

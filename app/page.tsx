@@ -1,4 +1,57 @@
-export default function Home() {
+import { supabaseAdmin } from "@/lib/supabase-server";
+
+export default async function Home() {
+  const { data: latestPrice } = await supabaseAdmin
+    .from("market_prices")
+    .select("rate, market_timestamp, source")
+    .eq("symbol", "AUD/THB")
+    .order("market_timestamp", { ascending: false })
+    .limit(1)
+    .single();
+      let change1H: number | null = null;
+  let change4H: number | null = null;
+
+  if (latestPrice) {
+    const latestTime = new Date(latestPrice.market_timestamp);
+
+    const oneHourAgo = new Date(
+      latestTime.getTime() - 60 * 60 * 1000
+    ).toISOString();
+
+    const fourHoursAgo = new Date(
+      latestTime.getTime() - 4 * 60 * 60 * 1000
+    ).toISOString();
+
+    const { data: price1H } = await supabaseAdmin
+      .from("market_prices")
+      .select("rate, market_timestamp")
+      .eq("symbol", "AUD/THB")
+      .lte("market_timestamp", oneHourAgo)
+      .order("market_timestamp", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const { data: price4H } = await supabaseAdmin
+      .from("market_prices")
+      .select("rate, market_timestamp")
+      .eq("symbol", "AUD/THB")
+      .lte("market_timestamp", fourHoursAgo)
+      .order("market_timestamp", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const currentRate = Number(latestPrice.rate);
+
+    if (price1H) {
+      change1H =
+        ((currentRate - Number(price1H.rate)) / Number(price1H.rate)) * 100;
+    }
+
+    if (price4H) {
+      change4H =
+        ((currentRate - Number(price4H.rate)) / Number(price4H.rate)) * 100;
+    }
+  }
   return (
     <main className="min-h-screen bg-slate-950 text-white p-8">
       <div className="max-w-5xl mx-auto">
@@ -7,11 +60,49 @@ export default function Home() {
         <div className="grid md:grid-cols-3 gap-4 mt-8">
           <div className="bg-slate-900 rounded-xl p-6">
             <p className="text-slate-400">Current Rate</p>
-            <p className="text-4xl font-bold mt-2">23.7300</p>
+            <p className="text-4xl font-bold mt-2">
+                {latestPrice ? Number(latestPrice.rate).toFixed(4) : "--"}
+            </p>
+            {latestPrice && (
+              <div className="mt-3 text-sm text-slate-400">
+            <p>
+               Last updated:{" "}
+                {new Date(latestPrice.market_timestamp).toLocaleString("en-GB", {
+                  timeZone: "Asia/Bangkok",
+                  day: "2-digit",
+                  month: "2-digit",
+                  year: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  hour12: false,
+                })}
+            </p>
+            
+
+    <p>Source: {latestPrice.source}</p>
+  </div>
+  
+)}
+
 
             <div className="mt-4">
-              <p>1H: <span className="text-green-400">+0.12%</span></p>
-              <p>4H: <span className="text-green-400">+0.28%</span></p>
+              <p>
+  1H:{" "}
+  <span>
+    {change1H !== null
+      ? `${change1H >= 0 ? "+" : ""}${change1H.toFixed(2)}%`
+      : "--"}
+  </span>
+</p>
+
+<p>
+  4H:{" "}
+  <span>
+    {change4H !== null
+      ? `${change4H >= 0 ? "+" : ""}${change4H.toFixed(2)}%`
+      : "--"}
+  </span>
+</p>
             </div>
           </div>
 
