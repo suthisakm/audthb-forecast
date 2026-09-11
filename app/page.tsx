@@ -1,5 +1,6 @@
 import { supabaseAdmin } from "@/lib/supabase-server";
-
+export const dynamic = "force-dynamic";
+export const revalidate = 0;
 export default async function Home() {
   const { data: latestPrice } = await supabaseAdmin
     .from("market_prices")
