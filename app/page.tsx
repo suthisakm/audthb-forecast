@@ -1,6 +1,9 @@
 import { supabaseAdmin } from "@/lib/supabase-server";
+import RefreshControls from "@/components/RefreshControls";
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
+
 export default async function Home() {
   const { data: latestPrice } = await supabaseAdmin
     .from("market_prices")
@@ -331,7 +334,13 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white p-8">
       <div className="max-w-5xl mx-auto">
-        <h1 className="text-3xl font-bold">AUD/THB Forecast Dashboard</h1>
+        <div className="flex items-center justify-between gap-4">
+  <h1 className="text-3xl font-bold">
+    AUD/THB Forecast Dashboard
+  </h1>
+
+  <RefreshControls />
+</div>
 
         <div className="grid md:grid-cols-3 gap-4 mt-8">
           <div className="bg-slate-900 rounded-xl p-6">
