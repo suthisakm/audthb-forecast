@@ -8,39 +8,47 @@ export default async function Home() {
     .order("market_timestamp", { ascending: false })
     .limit(1)
     .single();
-      let change1H: number | null = null;
+        let change1H: number | null = null;
   let change4H: number | null = null;
 
   if (latestPrice) {
-    const latestTime = new Date(latestPrice.market_timestamp);
-
-    const oneHourAgo = new Date(
-      latestTime.getTime() - 60 * 60 * 1000
-    ).toISOString();
-
-    const fourHoursAgo = new Date(
-      latestTime.getTime() - 4 * 60 * 60 * 1000
-    ).toISOString();
-
-    const { data: price1H } = await supabaseAdmin
-      .from("market_prices")
-      .select("rate, market_timestamp")
-      .eq("symbol", "AUD/THB")
-      .lte("market_timestamp", oneHourAgo)
-      .order("market_timestamp", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    const { data: price4H } = await supabaseAdmin
-      .from("market_prices")
-      .select("rate, market_timestamp")
-      .eq("symbol", "AUD/THB")
-      .lte("market_timestamp", fourHoursAgo)
-      .order("market_timestamp", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
     const currentRate = Number(latestPrice.rate);
+    const latestTime = new Date(latestPrice.market_timestamp).getTime();
+
+    async function getClosestPrice(targetTime: number) {
+      const tolerance = 20 * 60 * 1000; // ยอมให้คลาดเคลื่อน 20 นาที
+
+      const startTime = new Date(targetTime - tolerance).toISOString();
+      const endTime = new Date(targetTime + tolerance).toISOString();
+
+      const { data } = await supabaseAdmin
+        .from("market_prices")
+        .select("rate, market_timestamp")
+        .eq("symbol", "AUD/THB")
+        .gte("market_timestamp", startTime)
+        .lte("market_timestamp", endTime);
+
+      if (!data || data.length === 0) {
+        return null;
+      }
+
+      return data.reduce((closest, item) => {
+        const itemDiff = Math.abs(
+          new Date(item.market_timestamp).getTime() - targetTime
+        );
+
+        const closestDiff = Math.abs(
+          new Date(closest.market_timestamp).getTime() - targetTime
+        );
+
+        return itemDiff < closestDiff ? item : closest;
+      });
+    }
+
+    const [price1H, price4H] = await Promise.all([
+      getClosestPrice(latestTime - 60 * 60 * 1000),
+      getClosestPrice(latestTime - 4 * 60 * 60 * 1000),
+    ]);
 
     if (price1H) {
       change1H =
@@ -52,6 +60,43 @@ export default async function Home() {
         ((currentRate - Number(price4H.rate)) / Number(price4H.rate)) * 100;
     }
   }
+    let intradayLow: number | null = null;
+  let intradayHigh: number | null = null;
+
+  if (latestPrice) {
+    const latestTime = new Date(latestPrice.market_timestamp).getTime();
+
+    // Bangkok = UTC+7
+    const bangkokOffset = 7 * 60 * 60 * 1000;
+    const bangkokTime = new Date(latestTime + bangkokOffset);
+
+    const startOfDay =
+      Date.UTC(
+        bangkokTime.getUTCFullYear(),
+        bangkokTime.getUTCMonth(),
+        bangkokTime.getUTCDate(),
+        0,
+        0,
+        0
+      ) - bangkokOffset;
+
+    const endOfDay = startOfDay + 24 * 60 * 60 * 1000;
+
+    const { data: todayPrices } = await supabaseAdmin
+      .from("market_prices")
+      .select("rate")
+      .eq("symbol", "AUD/THB")
+      .gte("market_timestamp", new Date(startOfDay).toISOString())
+      .lt("market_timestamp", new Date(endOfDay).toISOString());
+
+    if (todayPrices && todayPrices.length > 0) {
+      const rates = todayPrices.map((item) => Number(item.rate));
+
+      intradayLow = Math.min(...rates);
+      intradayHigh = Math.max(...rates);
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-950 text-white p-8">
       <div className="max-w-5xl mx-auto">
@@ -102,6 +147,13 @@ export default async function Home() {
       ? `${change4H >= 0 ? "+" : ""}${change4H.toFixed(2)}%`
       : "--"}
   </span>
+</p>
+
+<p className="mt-2">
+  Intraday:{" "}
+  {intradayLow !== null && intradayHigh !== null
+    ? `${intradayLow.toFixed(4)} – ${intradayHigh.toFixed(4)}`
+    : "--"}
 </p>
             </div>
           </div>
