@@ -1,6 +1,18 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase-server";
 
+export type FreshnessStatus =
+  | "FRESH"
+  | "DELAYED"
+  | "STALE"
+  | "MARKET_CLOSED"
+  | "MISSING";
+
+export type FreshnessInfo = {
+  status: FreshnessStatus;
+  ageMinutes: number | null;
+};
+
 export type MarketRow = {
   rate: number | string;
   market_timestamp: string;
@@ -23,6 +35,11 @@ export type DashboardData = {
   latestDirect: MarketRow | null;
   latestAudUsd: MarketRow | null;
   latestUsdThb: MarketRow | null;
+  
+  latestPriceFreshness: FreshnessInfo;
+  directFreshness: FreshnessInfo;
+  audUsdFreshness: FreshnessInfo;
+  usdThbFreshness: FreshnessInfo;
 
   change1H: number | null;
   change4H: number | null;
@@ -142,6 +159,66 @@ function getCrossScore(change: number) {
   return 0;
 }
 
+function getFreshness(
+  row: MarketRow | null
+): FreshnessInfo {
+  if (!row) {
+    return {
+      status: "MISSING",
+      ageMinutes: null,
+    };
+  }
+
+  const now = new Date();
+
+  const bangkokDay = new Intl.DateTimeFormat(
+    "en-US",
+    {
+      timeZone: "Asia/Bangkok",
+      weekday: "short",
+    }
+  ).format(now);
+
+  const ageMinutes = Math.max(
+    0,
+    (now.getTime() -
+      new Date(
+        row.market_timestamp
+      ).getTime()) /
+      (60 * 1000)
+  );
+
+  // V1: เสาร์-อาทิตย์ถือว่าตลาด FX ปิด
+  if (
+    bangkokDay === "Sat" ||
+    bangkokDay === "Sun"
+  ) {
+    return {
+      status: "MARKET_CLOSED",
+      ageMinutes,
+    };
+  }
+
+  if (ageMinutes <= 20) {
+    return {
+      status: "FRESH",
+      ageMinutes,
+    };
+  }
+
+  if (ageMinutes <= 40) {
+    return {
+      status: "DELAYED",
+      ageMinutes,
+    };
+  }
+
+  return {
+    status: "STALE",
+    ageMinutes,
+  };
+}
+
 export async function getDashboardData(): Promise<DashboardData> {
   const [
     latestPriceResult,
@@ -209,6 +286,18 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   const latestUsdThb =
     latestUsdThbResult.data as MarketRow | null;
+    
+  const latestPriceFreshness =
+    getFreshness(latestPrice);
+
+  const directFreshness =
+    getFreshness(latestDirect);
+
+  const audUsdFreshness =
+    getFreshness(latestAudUsd);
+
+  const usdThbFreshness =
+    getFreshness(latestUsdThb);
 
   // =====================================================
   // DIRECT + CROSS
@@ -425,10 +514,12 @@ export async function getDashboardData(): Promise<DashboardData> {
     | null = null;
 
   if (
-    crossStatus === "GOOD" &&
-    latestAudUsd &&
-    latestUsdThb
-  ) {
+  crossStatus === "GOOD" &&
+  audUsdFreshness.status === "FRESH" &&
+  usdThbFreshness.status === "FRESH" &&
+  latestAudUsd &&
+  latestUsdThb
+) {
     const referenceTime = Math.min(
       new Date(
         latestAudUsd.market_timestamp
@@ -597,6 +688,11 @@ export async function getDashboardData(): Promise<DashboardData> {
     latestDirect,
     latestAudUsd,
     latestUsdThb,
+
+    latestPriceFreshness,
+    directFreshness,
+    audUsdFreshness,
+    usdThbFreshness,
 
     change1H,
     change4H,

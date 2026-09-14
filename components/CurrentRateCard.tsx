@@ -13,9 +13,7 @@ export default function CurrentRateCard({
 
       <p className="text-4xl font-bold mt-2">
         {data.latestPrice
-          ? Number(
-              data.latestPrice.rate
-            ).toFixed(4)
+          ? Number(data.latestPrice.rate).toFixed(4)
           : "--"}
       </p>
 
@@ -37,9 +35,33 @@ export default function CurrentRateCard({
           </p>
 
           <p>
-            Source:{" "}
-            {data.latestPrice.source}
+            Source: {data.latestPrice.source}
           </p>
+
+          <p>
+            Status:{" "}
+            <span
+              className={
+                data.latestPriceFreshness.status === "FRESH"
+                  ? "text-green-400"
+                  : data.latestPriceFreshness.status === "DELAYED"
+                    ? "text-yellow-400"
+                    : data.latestPriceFreshness.status === "MARKET_CLOSED"
+                      ? "text-slate-400"
+                      : "text-red-400"
+              }
+            >
+              {data.latestPriceFreshness.status}
+            </span>
+          </p>
+
+          {data.latestPriceFreshness.ageMinutes !== null &&
+            data.latestPriceFreshness.status !== "MARKET_CLOSED" && (
+              <p>
+                Data age:{" "}
+                {data.latestPriceFreshness.ageMinutes.toFixed(0)} min
+              </p>
+            )}
         </div>
       )}
 

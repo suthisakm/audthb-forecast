@@ -1,8 +1,9 @@
-import type { DashboardData } from "@/lib/dashboard-data";
+import type {
+  DashboardData,
+  FreshnessInfo,
+} from "@/lib/dashboard-data";
 
-function formatTime(
-  timestamp: string
-) {
+function formatTime(timestamp: string) {
   return new Date(
     timestamp
   ).toLocaleString("en-GB", {
@@ -11,6 +12,46 @@ function formatTime(
     minute: "2-digit",
     hour12: false,
   });
+}
+
+function FreshnessBadge({
+  freshness,
+}: {
+  freshness: FreshnessInfo;
+}) {
+  const styles = {
+    FRESH: "text-green-400",
+    DELAYED: "text-yellow-400",
+    STALE: "text-red-400",
+    MARKET_CLOSED: "text-slate-400",
+    MISSING: "text-red-400",
+  };
+
+  const labels = {
+    FRESH: "LIVE",
+    DELAYED: "DELAYED",
+    STALE: "STALE",
+    MARKET_CLOSED: "MARKET CLOSED",
+    MISSING: "NO DATA",
+  };
+
+  return (
+    <div className="mt-2">
+      <p
+        className={`text-xs font-semibold ${styles[freshness.status]}`}
+      >
+        {labels[freshness.status]}
+      </p>
+
+      {freshness.ageMinutes !== null &&
+        freshness.status !==
+          "MARKET_CLOSED" && (
+          <p className="text-xs text-slate-500">
+            {freshness.ageMinutes.toFixed(0)} min ago
+          </p>
+        )}
+    </div>
+  );
 }
 
 export default function MarketRates({
@@ -25,6 +66,7 @@ export default function MarketRates({
       </h2>
 
       <div className="grid md:grid-cols-4 gap-6 mt-5">
+        {/* AUD/THB DIRECT */}
         <div>
           <p className="text-slate-400 text-sm">
             AUD/THB Direct
@@ -39,13 +81,19 @@ export default function MarketRates({
           {data.latestDirect && (
             <p className="text-xs text-slate-500 mt-2">
               {formatTime(
-                data.latestDirect
-                  .market_timestamp
+                data.latestDirect.market_timestamp
               )}
             </p>
           )}
+
+          <FreshnessBadge
+            freshness={
+              data.directFreshness
+            }
+          />
         </div>
 
+        {/* AUD/THB CROSS */}
         <div>
           <p className="text-slate-400 text-sm">
             AUD/THB Cross
@@ -58,11 +106,10 @@ export default function MarketRates({
           </p>
 
           <p className="text-xs mt-2">
-            Status:{" "}
+            Cross Status:{" "}
             <span
               className={
-                data.crossStatus ===
-                "GOOD"
+                data.crossStatus === "GOOD"
                   ? "text-green-400"
                   : data.crossStatus ===
                       "STALE"
@@ -77,7 +124,7 @@ export default function MarketRates({
           {data.crossTimeGapMinutes !==
             null && (
             <p className="text-xs text-slate-500">
-              Time gap:{" "}
+              Source gap:{" "}
               {data.crossTimeGapMinutes.toFixed(
                 1
               )}{" "}
@@ -86,6 +133,7 @@ export default function MarketRates({
           )}
         </div>
 
+        {/* AUD/USD */}
         <div>
           <p className="text-slate-400 text-sm">
             AUD/USD
@@ -107,8 +155,15 @@ export default function MarketRates({
               )}
             </p>
           )}
+
+          <FreshnessBadge
+            freshness={
+              data.audUsdFreshness
+            }
+          />
         </div>
 
+        {/* USD/THB */}
         <div>
           <p className="text-slate-400 text-sm">
             USD/THB
@@ -130,6 +185,12 @@ export default function MarketRates({
               )}
             </p>
           )}
+
+          <FreshnessBadge
+            freshness={
+              data.usdThbFreshness
+            }
+          />
         </div>
       </div>
 
@@ -145,6 +206,22 @@ export default function MarketRates({
             : "--"}
         </p>
       </div>
+
+      {(data.audUsdFreshness.status !==
+        "FRESH" ||
+        data.usdThbFreshness.status !==
+          "FRESH") &&
+        data.audUsdFreshness.status !==
+          "MARKET_CLOSED" && (
+          <div className="mt-4 rounded-lg bg-yellow-950/30 border border-yellow-900 p-3">
+            <p className="text-sm text-yellow-400">
+              ⚠ Cross Currency is not
+              being used in FX Score
+              because source data is not
+              fresh.
+            </p>
+          </div>
+        )}
     </div>
   );
 }
