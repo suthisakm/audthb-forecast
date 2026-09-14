@@ -4,12 +4,15 @@ import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import DataHealth from "@/components/DataHealth";
 
-import { getDashboardData } from "@/lib/dashboard-data";
+import {
+  getDashboardData,
+} from "@/lib/dashboard-data";
 
 export const dynamic =
   "force-dynamic";
 
-export const revalidate = 0;
+export const revalidate =
+  0;
 
 function scoreColor(
   score: number | null
@@ -35,8 +38,6 @@ export default async function Home() {
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
-      {/* Auto refresh every 60 sec
-          but no button / no text */}
       <RefreshControls />
 
       <div className="max-w-7xl mx-auto px-4 py-8">
@@ -61,8 +62,6 @@ export default async function Home() {
         {/* TOP CARDS */}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-          {/* CURRENT RATE */}
-
           <CurrentRateCard
             data={data}
           />
@@ -79,10 +78,10 @@ export default async function Home() {
             </p>
 
             <p className="text-sm text-slate-500 mt-3">
-              1H / 4H forecast range
-              จะเปิดหลัง Commodity,
-              Risk และ Macro factors
-              พร้อม
+              จะเปิด Forecast 1H / 4H
+              หลัง Macro และ Risk
+              factors พร้อม และผ่านการ
+              calibrate / backtest
             </p>
           </div>
 
@@ -115,21 +114,28 @@ export default async function Home() {
 
             <div className="mt-4 pt-4 border-t border-slate-800">
               <p className="text-sm text-slate-400">
-                Core Coverage
+                Model Coverage
               </p>
 
               <p className="text-lg font-semibold">
                 {data.availableCoreWeight.toFixed(
                   1
                 )}
-                /75
+                /85
               </p>
 
               <p className="text-xs text-slate-500 mt-1">
-                Current model includes
-                Price, Cross Currency,
-                Relative Market and
+                Active factors:
+                Price, Cross,
+                Relative Market,
+                Commodity and
                 Mean Reversion.
+              </p>
+
+              <p className="text-xs text-slate-600 mt-1">
+                Full model target:
+                100 after Macro
+                and Risk.
               </p>
             </div>
           </div>
@@ -147,7 +153,7 @@ export default async function Home() {
           data={data}
         />
 
-        {/* SOURCE INFO */}
+        {/* SOURCES */}
 
         <div className="bg-slate-900 rounded-xl p-6 mt-4 mb-8">
           <h2 className="text-xl font-semibold">
@@ -158,6 +164,18 @@ export default async function Home() {
             <p>
               FX Market Data:
               Twelve Data
+            </p>
+
+            <p>
+              AUD/THB Cross:
+              AUD/USD × USD/THB
+              using matched-time data
+            </p>
+
+            <p>
+              Relative Asian FX:
+              USD/CNH and USD/SGD
+              via Twelve Data
             </p>
 
             <p>
@@ -172,9 +190,18 @@ export default async function Home() {
             </p>
 
             <p>
-              AUD/THB Cross:
-              AUD/USD × USD/THB
-              using matched-time data
+              Brent Live:
+              OilPriceAPI
+            </p>
+
+            <p>
+              Brent Historical Reference:
+              EIA
+            </p>
+
+            <p>
+              Gold:
+              Gold-API
             </p>
           </div>
         </div>

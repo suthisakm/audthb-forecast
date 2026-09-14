@@ -40,9 +40,12 @@ function formatBps(
 }
 
 function confidenceClass(
-  confidence: YieldConfidence
+  confidence:
+    YieldConfidence
 ) {
-  switch (confidence) {
+  switch (
+    confidence
+  ) {
     case "HIGH":
       return "text-green-400";
 
@@ -58,6 +61,24 @@ function confidenceClass(
   }
 }
 
+function freshnessClass(
+  status: string
+) {
+  if (
+    status === "FRESH"
+  ) {
+    return "text-green-400";
+  }
+
+  if (
+    status === "DELAYED"
+  ) {
+    return "text-yellow-400";
+  }
+
+  return "text-red-400";
+}
+
 export default function ScoreBreakdown({
   data,
 }: {
@@ -69,9 +90,11 @@ export default function ScoreBreakdown({
         Score Breakdown
       </h2>
 
-      <div className="mt-4 space-y-5">
+      <div className="mt-4 space-y-6">
 
-        {/* PRICE / MOMENTUM */}
+        {/* ===============================================
+            PRICE
+        =============================================== */}
 
         <div>
           <p>
@@ -98,7 +121,9 @@ export default function ScoreBreakdown({
           </p>
         </div>
 
-        {/* CROSS CURRENCY */}
+        {/* ===============================================
+            CROSS
+        =============================================== */}
 
         <div>
           <p>
@@ -122,13 +147,15 @@ export default function ScoreBreakdown({
           {data.crossStatus !==
             "GOOD" && (
             <p className="text-xs text-yellow-400 mt-1">
-              Cross excluded from score:{" "}
+              Cross excluded:{" "}
               {data.crossStatus}
             </p>
           )}
         </div>
 
-        {/* RELATIVE MARKET */}
+        {/* ===============================================
+            RELATIVE MARKET
+        =============================================== */}
 
         <div>
           <p>
@@ -138,8 +165,8 @@ export default function ScoreBreakdown({
             )}
           </p>
 
-          <p className="text-sm text-slate-500 mt-1">
-            Effective Coverage:{" "}
+          <p className="text-sm text-slate-500">
+            Coverage:{" "}
             {data.relativeMarketCoverage.toFixed(
               1
             )}
@@ -180,24 +207,22 @@ export default function ScoreBreakdown({
             </p>
 
             <p className="text-xs text-slate-500">
-              Approx. 1W Change:{" "}
+              1W Change:{" "}
               {formatBps(
                 data.yieldSpreadChange1WBps
               )}
             </p>
 
             <p className="text-xs text-slate-500">
-              Max Relative Weight: 50%
-              {" | "}
-              Effective:{" "}
+              Relative Weight:{" "}
               {data.yieldEffectiveWeight.toFixed(
                 1
               )}
-              %
+              /50
             </p>
 
             <p className="text-xs mt-1">
-              Yield Confidence:{" "}
+              Confidence:{" "}
               <span
                 className={confidenceClass(
                   data.yieldConfidence
@@ -214,7 +239,7 @@ export default function ScoreBreakdown({
                 ? `${data.yieldDataAgeDays} days`
                 : "--"}
               {" | "}
-              AU/US date gap:{" "}
+              Date gap:{" "}
               {data.yieldDataGapDays !==
               null
                 ? `${data.yieldDataGapDays} days`
@@ -222,7 +247,7 @@ export default function ScoreBreakdown({
             </p>
           </div>
 
-          {/* USD/CNH */}
+          {/* CNH */}
 
           <div className="mt-3 pl-3 border-l border-slate-700">
             <p className="text-sm">
@@ -240,14 +265,9 @@ export default function ScoreBreakdown({
               {" | "}
               Relative Weight: 35%
             </p>
-
-            <p className="text-xs text-slate-600">
-              Data status:{" "}
-              {data.usdCnhFreshness.status}
-            </p>
           </div>
 
-          {/* USD/SGD */}
+          {/* SGD */}
 
           <div className="mt-3 pl-3 border-l border-slate-700">
             <p className="text-sm">
@@ -265,22 +285,138 @@ export default function ScoreBreakdown({
               {" | "}
               Relative Weight: 15%
             </p>
+          </div>
+        </div>
 
-            <p className="text-xs text-slate-600">
-              Data status:{" "}
-              {data.usdSgdFreshness.status}
+        {/* ===============================================
+            COMMODITY
+        =============================================== */}
+
+        <div>
+          <p>
+            Commodity:{" "}
+            {formatScore(
+              data.commodityScore
+            )}
+          </p>
+
+          <p className="text-sm text-slate-500">
+            Coverage:{" "}
+            {data.commodityCoverage.toFixed(
+              1
+            )}
+            /100
+          </p>
+
+          <p className="text-sm text-slate-500">
+            FX Score Weight:{" "}
+            {data.commodityEffectiveFxWeight.toFixed(
+              1
+            )}
+            /10
+          </p>
+
+          {/* BRENT */}
+
+          <div className="mt-3 pl-3 border-l border-slate-700">
+            <p className="text-sm">
+              Brent Live:{" "}
+              {formatScore(
+                data.brentLiveScore
+              )}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              Price:{" "}
+              {data.brentLivePrice !==
+              null
+                ? `$${data.brentLivePrice.toFixed(
+                    2
+                  )}`
+                : "--"}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              1H Change:{" "}
+              {formatChange(
+                data.brentLiveChange1H
+              )}
+              {" | "}
+              Commodity Weight: 30%
+            </p>
+
+            <p className="text-xs mt-1">
+              Status:{" "}
+              <span
+                className={freshnessClass(
+                  data.brentLiveFreshness
+                )}
+              >
+                {data.brentLiveFreshness}
+              </span>
             </p>
           </div>
 
-          <p className="text-xs text-slate-500 mt-3">
-            Yield spread widening =
-            positive AUD signal.
-            USD/CNH or USD/SGD rising =
-            negative AUD signal.
-          </p>
+          {/* GOLD */}
+
+          <div className="mt-3 pl-3 border-l border-slate-700">
+            <p className="text-sm">
+              Gold
+            </p>
+
+            <p className="text-xs text-slate-500">
+              Price:{" "}
+              {data.goldPrice !==
+              null
+                ? `$${data.goldPrice.toFixed(
+                    2
+                  )}`
+                : "--"}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              1H Change:{" "}
+              {formatChange(
+                data.goldChange1H
+              )}
+            </p>
+
+            <p className="text-xs mt-1">
+              Status:{" "}
+              <span
+                className={freshnessClass(
+                  data.goldFreshness
+                )}
+              >
+                {data.goldFreshness}
+              </span>
+            </p>
+
+            <p className="text-xs text-yellow-400 mt-1">
+              Monitor Only — not scored yet
+            </p>
+          </div>
+
+          {/* IRON ORE */}
+
+          <div className="mt-3 pl-3 border-l border-slate-700">
+            <p className="text-sm">
+              Iron Ore
+            </p>
+
+            <p className="text-xs text-slate-500">
+              Pending data source
+            </p>
+
+            <p className="text-xs text-slate-600">
+              Planned Commodity Weight: 50%
+            </p>
+          </div>
         </div>
 
-        {/* MEAN REVERSION */}
+        {/* ===============================================
+            MEAN REVERSION
+        =============================================== */}
 
         <div>
           <p>
@@ -307,22 +443,13 @@ export default function ScoreBreakdown({
 
         <hr className="border-slate-800" />
 
+        {/* ===============================================
+            PENDING
+        =============================================== */}
+
         <div>
           <p>
             Macro / Policy:{" "}
-            <span className="text-slate-500">
-              Pending
-            </span>
-          </p>
-
-          <p className="text-xs text-slate-600">
-            Planned FX Weight: 10%
-          </p>
-        </div>
-
-        <div>
-          <p>
-            Commodity:{" "}
             <span className="text-slate-500">
               Pending
             </span>

@@ -1,20 +1,72 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
 
+// =========================================================
+// TYPES
+// =========================================================
+
 type GoldApiResponse = {
-  name?: string;
-  symbol?: string;
   price?: number;
-  currency?: string;
   updatedAt?: string;
+};
+
+type BrentBenchmark = {
+  id?: string;
+  name?: string;
+  instrument_type?: string;
+  quote_type?: string;
+  roll_method?: string;
+  observed_at?: string;
+  source_tier?: string;
+};
+
+type BrentPrice = {
+  price?: number;
+  code?: string;
+
+  as_of?: string;
+  created_at?: string;
+  collected_at?: string;
+
+  stale?: boolean;
+  synthetic?: boolean;
+
+  source?: string;
+
+  benchmark?: BrentBenchmark;
+};
+
+type OilPriceHistoryResponse = {
+  status?: string;
+
+  data?: {
+    prices?: BrentPrice[];
+
+    metadata?: {
+      pagination?: {
+        page?: number;
+        per_page?: number;
+        total_count?: number;
+        total_pages?: number;
+        has_next?: boolean;
+      };
+    };
+  };
 };
 
 type CommodityResult = {
   symbol: string;
+
   price?: number;
+
   marketTimestamp?: string;
+
   source: string;
+
   saved: boolean;
+
+  observationsSaved?: number;
+
   error: string | null;
 };
 
@@ -43,7 +95,8 @@ async function fetchGold(): Promise<CommodityResult> {
     const data =
       (await response.json()) as GoldApiResponse;
 
-    const price = Number(data.price);
+    const price =
+      Number(data.price);
 
     if (!Number.isFinite(price)) {
       return {
@@ -54,8 +107,6 @@ async function fetchGold(): Promise<CommodityResult> {
       };
     }
 
-    // ใช้ timestamp จาก provider ถ้ามี
-    // ถ้าไม่มีให้ใช้เวลาที่ระบบดึง
     let marketTimestamp =
       new Date().toISOString();
 
@@ -96,6 +147,8 @@ async function fetchGold(): Promise<CommodityResult> {
       marketTimestamp,
       source: "gold-api.com",
       saved: !error,
+      observationsSaved:
+        error ? 0 : 1,
       error:
         error?.message ?? null,
     };
@@ -104,10 +157,317 @@ async function fetchGold(): Promise<CommodityResult> {
       symbol: "GOLD_XAUUSD",
       source: "gold-api.com",
       saved: false,
+
       error:
         error instanceof Error
           ? error.message
           : "Unknown gold error",
+    };
+  }
+}
+
+// =========================================================
+// BRENT HISTORY
+//
+// Important:
+// OilPriceAPI past_day contains multiple benchmark streams.
+//
+// We only use:
+//
+// publisher_managed_front_month
+// publisher_primary
+// stale = false
+// synthetic = false
+//
+// This keeps the series internally consistent.
+// =========================================================
+
+async function fetchBrentHistory(
+  apiKey: string
+): Promise<CommodityResult> {
+  try {
+    const response = await fetch(
+      "https://api.oilpriceapi.com/v1/prices/past_day?by_code=BRENT_CRUDE_USD",
+      {
+        cache: "no-store",
+
+        headers: {
+          Authorization:
+            `Token ${apiKey}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      const body =
+        await response.text();
+
+      return {
+        symbol:
+          "BRENT_LIVE_USD",
+
+        source:
+          "OilPriceAPI publisher_primary",
+
+        saved: false,
+
+        error:
+          `OilPriceAPI HTTP ${response.status}: ${body}`,
+      };
+    }
+
+    const payload =
+      (await response.json()) as OilPriceHistoryResponse;
+
+    if (
+      payload.status !==
+      "success"
+    ) {
+      return {
+        symbol:
+          "BRENT_LIVE_USD",
+
+        source:
+          "OilPriceAPI publisher_primary",
+
+        saved: false,
+
+        error:
+          "OilPriceAPI returned non-success status",
+      };
+    }
+
+    const rawPrices =
+      payload.data?.prices ??
+      [];
+
+    // =====================================================
+    // CLEAN STREAM
+    // =====================================================
+
+    const cleanPrices =
+      rawPrices
+        .filter((item) => {
+          return (
+            item.code ===
+              "BRENT_CRUDE_USD" &&
+
+            item.synthetic ===
+              false &&
+
+            item.stale ===
+              false &&
+
+            item.benchmark
+              ?.roll_method ===
+              "publisher_managed_front_month" &&
+
+            item.benchmark
+              ?.source_tier ===
+              "publisher_primary" &&
+
+            Number.isFinite(
+              Number(
+                item.price
+              )
+            )
+          );
+        })
+
+        .map((item) => {
+          const rawTimestamp =
+            item.as_of ??
+            item.benchmark
+              ?.observed_at ??
+            item.created_at ??
+            item.collected_at;
+
+          if (!rawTimestamp) {
+            return null;
+          }
+
+          const timestamp =
+            new Date(
+              rawTimestamp
+            );
+
+          if (
+            Number.isNaN(
+              timestamp.getTime()
+            )
+          ) {
+            return null;
+          }
+
+          return {
+            price:
+              Number(
+                item.price
+              ),
+
+            marketTimestamp:
+              timestamp.toISOString(),
+          };
+        })
+
+        .filter(
+          (
+            item
+          ): item is {
+            price: number;
+            marketTimestamp: string;
+          } =>
+            item !== null
+        );
+
+    if (
+      cleanPrices.length ===
+      0
+    ) {
+      return {
+        symbol:
+          "BRENT_LIVE_USD",
+
+        source:
+          "OilPriceAPI publisher_primary",
+
+        saved: false,
+
+        error:
+          "No clean Brent observations found",
+      };
+    }
+
+    // =====================================================
+    // REMOVE DUPLICATE TIMESTAMPS
+    // =====================================================
+
+    const uniqueByTimestamp =
+      new Map<
+        string,
+        {
+          price: number;
+          marketTimestamp: string;
+        }
+      >();
+
+    for (
+      const item of cleanPrices
+    ) {
+      uniqueByTimestamp.set(
+        item.marketTimestamp,
+        item
+      );
+    }
+
+    const uniquePrices =
+      Array.from(
+        uniqueByTimestamp.values()
+      );
+
+    // =====================================================
+    // SORT OLDEST → NEWEST
+    // =====================================================
+
+    uniquePrices.sort(
+      (a, b) =>
+        new Date(
+          a.marketTimestamp
+        ).getTime() -
+        new Date(
+          b.marketTimestamp
+        ).getTime()
+    );
+
+    // =====================================================
+    // SAVE HISTORY
+    // =====================================================
+
+    const rows =
+      uniquePrices.map(
+        (item) => ({
+          symbol:
+            "BRENT_LIVE_USD",
+
+          price:
+            item.price,
+
+          market_timestamp:
+            item.marketTimestamp,
+
+          source:
+            "OilPriceAPI publisher_primary",
+        })
+      );
+
+    const { error } =
+      await supabaseAdmin
+        .from(
+          "commodity_prices"
+        )
+        .upsert(
+          rows,
+          {
+            onConflict:
+              "symbol,market_timestamp",
+          }
+        );
+
+    if (error) {
+      return {
+        symbol:
+          "BRENT_LIVE_USD",
+
+        source:
+          "OilPriceAPI publisher_primary",
+
+        saved: false,
+
+        error:
+          error.message,
+      };
+    }
+
+    const latest =
+      uniquePrices[
+        uniquePrices.length -
+          1
+      ];
+
+    return {
+      symbol:
+        "BRENT_LIVE_USD",
+
+      price:
+        latest.price,
+
+      marketTimestamp:
+        latest.marketTimestamp,
+
+      source:
+        "OilPriceAPI publisher_primary",
+
+      saved: true,
+
+      observationsSaved:
+        rows.length,
+
+      error: null,
+    };
+  } catch (error) {
+    return {
+      symbol:
+        "BRENT_LIVE_USD",
+
+      source:
+        "OilPriceAPI publisher_primary",
+
+      saved: false,
+
+      error:
+        error instanceof Error
+          ? error.message
+          : "Unknown Brent history error",
     };
   }
 }
@@ -119,10 +479,6 @@ async function fetchGold(): Promise<CommodityResult> {
 export async function GET(
   request: Request
 ) {
-  // -------------------------------------------------------
-  // AUTH
-  // -------------------------------------------------------
-
   const authHeader =
     request.headers.get(
       "authorization"
@@ -134,10 +490,26 @@ export async function GET(
   ) {
     return NextResponse.json(
       {
-        error: "Unauthorized",
+        error:
+          "Unauthorized",
       },
       {
         status: 401,
+      }
+    );
+  }
+
+  const oilPriceApiKey =
+    process.env.OILPRICEAPI_KEY;
+
+  if (!oilPriceApiKey) {
+    return NextResponse.json(
+      {
+        error:
+          "Missing OILPRICEAPI_KEY",
+      },
+      {
+        status: 500,
       }
     );
   }
@@ -147,11 +519,9 @@ export async function GET(
       await Promise.all([
         fetchGold(),
 
-        // Brent จะเพิ่มตรงนี้
-        // เมื่อ EIA พร้อม
-
-        // Iron Ore จะเพิ่มตรงนี้
-        // หลังเลือก commercial-safe source
+        fetchBrentHistory(
+          oilPriceApiKey
+        ),
       ]);
 
     const failed =
@@ -161,14 +531,15 @@ export async function GET(
       );
 
     return NextResponse.json({
-      group: "commodity",
+      group:
+        "commodity-live",
 
       updated:
         failed.length === 0,
 
       coverage: {
         gold: true,
-        brent: false,
+        brentLive: true,
         ironOre: false,
       },
 
