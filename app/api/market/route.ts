@@ -25,6 +25,7 @@ export async function GET(request: Request) {
       "AUD/THB",
       "AUD/USD",
       "USD/THB",
+      "USD/CNH",
     ];
 
     const results = [];
