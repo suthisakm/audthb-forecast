@@ -35,7 +35,7 @@ export type DashboardData = {
   latestDirect: MarketRow | null;
   latestAudUsd: MarketRow | null;
   latestUsdThb: MarketRow | null;
-  
+
   latestPriceFreshness: FreshnessInfo;
   directFreshness: FreshnessInfo;
   audUsdFreshness: FreshnessInfo;
@@ -278,7 +278,7 @@ export async function getDashboardData(): Promise<DashboardData> {
   const latestPrice =
     latestPriceResult.data as MarketRow | null;
 
-  const latestDirect =
+  const rawLatestDirect =
     latestDirectResult.data as MarketRow | null;
 
   const latestAudUsd =
@@ -286,28 +286,31 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   const latestUsdThb =
     latestUsdThbResult.data as MarketRow | null;
+
+  // ถ้า AUD/THB_DIRECT ยังไม่มี
+  // ให้ AUD/THB เป็น Direct หลักแทน
+  const latestDirect =
+    rawLatestDirect ?? latestPrice;
     
   const latestPriceFreshness =
-    getFreshness(latestPrice);
+  getFreshness(latestPrice);
 
-  const directFreshness =
-    getFreshness(latestDirect);
+const directFreshness =
+  getFreshness(latestDirect);
 
-  const audUsdFreshness =
-    getFreshness(latestAudUsd);
+const audUsdFreshness =
+  getFreshness(latestAudUsd);
 
-  const usdThbFreshness =
-    getFreshness(latestUsdThb);
+const usdThbFreshness =
+  getFreshness(latestUsdThb);
 
   // =====================================================
   // DIRECT + CROSS
   // =====================================================
 
   const directRate = latestDirect
-    ? Number(latestDirect.rate)
-    : latestPrice
-      ? Number(latestPrice.rate)
-      : null;
+  ? Number(latestDirect.rate)
+  : null;
 
   let crossRate: number | null = null;
   let crossGap: number | null = null;
