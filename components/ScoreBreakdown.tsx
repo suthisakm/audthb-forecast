@@ -11,7 +11,9 @@ export default function ScoreBreakdown({
         Score Breakdown
       </h2>
 
-      <div className="mt-4 space-y-3">
+      <div className="mt-4 space-y-4">
+        {/* PRICE */}
+
         <div>
           <p>
             Price / Momentum:{" "}
@@ -34,6 +36,8 @@ export default function ScoreBreakdown({
           </p>
         </div>
 
+        {/* CROSS */}
+
         <div>
           <p>
             Cross Currency:{" "}
@@ -54,11 +58,50 @@ export default function ScoreBreakdown({
           {data.crossStatus !==
             "GOOD" && (
             <p className="text-xs text-yellow-400">
-              Cross excluded from score:
-              {` ${data.crossStatus}`}
+              Cross excluded from score:{" "}
+              {data.crossStatus}
             </p>
           )}
         </div>
+
+        {/* RELATIVE MARKET */}
+
+        <div>
+          <p>
+            Relative Market:{" "}
+            {data.relativeMarketScore !==
+            null
+              ? `${data.relativeMarketScore > 0 ? "+" : ""}${data.relativeMarketScore}`
+              : "--"}
+          </p>
+
+          <p className="text-sm text-slate-500">
+            USD/CNH 1H:{" "}
+            {data.usdCnhChange1H !==
+            null
+              ? `${data.usdCnhChange1H >= 0 ? "+" : ""}${data.usdCnhChange1H.toFixed(3)}%`
+              : "--"}
+          </p>
+
+          <p className="text-xs text-slate-500">
+            USD/CNH ↑ = CNH weaker =
+            negative AUD signal
+          </p>
+
+          {data.usdCnhFreshness
+            .status !== "FRESH" && (
+            <p className="text-xs text-yellow-400">
+              USD/CNH excluded because
+              data is{" "}
+              {
+                data.usdCnhFreshness
+                  .status
+              }
+            </p>
+          )}
+        </div>
+
+        {/* MEAN REVERSION */}
 
         <div>
           <p>
@@ -78,13 +121,6 @@ export default function ScoreBreakdown({
         </div>
 
         <hr className="border-slate-800" />
-
-        <p>
-          Relative Market:{" "}
-          <span className="text-slate-500">
-            Pending
-          </span>
-        </p>
 
         <p>
           Macro / Policy:{" "}

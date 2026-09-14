@@ -95,7 +95,7 @@ export default function MarketRates({
         Market Rates
       </h2>
 
-      <div className="grid md:grid-cols-4 gap-6 mt-5">
+      <div className="grid md:grid-cols-5 gap-6 mt-5">
 
         {/* AUD/THB DIRECT */}
 
@@ -168,9 +168,7 @@ export default function MarketRates({
                     : "text-red-400"
               }
             >
-              {
-                data.crossStatus
-              }
+              {data.crossStatus}
             </span>
           </p>
 
@@ -253,9 +251,41 @@ export default function MarketRates({
             }
           />
         </div>
-      </div>
 
-      {/* MATCHED-TIME GAP */}
+        {/* USD/CNH */}
+
+        <div>
+          <p className="text-slate-400 text-sm">
+            USD/CNH
+          </p>
+
+          <p className="text-2xl font-bold mt-1">
+            {data.latestUsdCnh
+              ? Number(
+                  data
+                    .latestUsdCnh
+                    .rate
+                ).toFixed(5)
+              : "--"}
+          </p>
+
+          {data.latestUsdCnh && (
+            <p className="text-xs text-slate-500 mt-2">
+              {formatTime(
+                data
+                  .latestUsdCnh
+                  .market_timestamp
+              )}
+            </p>
+          )}
+
+          <FreshnessBadge
+            freshness={
+              data.usdCnhFreshness
+            }
+          />
+        </div>
+      </div>
 
       <div className="border-t border-slate-800 mt-5 pt-4">
         <p className="text-sm text-slate-400">
@@ -299,29 +329,6 @@ export default function MarketRates({
             </p>
           )}
       </div>
-
-      {/* DATA WARNING */}
-
-      {(data.audUsdFreshness
-        .status !== "FRESH" ||
-        data.usdThbFreshness
-          .status !==
-          "FRESH") &&
-        data.audUsdFreshness
-          .status !==
-          "MARKET_CLOSED" && (
-          <div className="mt-4 rounded-lg bg-yellow-950/30 border border-yellow-900 p-3">
-            <p className="text-sm text-yellow-400">
-              ⚠ Latest Cross
-              source data is not
-              fully fresh. Cross
-              Currency Score only
-              uses matched-time
-              data when status is
-              GOOD.
-            </p>
-          </div>
-        )}
     </div>
   );
 }

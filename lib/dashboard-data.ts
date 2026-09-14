@@ -35,11 +35,13 @@ export type DashboardData = {
   latestDirect: MarketRow | null;
   latestAudUsd: MarketRow | null;
   latestUsdThb: MarketRow | null;
+  latestUsdCnh: MarketRow | null;
 
   latestPriceFreshness: FreshnessInfo;
   directFreshness: FreshnessInfo;
   audUsdFreshness: FreshnessInfo;
   usdThbFreshness: FreshnessInfo;
+  usdCnhFreshness: FreshnessInfo;
 
   change1H: number | null;
   change4H: number | null;
@@ -53,6 +55,9 @@ export type DashboardData = {
 
   crossCurrencyScore: number | null;
   crossCurrencyChange1H: number | null;
+
+  relativeMarketScore: number | null;
+  usdCnhChange1H: number | null;
 
   rangePosition: number | null;
   meanReversionScore: number | null;
@@ -97,9 +102,7 @@ function getFreshness(
   const ageMinutes = Math.max(
     0,
     (now.getTime() -
-      new Date(
-        row.market_timestamp
-      ).getTime()) /
+      new Date(row.market_timestamp).getTime()) /
       (60 * 1000)
   );
 
@@ -134,7 +137,7 @@ function getFreshness(
 }
 
 // =========================================================
-// FIND PRICE CLOSE TO A TARGET TIME
+// FIND PRICE CLOSE TO TIME
 // =========================================================
 
 async function getClosestPrice(
@@ -186,8 +189,7 @@ async function getClosestPrice(
 }
 
 // =========================================================
-// FIND DIRECT AUD/THB CLOSE TO TARGET TIME
-// Prefer AUD/THB_DIRECT, fallback to AUD/THB
+// DIRECT AUD/THB AT TARGET TIME
 // =========================================================
 
 async function getClosestDirectPrice(
@@ -212,7 +214,7 @@ async function getClosestDirectPrice(
 }
 
 // =========================================================
-// FIND LATEST MATCHED AUD/USD + USD/THB PAIR
+// MATCH AUD/USD + USD/THB BY TIME
 // =========================================================
 
 async function getMatchedCrossPair() {
@@ -222,9 +224,7 @@ async function getMatchedCrossPair() {
   ] = await Promise.all([
     supabaseAdmin
       .from("market_prices")
-      .select(
-        "rate, market_timestamp"
-      )
+      .select("rate, market_timestamp")
       .eq("symbol", "AUD/USD")
       .order("market_timestamp", {
         ascending: false,
@@ -233,9 +233,7 @@ async function getMatchedCrossPair() {
 
     supabaseAdmin
       .from("market_prices")
-      .select(
-        "rate, market_timestamp"
-      )
+      .select("rate, market_timestamp")
       .eq("symbol", "USD/THB")
       .order("market_timestamp", {
         ascending: false,
@@ -259,12 +257,9 @@ async function getMatchedCrossPair() {
   const candidates: {
     audRate: number;
     usdThbRate: number;
-
     audTime: number;
     usdThbTime: number;
-
     gapMinutes: number;
-
     matchedTime: number;
   }[] = [];
 
@@ -280,29 +275,17 @@ async function getMatchedCrossPair() {
 
       const gapMinutes =
         Math.abs(
-          audTime -
-            usdThbTime
+          audTime - usdThbTime
         ) /
         (60 * 1000);
 
-      // ไม่จับคู่ถ้าห่างกันเกิน 10 นาที
       if (gapMinutes <= 10) {
         candidates.push({
-          audRate: Number(
-            aud.rate
-          ),
-
-          usdThbRate: Number(
-            thb.rate
-          ),
-
+          audRate: Number(aud.rate),
+          usdThbRate: Number(thb.rate),
           audTime,
           usdThbTime,
-
           gapMinutes,
-
-          // ใช้เวลาที่เก่ากว่าของสอง feed
-          // เพื่อไม่อ้างว่า Cross สดเกินข้อมูลต้นทาง
           matchedTime: Math.min(
             audTime,
             usdThbTime
@@ -312,14 +295,10 @@ async function getMatchedCrossPair() {
     }
   }
 
-  if (
-    candidates.length === 0
-  ) {
+  if (candidates.length === 0) {
     return null;
   }
 
-  // เลือกคู่ที่ใหม่ที่สุดก่อน
-  // ถ้าเวลาเท่ากันเลือก gap ที่น้อยกว่า
   candidates.sort((a, b) => {
     if (
       b.matchedTime !==
@@ -352,17 +331,10 @@ function get1HScore(
   if (change >= 0.1) return 50;
   if (change >= 0.05) return 25;
 
-  if (change <= -0.3)
-    return -100;
-
-  if (change <= -0.2)
-    return -75;
-
-  if (change <= -0.1)
-    return -50;
-
-  if (change <= -0.05)
-    return -25;
+  if (change <= -0.3) return -100;
+  if (change <= -0.2) return -75;
+  if (change <= -0.1) return -50;
+  if (change <= -0.05) return -25;
 
   return 0;
 }
@@ -375,17 +347,10 @@ function get4HScore(
   if (change >= 0.2) return 50;
   if (change >= 0.1) return 25;
 
-  if (change <= -0.7)
-    return -100;
-
-  if (change <= -0.4)
-    return -75;
-
-  if (change <= -0.2)
-    return -50;
-
-  if (change <= -0.1)
-    return -25;
+  if (change <= -0.7) return -100;
+  if (change <= -0.4) return -75;
+  if (change <= -0.2) return -50;
+  if (change <= -0.1) return -25;
 
   return 0;
 }
@@ -393,40 +358,29 @@ function get4HScore(
 function getCrossScore(
   change: number
 ) {
-  if (change >= 0.3) return 100;
-  if (change >= 0.2) return 75;
-  if (change >= 0.1) return 50;
-  if (change >= 0.05) return 25;
+  return get1HScore(change);
+}
 
-  if (change <= -0.3)
-    return -100;
+// USD/CNH ขึ้น = CNH อ่อน = โดยทั่วไปเป็นลบต่อ AUD
+// จึงกลับเครื่องหมายจาก price score
 
-  if (change <= -0.2)
-    return -75;
-
-  if (change <= -0.1)
-    return -50;
-
-  if (change <= -0.05)
-    return -25;
-
-  return 0;
+function getUsdCnhScore(
+  change: number
+) {
+  return -get1HScore(change);
 }
 
 // =========================================================
-// MAIN DASHBOARD DATA
+// MAIN
 // =========================================================
 
 export async function getDashboardData(): Promise<DashboardData> {
-  // -------------------------------------------------------
-  // LATEST MARKET DATA
-  // -------------------------------------------------------
-
   const [
     latestPriceResult,
     latestDirectResult,
     latestAudUsdResult,
     latestUsdThbResult,
+    latestUsdCnhResult,
   ] = await Promise.all([
     supabaseAdmin
       .from("market_prices")
@@ -478,6 +432,18 @@ export async function getDashboardData(): Promise<DashboardData> {
       })
       .limit(1)
       .maybeSingle(),
+
+    supabaseAdmin
+      .from("market_prices")
+      .select(
+        "rate, market_timestamp, source"
+      )
+      .eq("symbol", "USD/CNH")
+      .order("market_timestamp", {
+        ascending: false,
+      })
+      .limit(1)
+      .maybeSingle(),
   ]);
 
   const latestPrice =
@@ -500,15 +466,18 @@ export async function getDashboardData(): Promise<DashboardData> {
       | MarketRow
       | null;
 
-  // ถ้ายังไม่มี AUD/THB_DIRECT
-  // ให้ AUD/THB เดิมเป็น Direct
+  const latestUsdCnh =
+    latestUsdCnhResult.data as
+      | MarketRow
+      | null;
+
   const latestDirect =
     rawLatestDirect ??
     latestPrice;
 
-  // -------------------------------------------------------
+  // =====================================================
   // FRESHNESS
-  // -------------------------------------------------------
+  // =====================================================
 
   const latestPriceFreshness =
     getFreshness(latestPrice);
@@ -522,20 +491,21 @@ export async function getDashboardData(): Promise<DashboardData> {
   const usdThbFreshness =
     getFreshness(latestUsdThb);
 
-  // -------------------------------------------------------
-  // DIRECT RATE
-  // -------------------------------------------------------
+  const usdCnhFreshness =
+    getFreshness(latestUsdCnh);
+
+  // =====================================================
+  // DIRECT
+  // =====================================================
 
   const directRate =
     latestDirect
-      ? Number(
-          latestDirect.rate
-        )
+      ? Number(latestDirect.rate)
       : null;
 
-  // -------------------------------------------------------
-  // MATCHED-TIME CROSS
-  // -------------------------------------------------------
+  // =====================================================
+  // MATCHED CROSS
+  // =====================================================
 
   let crossRate:
     | number
@@ -589,11 +559,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     ) {
       crossStatus = "STALE";
     } else {
-      crossStatus =
-        "INVALID";
+      crossStatus = "INVALID";
     }
 
-    // เทียบ Cross กับ Direct ในเวลาใกล้กัน
     const directAtCrossTime =
       await getClosestDirectPrice(
         matchedCross.matchedTime,
@@ -617,9 +585,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     }
   }
 
-  // -------------------------------------------------------
-  // AUD/THB CHANGE 1H + 4H
-  // -------------------------------------------------------
+  // =====================================================
+  // AUD/THB 1H + 4H
+  // =====================================================
 
   let change1H:
     | number
@@ -631,9 +599,7 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   if (latestPrice) {
     const currentRate =
-      Number(
-        latestPrice.rate
-      );
+      Number(latestPrice.rate);
 
     const latestTime =
       new Date(
@@ -674,9 +640,9 @@ export async function getDashboardData(): Promise<DashboardData> {
     }
   }
 
-  // -------------------------------------------------------
-  // INTRADAY HIGH / LOW
-  // -------------------------------------------------------
+  // =====================================================
+  // INTRADAY
+  // =====================================================
 
   let intradayLow:
     | number
@@ -754,22 +720,18 @@ export async function getDashboardData(): Promise<DashboardData> {
     }
   }
 
-  // -------------------------------------------------------
-  // PRICE MOMENTUM SCORE
-  // -------------------------------------------------------
+  // =====================================================
+  // PRICE MOMENTUM
+  // =====================================================
 
   const priceScore1H =
     change1H !== null
-      ? get1HScore(
-          change1H
-        )
+      ? get1HScore(change1H)
       : null;
 
   const priceScore4H =
     change4H !== null
-      ? get4HScore(
-          change4H
-        )
+      ? get4HScore(change4H)
       : null;
 
   let priceMomentumScore:
@@ -782,10 +744,8 @@ export async function getDashboardData(): Promise<DashboardData> {
   ) {
     priceMomentumScore =
       Math.round(
-        priceScore1H *
-          0.6 +
-          priceScore4H *
-            0.4
+        priceScore1H * 0.6 +
+        priceScore4H * 0.4
       );
   } else if (
     priceScore1H !== null
@@ -799,9 +759,9 @@ export async function getDashboardData(): Promise<DashboardData> {
       priceScore4H;
   }
 
-  // -------------------------------------------------------
-  // CROSS CURRENCY SCORE
-  // -------------------------------------------------------
+  // =====================================================
+  // CROSS CURRENCY
+  // =====================================================
 
   let crossCurrencyScore:
     | number
@@ -861,12 +821,10 @@ export async function getDashboardData(): Promise<DashboardData> {
       const historicalGap =
         Math.abs(
           audTime -
-            thbTime
+          thbTime
         ) /
         (60 * 1000);
 
-      // Historical Cross
-      // ต้องเวลาใกล้กันด้วย
       if (
         historicalGap <= 2
       ) {
@@ -892,9 +850,62 @@ export async function getDashboardData(): Promise<DashboardData> {
     }
   }
 
-  // -------------------------------------------------------
+  // =====================================================
+  // RELATIVE MARKET — USD/CNH V1
+  // =====================================================
+
+  let usdCnhChange1H:
+    | number
+    | null = null;
+
+  let relativeMarketScore:
+    | number
+    | null = null;
+
+  if (
+    latestUsdCnh &&
+    usdCnhFreshness.status ===
+      "FRESH"
+  ) {
+    const latestUsdCnhTime =
+      new Date(
+        latestUsdCnh.market_timestamp
+      ).getTime();
+
+    const usdCnh1H =
+      await getClosestPrice(
+        "USD/CNH",
+        latestUsdCnhTime -
+          60 * 60 * 1000,
+        20
+      );
+
+    if (usdCnh1H) {
+      const current =
+        Number(
+          latestUsdCnh.rate
+        );
+
+      const past =
+        Number(
+          usdCnh1H.rate
+        );
+
+      usdCnhChange1H =
+        ((current - past) /
+          past) *
+        100;
+
+      relativeMarketScore =
+        getUsdCnhScore(
+          usdCnhChange1H
+        );
+    }
+  }
+
+  // =====================================================
   // MEAN REVERSION
-  // -------------------------------------------------------
+  // =====================================================
 
   let rangePosition:
     | number
@@ -940,9 +951,10 @@ export async function getDashboardData(): Promise<DashboardData> {
       );
   }
 
-  // -------------------------------------------------------
-  // CORE FX SCORE
-  // -------------------------------------------------------
+  // =====================================================
+  // CORE SCORE
+  // ยังไม่รวม Relative Market
+  // =====================================================
 
   const coreFactors = [
     {
@@ -1034,20 +1046,18 @@ export async function getDashboardData(): Promise<DashboardData> {
     }
   }
 
-  // -------------------------------------------------------
-  // RETURN
-  // -------------------------------------------------------
-
   return {
     latestPrice,
     latestDirect,
     latestAudUsd,
     latestUsdThb,
+    latestUsdCnh,
 
     latestPriceFreshness,
     directFreshness,
     audUsdFreshness,
     usdThbFreshness,
+    usdCnhFreshness,
 
     change1H,
     change4H,
@@ -1061,6 +1071,9 @@ export async function getDashboardData(): Promise<DashboardData> {
 
     crossCurrencyScore,
     crossCurrencyChange1H,
+
+    relativeMarketScore,
+    usdCnhChange1H,
 
     rangePosition,
     meanReversionScore,
