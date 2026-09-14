@@ -1,41 +1,125 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
 
-type TwelveDataExchangeRateResponse = {
-  symbol?: string;
-  rate?: number | string;
-  timestamp?: number | string;
-  code?: number;
-  message?: string;
-  status?: string;
-};
-
-type SaveResult = {
-  symbol: string;
-  rate?: number;
-  marketTimestamp?: string;
-  saved: boolean;
-  error: string | null;
-};
+// =========================================================
+// CONFIG
+// =========================================================
 
 const CORE_SYMBOLS = [
   "AUD/THB",
   "AUD/USD",
   "USD/THB",
-];
+] as const;
 
-async function fetchExchangeRate(
-  symbol: string,
+type CoreSymbol =
+  (typeof CORE_SYMBOLS)[number];
+
+// =========================================================
+// TYPES
+// =========================================================
+
+type TwelveDataResponse = {
+  status?: string;
+  code?: number;
+  message?: string;
+
+  values?: Array<{
+    datetime?: string;
+    close?: string;
+  }>;
+};
+
+type MarketObservation = {
+  symbol: string;
+  rate: number;
+  marketTimestamp: string;
+};
+
+type SaveResult = {
+  success: boolean;
+  attempts: number;
+  error: string | null;
+};
+
+// =========================================================
+// SLEEP
+// =========================================================
+
+function sleep(ms: number) {
+  return new Promise((resolve) =>
+    setTimeout(resolve, ms)
+  );
+}
+
+// =========================================================
+// FRESHNESS
+// =========================================================
+
+function getFreshness(
+  marketTimestamp: string
+) {
+  const marketTime =
+    new Date(
+      marketTimestamp
+    ).getTime();
+
+  const ageMinutes =
+    Math.max(
+      0,
+      (Date.now() -
+        marketTime) /
+        (60 * 1000)
+    );
+
+  let freshness:
+    | "FRESH"
+    | "DELAYED"
+    | "STALE";
+
+  if (ageMinutes <= 20) {
+    freshness = "FRESH";
+  } else if (
+    ageMinutes <= 40
+  ) {
+    freshness = "DELAYED";
+  } else {
+    freshness = "STALE";
+  }
+
+  return {
+    ageMinutes:
+      Number(
+        ageMinutes.toFixed(1)
+      ),
+
+    freshness,
+  };
+}
+
+// =========================================================
+// TWELVE DATA
+// =========================================================
+
+async function fetchRate(
+  symbol: CoreSymbol,
   apiKey: string
-): Promise<TwelveDataExchangeRateResponse> {
-  const url =
-    "https://api.twelvedata.com/exchange_rate" +
-    `?symbol=${encodeURIComponent(symbol)}` +
-    `&apikey=${encodeURIComponent(apiKey)}`;
+): Promise<MarketObservation> {
+  const params =
+    new URLSearchParams({
+      symbol,
+      interval: "1min",
+      outputsize: "1",
+      timezone: "UTC",
+      apikey: apiKey,
+    });
 
-  const response = await fetch(url, {
-    cache: "no-store",
-  });
+  const url =
+    `https://api.twelvedata.com/time_series?${params.toString()}`;
+
+  const response =
+    await fetch(url, {
+      cache: "no-store",
+    });
 
   if (!response.ok) {
     throw new Error(
@@ -43,16 +127,194 @@ async function fetchExchangeRate(
     );
   }
 
-  return response.json();
+  const data =
+    (await response.json()) as TwelveDataResponse;
+
+  if (
+    data.status === "error"
+  ) {
+    throw new Error(
+      `Twelve Data ${symbol}: ${
+        data.message ??
+        "Unknown provider error"
+      }`
+    );
+  }
+
+  const latest =
+    data.values?.[0];
+
+  if (
+    !latest?.datetime ||
+    !latest?.close
+  ) {
+    throw new Error(
+      `No market data returned for ${symbol}`
+    );
+  }
+
+  const rate =
+    Number(
+      latest.close
+    );
+
+  if (
+    !Number.isFinite(rate)
+  ) {
+    throw new Error(
+      `Invalid rate for ${symbol}`
+    );
+  }
+
+  // timezone=UTC
+  // Twelve Data format:
+  // YYYY-MM-DD HH:mm:ss
+  const normalizedDatetime =
+    latest.datetime.replace(
+      " ",
+      "T"
+    );
+
+  const timestamp =
+    new Date(
+      normalizedDatetime.endsWith(
+        "Z"
+      )
+        ? normalizedDatetime
+        : `${normalizedDatetime}Z`
+    );
+
+  if (
+    Number.isNaN(
+      timestamp.getTime()
+    )
+  ) {
+    throw new Error(
+      `Invalid timestamp for ${symbol}`
+    );
+  }
+
+  return {
+    symbol,
+    rate,
+    marketTimestamp:
+      timestamp.toISOString(),
+  };
 }
 
-export async function GET(request: Request) {
-  // =====================================================
+// =========================================================
+// SUPABASE RETRY
+//
+// Important:
+// Provider is NOT called again.
+//
+// Only the database write is retried.
+// =========================================================
+
+async function saveWithRetry(
+  rows: Array<{
+    symbol: string;
+    rate: number;
+    market_timestamp: string;
+    source: string;
+  }>
+): Promise<SaveResult> {
+  const delays = [
+    0,
+    500,
+    1500,
+  ];
+
+  let lastError:
+    string | null = null;
+
+  for (
+    let attempt = 0;
+    attempt <
+    delays.length;
+    attempt++
+  ) {
+    if (
+      delays[attempt] >
+      0
+    ) {
+      await sleep(
+        delays[attempt]
+      );
+    }
+
+    try {
+      const { error } =
+        await supabaseAdmin
+          .from(
+            "market_prices"
+          )
+          .upsert(
+            rows,
+            {
+              onConflict:
+                "symbol,market_timestamp",
+            }
+          );
+
+      if (!error) {
+        return {
+          success: true,
+          attempts:
+            attempt + 1,
+          error: null,
+        };
+      }
+
+      lastError =
+        error.message;
+
+      console.warn(
+        `market_prices upsert attempt ${
+          attempt + 1
+        } failed:`,
+        error.message
+      );
+    } catch (error) {
+      lastError =
+        error instanceof Error
+          ? error.message
+          : "Unknown database error";
+
+      console.warn(
+        `market_prices upsert attempt ${
+          attempt + 1
+        } threw:`,
+        lastError
+      );
+    }
+  }
+
+  return {
+    success: false,
+    attempts:
+      delays.length,
+    error:
+      lastError ??
+      "Database write failed",
+  };
+}
+
+// =========================================================
+// MAIN
+// =========================================================
+
+export async function GET(
+  request: Request
+) {
+  // -------------------------------------------------------
   // AUTH
-  // =====================================================
+  // -------------------------------------------------------
 
   const authHeader =
-    request.headers.get("authorization");
+    request.headers.get(
+      "authorization"
+    );
 
   if (
     authHeader !==
@@ -60,7 +322,8 @@ export async function GET(request: Request) {
   ) {
     return NextResponse.json(
       {
-        error: "Unauthorized",
+        error:
+          "Unauthorized",
       },
       {
         status: 401,
@@ -68,12 +331,13 @@ export async function GET(request: Request) {
     );
   }
 
-  // =====================================================
+  // -------------------------------------------------------
   // ENV
-  // =====================================================
+  // -------------------------------------------------------
 
   const apiKey =
-    process.env.TWELVE_DATA_API_KEY;
+    process.env
+      .TWELVE_DATA_API_KEY;
 
   if (!apiKey) {
     return NextResponse.json(
@@ -87,201 +351,169 @@ export async function GET(request: Request) {
     );
   }
 
-  const results: SaveResult[] = [];
-
-  // =====================================================
-  // FETCH CORE FX
-  // =====================================================
-
   try {
-    for (const symbol of CORE_SYMBOLS) {
-      try {
-        const data =
-          await fetchExchangeRate(
-            symbol,
-            apiKey
-          );
+    // =====================================================
+    // FETCH PROVIDER DATA
+    //
+    // Sequential intentionally:
+    // avoid unnecessary provider burst/rate-limit risk.
+    // =====================================================
 
-        if (
-          data.rate === undefined ||
-          data.timestamp === undefined
-        ) {
-          results.push({
-            symbol,
-            saved: false,
-            error:
-              data.message ??
-              "Missing rate or timestamp from Twelve Data",
-          });
+    const observations:
+      MarketObservation[] =
+      [];
 
-          continue;
-        }
+    for (
+      const symbol of
+      CORE_SYMBOLS
+    ) {
+      const observation =
+        await fetchRate(
+          symbol,
+          apiKey
+        );
 
-        const rate =
-          Number(data.rate);
+      observations.push(
+        observation
+      );
+    }
 
-        const timestamp =
-          Number(data.timestamp);
+    // =====================================================
+    // BUILD DATABASE ROWS
+    //
+    // AUD/THB produces:
+    //
+    // AUD/THB
+    // AUD/THB_DIRECT
+    //
+    // Both have identical timestamp/rate.
+    // =====================================================
 
-        if (
-          !Number.isFinite(rate) ||
-          !Number.isFinite(timestamp)
-        ) {
-          results.push({
-            symbol,
-            saved: false,
-            error:
-              "Invalid rate or timestamp",
-          });
+    const rows: Array<{
+      symbol: string;
+      rate: number;
+      market_timestamp: string;
+      source: string;
+    }> = [];
 
-          continue;
-        }
+    for (
+      const observation of
+      observations
+    ) {
+      if (
+        observation.symbol ===
+        "AUD/THB"
+      ) {
+        rows.push(
+          {
+            symbol:
+              "AUD/THB",
 
-        const marketTimestamp =
-          new Date(
-            timestamp * 1000
-          ).toISOString();
+            rate:
+              observation.rate,
 
-        // =================================================
-        // AUD/THB
-        //
-        // เก็บ AUD/THB และ AUD/THB_DIRECT
-        // ในคำสั่งเดียวกัน
-        // =================================================
+            market_timestamp:
+              observation.marketTimestamp,
 
-        if (symbol === "AUD/THB") {
-          const rows = [
-            {
-              symbol: "AUD/THB",
-              rate,
-              market_timestamp:
-                marketTimestamp,
-              source: "twelvedata",
-            },
-            {
-              symbol:
-                "AUD/THB_DIRECT",
-              rate,
-              market_timestamp:
-                marketTimestamp,
-              source:
-                "twelvedata-direct",
-            },
-          ];
+            source:
+              "twelvedata",
+          },
 
-          const { error } =
-            await supabaseAdmin
-              .from(
-                "market_prices"
-              )
-              .upsert(rows, {
-                onConflict:
-                  "symbol,market_timestamp",
-              });
-
-          if (error) {
-            results.push({
-              symbol: "AUD/THB",
-              rate,
-              marketTimestamp,
-              saved: false,
-              error:
-                error.message,
-            });
-
-            results.push({
-              symbol:
-                "AUD/THB_DIRECT",
-              rate,
-              marketTimestamp,
-              saved: false,
-              error:
-                error.message,
-            });
-
-            continue;
-          }
-
-          results.push({
-            symbol: "AUD/THB",
-            rate,
-            marketTimestamp,
-            saved: true,
-            error: null,
-          });
-
-          results.push({
+          {
             symbol:
               "AUD/THB_DIRECT",
-            rate,
-            marketTimestamp,
-            saved: true,
-            error: null,
-          });
 
-          continue;
-        }
+            rate:
+              observation.rate,
 
-        // =================================================
-        // AUD/USD + USD/THB
-        // =================================================
+            market_timestamp:
+              observation.marketTimestamp,
 
-        const { error } =
-          await supabaseAdmin
-            .from(
-              "market_prices"
-            )
-            .upsert(
-              {
-                symbol,
-                rate,
-                market_timestamp:
-                  marketTimestamp,
-                source:
-                  "twelvedata",
-              },
-              {
-                onConflict:
-                  "symbol,market_timestamp",
-              }
-            );
+            source:
+              "twelvedata-direct",
+          }
+        );
+      } else {
+        rows.push({
+          symbol:
+            observation.symbol,
 
-        results.push({
-          symbol,
-          rate,
-          marketTimestamp,
-          saved: !error,
-          error:
-            error?.message ??
-            null,
-        });
-      } catch (error) {
-        results.push({
-          symbol,
-          saved: false,
-          error:
-            error instanceof Error
-              ? error.message
-              : "Unknown symbol error",
+          rate:
+            observation.rate,
+
+          market_timestamp:
+            observation.marketTimestamp,
+
+          source:
+            "twelvedata",
         });
       }
     }
 
     // =====================================================
-    // SUMMARY
+    // ONE DATABASE WRITE
+    // + RETRY
     // =====================================================
 
-    const failed =
-      results.filter(
+    const saveResult =
+      await saveWithRetry(
+        rows
+      );
+
+    // =====================================================
+    // RESPONSE
+    // =====================================================
+
+    const results =
+      rows.map((row) => {
+        const freshness =
+          getFreshness(
+            row.market_timestamp
+          );
+
+        return {
+          symbol:
+            row.symbol,
+
+          rate:
+            row.rate,
+
+          marketTimestamp:
+            row.market_timestamp,
+
+          ageMinutes:
+            freshness.ageMinutes,
+
+          freshness:
+            freshness.freshness,
+
+          saved:
+            saveResult.success,
+
+          error:
+            saveResult.success
+              ? null
+              : saveResult.error,
+        };
+      });
+
+    const allFresh =
+      results.every(
         (item) =>
-          !item.saved
+          item.freshness ===
+          "FRESH"
       );
 
     return NextResponse.json({
-      group: "core-fx",
+      group:
+        "core-fx",
 
+      // updated = DB write completed
       updated:
-        failed.length === 0,
+        saveResult.success,
+
+      // separate from DB health
+      allFresh,
 
       expectedSymbols: [
         "AUD/THB",
@@ -291,26 +523,47 @@ export async function GET(request: Request) {
       ],
 
       savedCount:
-        results.filter(
-          (item) =>
-            item.saved
-        ).length,
+        saveResult.success
+          ? rows.length
+          : 0,
 
       failedCount:
-        failed.length,
+        saveResult.success
+          ? 0
+          : rows.length,
+
+      database: {
+        attempts:
+          saveResult.attempts,
+
+        status:
+          saveResult.success
+            ? "OK"
+            : "FAILED",
+
+        error:
+          saveResult.error,
+      },
 
       results,
     });
   } catch (error) {
     console.error(
-      "Market route error:",
+      "Core FX route error:",
       error
     );
 
     return NextResponse.json(
       {
+        group:
+          "core-fx",
+
+        updated: false,
+
+        allFresh: false,
+
         error:
-          "Unexpected market error",
+          "Core FX update failed",
 
         details:
           error instanceof Error
