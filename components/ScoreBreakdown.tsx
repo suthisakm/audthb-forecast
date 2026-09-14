@@ -1,4 +1,62 @@
-import type { DashboardData } from "@/lib/dashboard-data";
+import type {
+  DashboardData,
+  YieldConfidence,
+} from "@/lib/dashboard-data";
+
+function formatScore(
+  score: number | null
+) {
+  if (score === null) {
+    return "--";
+  }
+
+  return `${
+    score > 0 ? "+" : ""
+  }${score}`;
+}
+
+function formatChange(
+  change: number | null
+) {
+  if (change === null) {
+    return "--";
+  }
+
+  return `${
+    change >= 0 ? "+" : ""
+  }${change.toFixed(3)}%`;
+}
+
+function formatBps(
+  value: number | null
+) {
+  if (value === null) {
+    return "--";
+  }
+
+  return `${
+    value > 0 ? "+" : ""
+  }${value.toFixed(1)} bps`;
+}
+
+function confidenceClass(
+  confidence: YieldConfidence
+) {
+  switch (confidence) {
+    case "HIGH":
+      return "text-green-400";
+
+    case "MEDIUM":
+      return "text-yellow-400";
+
+    case "LOW":
+      return "text-orange-400";
+
+    case "STALE":
+    case "MISSING":
+      return "text-red-400";
+  }
+}
 
 export default function ScoreBreakdown({
   data,
@@ -11,53 +69,59 @@ export default function ScoreBreakdown({
         Score Breakdown
       </h2>
 
-      <div className="mt-4 space-y-4">
-        {/* PRICE */}
+      <div className="mt-4 space-y-5">
+
+        {/* PRICE / MOMENTUM */}
 
         <div>
           <p>
             Price / Momentum:{" "}
-            {data.priceMomentumScore !==
-            null
-              ? `${data.priceMomentumScore > 0 ? "+" : ""}${data.priceMomentumScore}`
-              : "--"}
+            {formatScore(
+              data.priceMomentumScore
+            )}
           </p>
 
           <p className="text-sm text-slate-500">
             1H Score:{" "}
-            {data.priceScore1H !== null
-              ? `${data.priceScore1H > 0 ? "+" : ""}${data.priceScore1H}`
-              : "--"}
+            {formatScore(
+              data.priceScore1H
+            )}
             {" | "}
             4H Score:{" "}
-            {data.priceScore4H !== null
-              ? `${data.priceScore4H > 0 ? "+" : ""}${data.priceScore4H}`
-              : "--"}
+            {formatScore(
+              data.priceScore4H
+            )}
+          </p>
+
+          <p className="text-xs text-slate-600">
+            FX Weight: 35%
           </p>
         </div>
 
-        {/* CROSS */}
+        {/* CROSS CURRENCY */}
 
         <div>
           <p>
             Cross Currency:{" "}
-            {data.crossCurrencyScore !==
-            null
-              ? `${data.crossCurrencyScore > 0 ? "+" : ""}${data.crossCurrencyScore}`
-              : "--"}
+            {formatScore(
+              data.crossCurrencyScore
+            )}
           </p>
 
           <p className="text-sm text-slate-500">
             1H Cross Change:{" "}
-            {data.crossCurrencyChange1H !==
-            null
-              ? `${data.crossCurrencyChange1H >= 0 ? "+" : ""}${data.crossCurrencyChange1H.toFixed(3)}%`
-              : "--"}
+            {formatChange(
+              data.crossCurrencyChange1H
+            )}
+          </p>
+
+          <p className="text-xs text-slate-600">
+            FX Weight: 20%
           </p>
 
           {data.crossStatus !==
             "GOOD" && (
-            <p className="text-xs text-yellow-400">
+            <p className="text-xs text-yellow-400 mt-1">
               Cross excluded from score:{" "}
               {data.crossStatus}
             </p>
@@ -69,36 +133,151 @@ export default function ScoreBreakdown({
         <div>
           <p>
             Relative Market:{" "}
-            {data.relativeMarketScore !==
-            null
-              ? `${data.relativeMarketScore > 0 ? "+" : ""}${data.relativeMarketScore}`
-              : "--"}
+            {formatScore(
+              data.relativeMarketScore
+            )}
+          </p>
+
+          <p className="text-sm text-slate-500 mt-1">
+            Effective Coverage:{" "}
+            {data.relativeMarketCoverage.toFixed(
+              1
+            )}
+            /100
           </p>
 
           <p className="text-sm text-slate-500">
-            USD/CNH 1H:{" "}
-            {data.usdCnhChange1H !==
-            null
-              ? `${data.usdCnhChange1H >= 0 ? "+" : ""}${data.usdCnhChange1H.toFixed(3)}%`
-              : "--"}
+            FX Score Weight:{" "}
+            {data.relativeMarketEffectiveWeight.toFixed(
+              1
+            )}
+            /15
           </p>
 
-          <p className="text-xs text-slate-500">
-            USD/CNH ↑ = CNH weaker =
-            negative AUD signal
-          </p>
+          {/* YIELD */}
 
-          {data.usdCnhFreshness
-            .status !== "FRESH" && (
-            <p className="text-xs text-yellow-400">
-              USD/CNH excluded because
-              data is{" "}
-              {
-                data.usdCnhFreshness
-                  .status
-              }
+          <div className="mt-3 pl-3 border-l border-slate-700">
+            <p className="text-sm">
+              AU-US 2Y Yield:{" "}
+              {formatScore(
+                data.yieldScore
+              )}
             </p>
-          )}
+
+            <p className="text-xs text-slate-500">
+              Spread:{" "}
+              {data.yieldSpread !==
+              null
+                ? `${
+                    data.yieldSpread >
+                    0
+                      ? "+"
+                      : ""
+                  }${data.yieldSpread.toFixed(
+                    3
+                  )}%`
+                : "--"}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              Approx. 1W Change:{" "}
+              {formatBps(
+                data.yieldSpreadChange1WBps
+              )}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              Max Relative Weight: 50%
+              {" | "}
+              Effective:{" "}
+              {data.yieldEffectiveWeight.toFixed(
+                1
+              )}
+              %
+            </p>
+
+            <p className="text-xs mt-1">
+              Yield Confidence:{" "}
+              <span
+                className={confidenceClass(
+                  data.yieldConfidence
+                )}
+              >
+                {data.yieldConfidence}
+              </span>
+            </p>
+
+            <p className="text-xs text-slate-500">
+              Oldest data:{" "}
+              {data.yieldDataAgeDays !==
+              null
+                ? `${data.yieldDataAgeDays} days`
+                : "--"}
+              {" | "}
+              AU/US date gap:{" "}
+              {data.yieldDataGapDays !==
+              null
+                ? `${data.yieldDataGapDays} days`
+                : "--"}
+            </p>
+          </div>
+
+          {/* USD/CNH */}
+
+          <div className="mt-3 pl-3 border-l border-slate-700">
+            <p className="text-sm">
+              USD/CNH:{" "}
+              {formatScore(
+                data.usdCnhScore
+              )}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              1H:{" "}
+              {formatChange(
+                data.usdCnhChange1H
+              )}
+              {" | "}
+              Relative Weight: 35%
+            </p>
+
+            <p className="text-xs text-slate-600">
+              Data status:{" "}
+              {data.usdCnhFreshness.status}
+            </p>
+          </div>
+
+          {/* USD/SGD */}
+
+          <div className="mt-3 pl-3 border-l border-slate-700">
+            <p className="text-sm">
+              USD/SGD:{" "}
+              {formatScore(
+                data.usdSgdScore
+              )}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              1H:{" "}
+              {formatChange(
+                data.usdSgdChange1H
+              )}
+              {" | "}
+              Relative Weight: 15%
+            </p>
+
+            <p className="text-xs text-slate-600">
+              Data status:{" "}
+              {data.usdSgdFreshness.status}
+            </p>
+          </div>
+
+          <p className="text-xs text-slate-500 mt-3">
+            Yield spread widening =
+            positive AUD signal.
+            USD/CNH or USD/SGD rising =
+            negative AUD signal.
+          </p>
         </div>
 
         {/* MEAN REVERSION */}
@@ -106,42 +285,66 @@ export default function ScoreBreakdown({
         <div>
           <p>
             Mean Reversion:{" "}
-            {data.meanReversionScore !==
-            null
-              ? `${data.meanReversionScore > 0 ? "+" : ""}${data.meanReversionScore}`
-              : "--"}
+            {formatScore(
+              data.meanReversionScore
+            )}
           </p>
 
           <p className="text-sm text-slate-500">
             Range Position:{" "}
-            {data.rangePosition !== null
-              ? `${data.rangePosition.toFixed(1)}%`
+            {data.rangePosition !==
+            null
+              ? `${data.rangePosition.toFixed(
+                  1
+                )}%`
               : "--"}
+          </p>
+
+          <p className="text-xs text-slate-600">
+            FX Weight: 5%
           </p>
         </div>
 
         <hr className="border-slate-800" />
 
-        <p>
-          Macro / Policy:{" "}
-          <span className="text-slate-500">
-            Pending
-          </span>
-        </p>
+        <div>
+          <p>
+            Macro / Policy:{" "}
+            <span className="text-slate-500">
+              Pending
+            </span>
+          </p>
 
-        <p>
-          Commodity:{" "}
-          <span className="text-slate-500">
-            Pending
-          </span>
-        </p>
+          <p className="text-xs text-slate-600">
+            Planned FX Weight: 10%
+          </p>
+        </div>
 
-        <p>
-          Risk:{" "}
-          <span className="text-slate-500">
-            Pending
-          </span>
-        </p>
+        <div>
+          <p>
+            Commodity:{" "}
+            <span className="text-slate-500">
+              Pending
+            </span>
+          </p>
+
+          <p className="text-xs text-slate-600">
+            Planned FX Weight: 10%
+          </p>
+        </div>
+
+        <div>
+          <p>
+            Risk:{" "}
+            <span className="text-slate-500">
+              Pending
+            </span>
+          </p>
+
+          <p className="text-xs text-slate-600">
+            Planned FX Weight: 5%
+          </p>
+        </div>
       </div>
     </div>
   );

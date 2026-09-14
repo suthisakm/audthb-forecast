@@ -3,16 +3,11 @@ import type {
   FreshnessInfo,
 } from "@/lib/dashboard-data";
 
-function formatTime(
-  timestamp: string
-) {
-  return new Date(
-    timestamp
-  ).toLocaleString(
+function formatTime(timestamp: string) {
+  return new Date(timestamp).toLocaleString(
     "en-GB",
     {
-      timeZone:
-        "Asia/Bangkok",
+      timeZone: "Asia/Bangkok",
       hour: "2-digit",
       minute: "2-digit",
       hour12: false,
@@ -26,30 +21,18 @@ function FreshnessBadge({
   freshness: FreshnessInfo;
 }) {
   const styles = {
-    FRESH:
-      "text-green-400",
-
-    DELAYED:
-      "text-yellow-400",
-
-    STALE:
-      "text-red-400",
-
-    MARKET_CLOSED:
-      "text-slate-400",
-
-    MISSING:
-      "text-red-400",
+    FRESH: "text-green-400",
+    DELAYED: "text-yellow-400",
+    STALE: "text-red-400",
+    MARKET_CLOSED: "text-slate-400",
+    MISSING: "text-red-400",
   };
 
   const labels = {
     FRESH: "LIVE",
     DELAYED: "DELAYED",
     STALE: "STALE",
-
-    MARKET_CLOSED:
-      "MARKET CLOSED",
-
+    MARKET_CLOSED: "MARKET CLOSED",
     MISSING: "NO DATA",
   };
 
@@ -57,27 +40,16 @@ function FreshnessBadge({
     <div className="mt-2">
       <p
         className={`text-xs font-semibold ${
-          styles[
-            freshness.status
-          ]
+          styles[freshness.status]
         }`}
       >
-        {
-          labels[
-            freshness.status
-          ]
-        }
+        {labels[freshness.status]}
       </p>
 
-      {freshness.ageMinutes !==
-        null &&
-        freshness.status !==
-          "MARKET_CLOSED" && (
+      {freshness.ageMinutes !== null &&
+        freshness.status !== "MARKET_CLOSED" && (
           <p className="text-xs text-slate-500">
-            {freshness.ageMinutes.toFixed(
-              0
-            )}{" "}
-            min ago
+            {freshness.ageMinutes.toFixed(0)} min ago
           </p>
         )}
     </div>
@@ -95,63 +67,49 @@ export default function MarketRates({
         Market Rates
       </h2>
 
-      <div className="grid md:grid-cols-5 gap-6 mt-5">
+      <div className="grid md:grid-cols-4 gap-6 mt-5">
 
         {/* AUD/THB DIRECT */}
-
         <div>
           <p className="text-slate-400 text-sm">
             AUD/THB Direct
           </p>
 
           <p className="text-2xl font-bold mt-1">
-            {data.directRate !==
-            null
-              ? data.directRate.toFixed(
-                  4
-                )
+            {data.directRate !== null
+              ? data.directRate.toFixed(4)
               : "--"}
           </p>
 
           {data.latestDirect && (
             <p className="text-xs text-slate-500 mt-2">
               {formatTime(
-                data
-                  .latestDirect
-                  .market_timestamp
+                data.latestDirect.market_timestamp
               )}
             </p>
           )}
 
           <FreshnessBadge
-            freshness={
-              data.directFreshness
-            }
+            freshness={data.directFreshness}
           />
         </div>
 
         {/* AUD/THB CROSS */}
-
         <div>
           <p className="text-slate-400 text-sm">
             AUD/THB Cross
           </p>
 
           <p className="text-2xl font-bold mt-1">
-            {data.crossRate !==
-            null
-              ? data.crossRate.toFixed(
-                  4
-                )
+            {data.crossRate !== null
+              ? data.crossRate.toFixed(4)
               : "--"}
           </p>
 
           {data.crossTimestamp && (
             <p className="text-xs text-slate-500 mt-2">
               Matched:{" "}
-              {formatTime(
-                data.crossTimestamp
-              )}
+              {formatTime(data.crossTimestamp)}
             </p>
           )}
 
@@ -159,11 +117,9 @@ export default function MarketRates({
             Cross Status:{" "}
             <span
               className={
-                data.crossStatus ===
-                "GOOD"
+                data.crossStatus === "GOOD"
                   ? "text-green-400"
-                  : data.crossStatus ===
-                      "STALE"
+                  : data.crossStatus === "STALE"
                     ? "text-yellow-400"
                     : "text-red-400"
               }
@@ -172,20 +128,15 @@ export default function MarketRates({
             </span>
           </p>
 
-          {data.crossTimeGapMinutes !==
-            null && (
+          {data.crossTimeGapMinutes !== null && (
             <p className="text-xs text-slate-500">
               Source gap:{" "}
-              {data.crossTimeGapMinutes.toFixed(
-                1
-              )}{" "}
-              min
+              {data.crossTimeGapMinutes.toFixed(1)} min
             </p>
           )}
         </div>
 
         {/* AUD/USD */}
-
         <div>
           <p className="text-slate-400 text-sm">
             AUD/USD
@@ -194,9 +145,7 @@ export default function MarketRates({
           <p className="text-2xl font-bold mt-1">
             {data.latestAudUsd
               ? Number(
-                  data
-                    .latestAudUsd
-                    .rate
+                  data.latestAudUsd.rate
                 ).toFixed(5)
               : "--"}
           </p>
@@ -204,22 +153,17 @@ export default function MarketRates({
           {data.latestAudUsd && (
             <p className="text-xs text-slate-500 mt-2">
               {formatTime(
-                data
-                  .latestAudUsd
-                  .market_timestamp
+                data.latestAudUsd.market_timestamp
               )}
             </p>
           )}
 
           <FreshnessBadge
-            freshness={
-              data.audUsdFreshness
-            }
+            freshness={data.audUsdFreshness}
           />
         </div>
 
         {/* USD/THB */}
-
         <div>
           <p className="text-slate-400 text-sm">
             USD/THB
@@ -228,9 +172,7 @@ export default function MarketRates({
           <p className="text-2xl font-bold mt-1">
             {data.latestUsdThb
               ? Number(
-                  data
-                    .latestUsdThb
-                    .rate
+                  data.latestUsdThb.rate
                 ).toFixed(5)
               : "--"}
           </p>
@@ -238,97 +180,58 @@ export default function MarketRates({
           {data.latestUsdThb && (
             <p className="text-xs text-slate-500 mt-2">
               {formatTime(
-                data
-                  .latestUsdThb
-                  .market_timestamp
+                data.latestUsdThb.market_timestamp
               )}
             </p>
           )}
 
           <FreshnessBadge
-            freshness={
-              data.usdThbFreshness
-            }
-          />
-        </div>
-
-        {/* USD/CNH */}
-
-        <div>
-          <p className="text-slate-400 text-sm">
-            USD/CNH
-          </p>
-
-          <p className="text-2xl font-bold mt-1">
-            {data.latestUsdCnh
-              ? Number(
-                  data
-                    .latestUsdCnh
-                    .rate
-                ).toFixed(5)
-              : "--"}
-          </p>
-
-          {data.latestUsdCnh && (
-            <p className="text-xs text-slate-500 mt-2">
-              {formatTime(
-                data
-                  .latestUsdCnh
-                  .market_timestamp
-              )}
-            </p>
-          )}
-
-          <FreshnessBadge
-            freshness={
-              data.usdCnhFreshness
-            }
+            freshness={data.usdThbFreshness}
           />
         </div>
       </div>
 
+      {/* MATCHED-TIME CROSS GAP */}
       <div className="border-t border-slate-800 mt-5 pt-4">
         <p className="text-sm text-slate-400">
           Matched-Time Cross Gap
         </p>
 
         <p className="text-lg font-semibold">
-          {data.crossGap !==
-            null &&
-          data.crossGapPercent !==
-            null
+          {data.crossGap !== null &&
+          data.crossGapPercent !== null
             ? `${
-                data.crossGap >= 0
-                  ? "+"
-                  : ""
-              }${data.crossGap.toFixed(
-                4
-              )} THB (${
-                data.crossGapPercent >=
-                0
-                  ? "+"
-                  : ""
-              }${data.crossGapPercent.toFixed(
-                3
-              )}%)`
+                data.crossGap >= 0 ? "+" : ""
+              }${data.crossGap.toFixed(4)} THB (${
+                data.crossGapPercent >= 0 ? "+" : ""
+              }${data.crossGapPercent.toFixed(3)}%)`
             : "--"}
         </p>
 
-        {data.crossDirectReferenceRate !==
-          null &&
+        {data.crossDirectReferenceRate !== null &&
           data.crossTimestamp && (
             <p className="text-xs text-slate-500 mt-1">
               Direct reference:{" "}
-              {data.crossDirectReferenceRate.toFixed(
-                4
-              )}
+              {data.crossDirectReferenceRate.toFixed(4)}
               {" @ "}
-              {formatTime(
-                data.crossTimestamp
-              )}
+              {formatTime(data.crossTimestamp)}
             </p>
           )}
       </div>
+
+      {/* WARNING */}
+      {(data.audUsdFreshness.status !== "FRESH" ||
+        data.usdThbFreshness.status !== "FRESH") &&
+        data.audUsdFreshness.status !==
+          "MARKET_CLOSED" && (
+          <div className="mt-4 rounded-lg bg-yellow-950/30 border border-yellow-900 p-3">
+            <p className="text-sm text-yellow-400">
+              ⚠ Cross Currency Score only uses
+              matched-time data when source data
+              is fresh.
+            </p>
+          </div>
+        )}
     </div>
   );
 }

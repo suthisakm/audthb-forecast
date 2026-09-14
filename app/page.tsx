@@ -2,132 +2,179 @@ import RefreshControls from "@/components/RefreshControls";
 import CurrentRateCard from "@/components/CurrentRateCard";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
-import { getDashboardData } from "@/lib/dashboard-data";
 import DataHealth from "@/components/DataHealth";
 
-export const dynamic = "force-dynamic";
+import { getDashboardData } from "@/lib/dashboard-data";
+
+export const dynamic =
+  "force-dynamic";
+
 export const revalidate = 0;
+
+function scoreColor(
+  score: number | null
+) {
+  if (score === null) {
+    return "text-slate-400";
+  }
+
+  if (score >= 15) {
+    return "text-green-400";
+  }
+
+  if (score <= -15) {
+    return "text-red-400";
+  }
+
+  return "text-yellow-400";
+}
 
 export default async function Home() {
   const data =
     await getDashboardData();
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white p-8">
-      <div className="max-w-6xl mx-auto">
-        <div className="flex items-center justify-between gap-4">
+    <main className="min-h-screen bg-slate-950 text-white">
+      {/* Auto refresh every 60 sec
+          but no button / no text */}
+      <RefreshControls />
+
+      <div className="max-w-7xl mx-auto px-4 py-8">
+        {/* HEADER */}
+
+        <div className="mb-6">
           <h1 className="text-3xl font-bold">
             AUD/THB Forecast Dashboard
           </h1>
 
-          <RefreshControls />
+          <p className="text-slate-500 mt-1">
+            Market monitoring and FX signal model
+          </p>
         </div>
 
-        <DataHealth data={data} />
+        {/* DATA HEALTH */}
 
-        <div className="grid md:grid-cols-3 gap-4 mt-8">
+        <DataHealth
+          data={data}
+        />
+
+        {/* TOP CARDS */}
+
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+          {/* CURRENT RATE */}
+
           <CurrentRateCard
             data={data}
           />
 
+          {/* FORECAST */}
+
           <div className="bg-slate-900 rounded-xl p-6">
-            <p className="text-slate-400">
+            <p className="text-sm text-slate-400">
               Forecast
             </p>
 
-            <p className="mt-4">
-              Next 1H
-            </p>
-
-            <p className="text-xl font-semibold">
+            <p className="text-2xl font-bold mt-2">
               ยังไม่เปิดใช้
             </p>
 
-            <p className="mt-4">
-              Next 4H
-            </p>
-
-            <p className="text-xl font-semibold">
-              ยังไม่เปิดใช้
-            </p>
-
-            <p className="text-xs text-slate-500 mt-4">
-              รอ Factor และ Backtest
-              ครบก่อน
+            <p className="text-sm text-slate-500 mt-3">
+              1H / 4H forecast range
+              จะเปิดหลัง Commodity,
+              Risk และ Macro factors
+              พร้อม
             </p>
           </div>
 
+          {/* CORE FX SCORE */}
+
           <div className="bg-slate-900 rounded-xl p-6">
-            <p className="text-slate-400">
+            <p className="text-sm text-slate-400">
               Core FX Score
             </p>
 
-            <p className="text-5xl font-bold mt-2">
-              {data.coreFxScore !== null
-                ? `${data.coreFxScore > 0 ? "+" : ""}${data.coreFxScore}`
+            <p
+              className={`text-4xl font-bold mt-2 ${scoreColor(
+                data.coreFxScore
+              )}`}
+            >
+              {data.coreFxScore !==
+              null
+                ? `${
+                    data.coreFxScore >
+                    0
+                      ? "+"
+                      : ""
+                  }${data.coreFxScore}`
                 : "--"}
             </p>
 
-            <p className="mt-4">
+            <p className="text-lg font-semibold mt-2">
               {data.coreBias}
             </p>
 
-            <p className="text-slate-400">
-              Core Coverage:{" "}
-              {data.availableCoreWeight}
-              /60
-            </p>
+            <div className="mt-4 pt-4 border-t border-slate-800">
+              <p className="text-sm text-slate-400">
+                Core Coverage
+              </p>
 
-            <p className="text-xs text-slate-500 mt-1">
-              Price + Cross Currency +
-              Mean Reversion
-            </p>
+              <p className="text-lg font-semibold">
+                {data.availableCoreWeight.toFixed(
+                  1
+                )}
+                /75
+              </p>
+
+              <p className="text-xs text-slate-500 mt-1">
+                Current model includes
+                Price, Cross Currency,
+                Relative Market and
+                Mean Reversion.
+              </p>
+            </div>
           </div>
         </div>
 
-        <MarketRates data={data} />
+        {/* MARKET RATES */}
+
+        <MarketRates
+          data={data}
+        />
+
+        {/* SCORE BREAKDOWN */}
 
         <ScoreBreakdown
           data={data}
         />
 
-        <div className="bg-slate-900 rounded-xl p-6 mt-4">
+        {/* SOURCE INFO */}
+
+        <div className="bg-slate-900 rounded-xl p-6 mt-4 mb-8">
           <h2 className="text-xl font-semibold">
             Sources
           </h2>
 
-          <div className="mt-4 space-y-2 text-slate-300">
+          <div className="mt-4 text-sm text-slate-400 space-y-2">
             <p>
-              AUD/THB Direct — Twelve
-              Data
+              FX Market Data:
+              Twelve Data
             </p>
 
             <p>
-              AUD/USD — Twelve Data
+              AU 2Y Yield:
+              RBA via DBnomics
             </p>
 
             <p>
-              USD/THB — Twelve Data
+              US 2Y Yield:
+              Federal Reserve via
+              DBnomics
             </p>
 
             <p>
-              AUD/THB Cross — AUD/USD
-              × USD/THB
-            </p>
-
-            <p>
-              Australia CPI — ABS
-              (Pending)
-            </p>
-
-            <p>
-              RBA Policy — RBA
-              (Pending)
-            </p>
-
-            <p>
-              Thailand Policy — BOT
-              (Pending)
+              AUD/THB Cross:
+              AUD/USD × USD/THB
+              using matched-time data
             </p>
           </div>
         </div>

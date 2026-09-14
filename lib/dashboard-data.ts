@@ -12,6 +12,24 @@ type PricePoint = {
   market_timestamp: string;
 };
 
+export type YieldSnapshot = {
+  au_2y: number | string;
+  au_reference_date: string;
+
+  us_2y: number | string;
+  us_reference_date: string;
+
+  spread: number | string;
+  data_gap_days: number;
+
+  spread_change_1w_bps:
+    | number
+    | string
+    | null;
+
+  last_checked_at: string;
+};
+
 export type CrossStatus =
   | "GOOD"
   | "STALE"
@@ -30,18 +48,31 @@ export type FreshnessInfo = {
   ageMinutes: number | null;
 };
 
+export type YieldConfidence =
+  | "HIGH"
+  | "MEDIUM"
+  | "LOW"
+  | "STALE"
+  | "MISSING";
+
 export type DashboardData = {
   latestPrice: MarketRow | null;
   latestDirect: MarketRow | null;
   latestAudUsd: MarketRow | null;
   latestUsdThb: MarketRow | null;
+
   latestUsdCnh: MarketRow | null;
+  latestUsdSgd: MarketRow | null;
+
+  latestYieldSnapshot: YieldSnapshot | null;
 
   latestPriceFreshness: FreshnessInfo;
   directFreshness: FreshnessInfo;
   audUsdFreshness: FreshnessInfo;
   usdThbFreshness: FreshnessInfo;
+
   usdCnhFreshness: FreshnessInfo;
+  usdSgdFreshness: FreshnessInfo;
 
   change1H: number | null;
   change4H: number | null;
@@ -56,8 +87,23 @@ export type DashboardData = {
   crossCurrencyScore: number | null;
   crossCurrencyChange1H: number | null;
 
-  relativeMarketScore: number | null;
   usdCnhChange1H: number | null;
+  usdSgdChange1H: number | null;
+
+  usdCnhScore: number | null;
+  usdSgdScore: number | null;
+
+  yieldSpread: number | null;
+  yieldSpreadChange1WBps: number | null;
+  yieldScore: number | null;
+  yieldConfidence: YieldConfidence;
+  yieldDataAgeDays: number | null;
+  yieldDataGapDays: number | null;
+  yieldEffectiveWeight: number;
+
+  relativeMarketScore: number | null;
+  relativeMarketCoverage: number;
+  relativeMarketEffectiveWeight: number;
 
   rangePosition: number | null;
   meanReversionScore: number | null;
@@ -78,11 +124,13 @@ export type DashboardData = {
 };
 
 // =========================================================
-// FRESHNESS
+// MARKET FRESHNESS
 // =========================================================
 
 function getFreshness(
-  row: MarketRow | null
+  row: MarketRow | null,
+  freshMinutes = 20,
+  delayedMinutes = 40
 ): FreshnessInfo {
   if (!row) {
     return {
@@ -102,7 +150,9 @@ function getFreshness(
   const ageMinutes = Math.max(
     0,
     (now.getTime() -
-      new Date(row.market_timestamp).getTime()) /
+      new Date(
+        row.market_timestamp
+      ).getTime()) /
       (60 * 1000)
   );
 
@@ -116,14 +166,14 @@ function getFreshness(
     };
   }
 
-  if (ageMinutes <= 20) {
+  if (ageMinutes <= freshMinutes) {
     return {
       status: "FRESH",
       ageMinutes,
     };
   }
 
-  if (ageMinutes <= 40) {
+  if (ageMinutes <= delayedMinutes) {
     return {
       status: "DELAYED",
       ageMinutes,
@@ -137,7 +187,110 @@ function getFreshness(
 }
 
 // =========================================================
-// FIND PRICE CLOSE TO TIME
+// DATE HELPERS
+// =========================================================
+
+function getAgeDays(
+  dateString: string
+) {
+  const reference =
+    new Date(
+      `${dateString}T00:00:00Z`
+    ).getTime();
+
+  const now = Date.now();
+
+  return Math.max(
+    0,
+    Math.floor(
+      (now - reference) /
+        (24 * 60 * 60 * 1000)
+    )
+  );
+}
+
+// =========================================================
+// YIELD CONFIDENCE
+// =========================================================
+
+function getYieldConfidence(
+  snapshot: YieldSnapshot | null
+): {
+  confidence: YieldConfidence;
+  multiplier: number;
+  maxAgeDays: number | null;
+} {
+  if (!snapshot) {
+    return {
+      confidence: "MISSING",
+      multiplier: 0,
+      maxAgeDays: null,
+    };
+  }
+
+  const auAge =
+    getAgeDays(
+      snapshot.au_reference_date
+    );
+
+  const usAge =
+    getAgeDays(
+      snapshot.us_reference_date
+    );
+
+  const maxAgeDays =
+    Math.max(
+      auAge,
+      usAge
+    );
+
+  const gap =
+    Number(
+      snapshot.data_gap_days
+    );
+
+  if (
+    maxAgeDays <= 7 &&
+    gap <= 3
+  ) {
+    return {
+      confidence: "HIGH",
+      multiplier: 1,
+      maxAgeDays,
+    };
+  }
+
+  if (
+    maxAgeDays <= 14 &&
+    gap <= 7
+  ) {
+    return {
+      confidence: "MEDIUM",
+      multiplier: 0.75,
+      maxAgeDays,
+    };
+  }
+
+  if (
+    maxAgeDays <= 21 &&
+    gap <= 10
+  ) {
+    return {
+      confidence: "LOW",
+      multiplier: 0.5,
+      maxAgeDays,
+    };
+  }
+
+  return {
+    confidence: "STALE",
+    multiplier: 0,
+    maxAgeDays,
+  };
+}
+
+// =========================================================
+// CLOSEST PRICE
 // =========================================================
 
 async function getClosestPrice(
@@ -146,61 +299,77 @@ async function getClosestPrice(
   toleranceMinutes = 20
 ): Promise<PricePoint | null> {
   const tolerance =
-    toleranceMinutes * 60 * 1000;
+    toleranceMinutes *
+    60 *
+    1000;
 
-  const { data } = await supabaseAdmin
-    .from("market_prices")
-    .select("rate, market_timestamp")
-    .eq("symbol", symbol)
-    .gte(
-      "market_timestamp",
-      new Date(
-        targetTime - tolerance
-      ).toISOString()
-    )
-    .lte(
-      "market_timestamp",
-      new Date(
-        targetTime + tolerance
-      ).toISOString()
-    );
+  const { data } =
+    await supabaseAdmin
+      .from("market_prices")
+      .select(
+        "rate, market_timestamp"
+      )
+      .eq("symbol", symbol)
+      .gte(
+        "market_timestamp",
+        new Date(
+          targetTime - tolerance
+        ).toISOString()
+      )
+      .lte(
+        "market_timestamp",
+        new Date(
+          targetTime + tolerance
+        ).toISOString()
+      );
 
-  if (!data || data.length === 0) {
+  if (
+    !data ||
+    data.length === 0
+  ) {
     return null;
   }
 
-  return data.reduce((closest, item) => {
-    const itemDiff = Math.abs(
-      new Date(
-        item.market_timestamp
-      ).getTime() - targetTime
-    );
+  return data.reduce(
+    (closest, item) => {
+      const itemDiff =
+        Math.abs(
+          new Date(
+            item.market_timestamp
+          ).getTime() -
+            targetTime
+        );
 
-    const closestDiff = Math.abs(
-      new Date(
-        closest.market_timestamp
-      ).getTime() - targetTime
-    );
+      const closestDiff =
+        Math.abs(
+          new Date(
+            closest.market_timestamp
+          ).getTime() -
+            targetTime
+        );
 
-    return itemDiff < closestDiff
-      ? item
-      : closest;
-  });
+      return itemDiff <
+        closestDiff
+        ? item
+        : closest;
+    }
+  );
 }
 
 // =========================================================
-// DIRECT AUD/THB AT TARGET TIME
+// DIRECT AUD/THB
 // =========================================================
 
 async function getClosestDirectPrice(
   targetTime: number,
   toleranceMinutes = 20
 ): Promise<PricePoint | null> {
-  const direct = await getClosestPrice(
-    "AUD/THB_DIRECT",
-    targetTime,
-    toleranceMinutes
-  );
+  const direct =
+    await getClosestPrice(
+      "AUD/THB_DIRECT",
+      targetTime,
+      toleranceMinutes
+    );
 
   if (direct) {
     return direct;
@@ -214,7 +383,7 @@ async function getClosestDirectPrice(
 }
 
 // =========================================================
-// MATCH AUD/USD + USD/THB BY TIME
+// MATCH AUD/USD + USD/THB
 // =========================================================
 
 async function getMatchedCrossPair() {
@@ -224,20 +393,30 @@ async function getMatchedCrossPair() {
   ] = await Promise.all([
     supabaseAdmin
       .from("market_prices")
-      .select("rate, market_timestamp")
+      .select(
+        "rate, market_timestamp"
+      )
       .eq("symbol", "AUD/USD")
-      .order("market_timestamp", {
-        ascending: false,
-      })
+      .order(
+        "market_timestamp",
+        {
+          ascending: false,
+        }
+      )
       .limit(18),
 
     supabaseAdmin
       .from("market_prices")
-      .select("rate, market_timestamp")
+      .select(
+        "rate, market_timestamp"
+      )
       .eq("symbol", "USD/THB")
-      .order("market_timestamp", {
-        ascending: false,
-      })
+      .order(
+        "market_timestamp",
+        {
+          ascending: false,
+        }
+      )
       .limit(18),
   ]);
 
@@ -257,64 +436,74 @@ async function getMatchedCrossPair() {
   const candidates: {
     audRate: number;
     usdThbRate: number;
-    audTime: number;
-    usdThbTime: number;
     gapMinutes: number;
     matchedTime: number;
   }[] = [];
 
   for (const aud of audRows) {
     for (const thb of thbRows) {
-      const audTime = new Date(
-        aud.market_timestamp
-      ).getTime();
+      const audTime =
+        new Date(
+          aud.market_timestamp
+        ).getTime();
 
-      const usdThbTime = new Date(
-        thb.market_timestamp
-      ).getTime();
+      const thbTime =
+        new Date(
+          thb.market_timestamp
+        ).getTime();
 
       const gapMinutes =
         Math.abs(
-          audTime - usdThbTime
+          audTime - thbTime
         ) /
         (60 * 1000);
 
-      if (gapMinutes <= 10) {
+      if (
+        gapMinutes <= 10
+      ) {
         candidates.push({
-          audRate: Number(aud.rate),
-          usdThbRate: Number(thb.rate),
-          audTime,
-          usdThbTime,
+          audRate:
+            Number(aud.rate),
+
+          usdThbRate:
+            Number(thb.rate),
+
           gapMinutes,
-          matchedTime: Math.min(
-            audTime,
-            usdThbTime
-          ),
+
+          matchedTime:
+            Math.min(
+              audTime,
+              thbTime
+            ),
         });
       }
     }
   }
 
-  if (candidates.length === 0) {
+  if (
+    candidates.length === 0
+  ) {
     return null;
   }
 
-  candidates.sort((a, b) => {
-    if (
-      b.matchedTime !==
-      a.matchedTime
-    ) {
-      return (
-        b.matchedTime -
+  candidates.sort(
+    (a, b) => {
+      if (
+        b.matchedTime !==
         a.matchedTime
+      ) {
+        return (
+          b.matchedTime -
+          a.matchedTime
+        );
+      }
+
+      return (
+        a.gapMinutes -
+        b.gapMinutes
       );
     }
-
-    return (
-      a.gapMinutes -
-      b.gapMinutes
-    );
-  });
+  );
 
   return candidates[0];
 }
@@ -326,15 +515,29 @@ async function getMatchedCrossPair() {
 function get1HScore(
   change: number
 ) {
-  if (change >= 0.3) return 100;
-  if (change >= 0.2) return 75;
-  if (change >= 0.1) return 50;
-  if (change >= 0.05) return 25;
+  if (change >= 0.3)
+    return 100;
 
-  if (change <= -0.3) return -100;
-  if (change <= -0.2) return -75;
-  if (change <= -0.1) return -50;
-  if (change <= -0.05) return -25;
+  if (change >= 0.2)
+    return 75;
+
+  if (change >= 0.1)
+    return 50;
+
+  if (change >= 0.05)
+    return 25;
+
+  if (change <= -0.3)
+    return -100;
+
+  if (change <= -0.2)
+    return -75;
+
+  if (change <= -0.1)
+    return -50;
+
+  if (change <= -0.05)
+    return -25;
 
   return 0;
 }
@@ -342,15 +545,29 @@ function get1HScore(
 function get4HScore(
   change: number
 ) {
-  if (change >= 0.7) return 100;
-  if (change >= 0.4) return 75;
-  if (change >= 0.2) return 50;
-  if (change >= 0.1) return 25;
+  if (change >= 0.7)
+    return 100;
 
-  if (change <= -0.7) return -100;
-  if (change <= -0.4) return -75;
-  if (change <= -0.2) return -50;
-  if (change <= -0.1) return -25;
+  if (change >= 0.4)
+    return 75;
+
+  if (change >= 0.2)
+    return 50;
+
+  if (change >= 0.1)
+    return 25;
+
+  if (change <= -0.7)
+    return -100;
+
+  if (change <= -0.4)
+    return -75;
+
+  if (change <= -0.2)
+    return -50;
+
+  if (change <= -0.1)
+    return -25;
 
   return 0;
 }
@@ -358,16 +575,54 @@ function get4HScore(
 function getCrossScore(
   change: number
 ) {
-  return get1HScore(change);
+  return get1HScore(
+    change
+  );
 }
 
-// USD/CNH ขึ้น = CNH อ่อน = โดยทั่วไปเป็นลบต่อ AUD
-// จึงกลับเครื่องหมายจาก price score
-
-function getUsdCnhScore(
+// USD/CNH ↑ / USD/SGD ↑
+// Asian currencies weaker vs USD
+// negative AUD signal
+function getAsianFxScore(
   change: number
 ) {
-  return -get1HScore(change);
+  return -get1HScore(
+    change
+  );
+}
+
+// =========================================================
+// YIELD SCORE V1
+// =========================================================
+
+function getYieldScore(
+  changeBps: number
+) {
+  if (changeBps >= 25)
+    return 100;
+
+  if (changeBps >= 15)
+    return 75;
+
+  if (changeBps >= 7.5)
+    return 50;
+
+  if (changeBps >= 3)
+    return 25;
+
+  if (changeBps <= -25)
+    return -100;
+
+  if (changeBps <= -15)
+    return -75;
+
+  if (changeBps <= -7.5)
+    return -50;
+
+  if (changeBps <= -3)
+    return -25;
+
+  return 0;
 }
 
 // =========================================================
@@ -381,16 +636,24 @@ export async function getDashboardData(): Promise<DashboardData> {
     latestAudUsdResult,
     latestUsdThbResult,
     latestUsdCnhResult,
+    latestUsdSgdResult,
+    latestYieldResult,
   ] = await Promise.all([
     supabaseAdmin
       .from("market_prices")
       .select(
         "rate, market_timestamp, source"
       )
-      .eq("symbol", "AUD/THB")
-      .order("market_timestamp", {
-        ascending: false,
-      })
+      .eq(
+        "symbol",
+        "AUD/THB"
+      )
+      .order(
+        "market_timestamp",
+        {
+          ascending: false,
+        }
+      )
       .limit(1)
       .maybeSingle(),
 
@@ -403,9 +666,12 @@ export async function getDashboardData(): Promise<DashboardData> {
         "symbol",
         "AUD/THB_DIRECT"
       )
-      .order("market_timestamp", {
-        ascending: false,
-      })
+      .order(
+        "market_timestamp",
+        {
+          ascending: false,
+        }
+      )
       .limit(1)
       .maybeSingle(),
 
@@ -414,10 +680,16 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select(
         "rate, market_timestamp, source"
       )
-      .eq("symbol", "AUD/USD")
-      .order("market_timestamp", {
-        ascending: false,
-      })
+      .eq(
+        "symbol",
+        "AUD/USD"
+      )
+      .order(
+        "market_timestamp",
+        {
+          ascending: false,
+        }
+      )
       .limit(1)
       .maybeSingle(),
 
@@ -426,10 +698,16 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select(
         "rate, market_timestamp, source"
       )
-      .eq("symbol", "USD/THB")
-      .order("market_timestamp", {
-        ascending: false,
-      })
+      .eq(
+        "symbol",
+        "USD/THB"
+      )
+      .order(
+        "market_timestamp",
+        {
+          ascending: false,
+        }
+      )
       .limit(1)
       .maybeSingle(),
 
@@ -438,10 +716,59 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select(
         "rate, market_timestamp, source"
       )
-      .eq("symbol", "USD/CNH")
-      .order("market_timestamp", {
-        ascending: false,
-      })
+      .eq(
+        "symbol",
+        "USD/CNH"
+      )
+      .order(
+        "market_timestamp",
+        {
+          ascending: false,
+        }
+      )
+      .limit(1)
+      .maybeSingle(),
+
+    supabaseAdmin
+      .from("market_prices")
+      .select(
+        "rate, market_timestamp, source"
+      )
+      .eq(
+        "symbol",
+        "USD/SGD"
+      )
+      .order(
+        "market_timestamp",
+        {
+          ascending: false,
+        }
+      )
+      .limit(1)
+      .maybeSingle(),
+
+    supabaseAdmin
+      .from(
+        "yield_snapshots"
+      )
+      .select(
+        `
+        au_2y,
+        au_reference_date,
+        us_2y,
+        us_reference_date,
+        spread,
+        data_gap_days,
+        spread_change_1w_bps,
+        last_checked_at
+        `
+      )
+      .order(
+        "last_checked_at",
+        {
+          ascending: false,
+        }
+      )
       .limit(1)
       .maybeSingle(),
   ]);
@@ -471,6 +798,16 @@ export async function getDashboardData(): Promise<DashboardData> {
       | MarketRow
       | null;
 
+  const latestUsdSgd =
+    latestUsdSgdResult.data as
+      | MarketRow
+      | null;
+
+  const latestYieldSnapshot =
+    latestYieldResult.data as
+      | YieldSnapshot
+      | null;
+
   const latestDirect =
     rawLatestDirect ??
     latestPrice;
@@ -480,27 +817,49 @@ export async function getDashboardData(): Promise<DashboardData> {
   // =====================================================
 
   const latestPriceFreshness =
-    getFreshness(latestPrice);
+    getFreshness(
+      latestPrice
+    );
 
   const directFreshness =
-    getFreshness(latestDirect);
+    getFreshness(
+      latestDirect
+    );
 
   const audUsdFreshness =
-    getFreshness(latestAudUsd);
+    getFreshness(
+      latestAudUsd
+    );
 
   const usdThbFreshness =
-    getFreshness(latestUsdThb);
+    getFreshness(
+      latestUsdThb
+    );
 
+  // CNH / SGD fetch ทุก 30 นาที
   const usdCnhFreshness =
-    getFreshness(latestUsdCnh);
+    getFreshness(
+      latestUsdCnh,
+      40,
+      70
+    );
+
+  const usdSgdFreshness =
+    getFreshness(
+      latestUsdSgd,
+      40,
+      70
+    );
 
   // =====================================================
-  // DIRECT
+  // DIRECT RATE
   // =====================================================
 
   const directRate =
     latestDirect
-      ? Number(latestDirect.rate)
+      ? Number(
+          latestDirect.rate
+        )
       : null;
 
   // =====================================================
@@ -553,13 +912,16 @@ export async function getDashboardData(): Promise<DashboardData> {
     if (
       crossTimeGapMinutes <= 2
     ) {
-      crossStatus = "GOOD";
+      crossStatus =
+        "GOOD";
     } else if (
       crossTimeGapMinutes <= 10
     ) {
-      crossStatus = "STALE";
+      crossStatus =
+        "STALE";
     } else {
-      crossStatus = "INVALID";
+      crossStatus =
+        "INVALID";
     }
 
     const directAtCrossTime =
@@ -568,7 +930,9 @@ export async function getDashboardData(): Promise<DashboardData> {
         20
       );
 
-    if (directAtCrossTime) {
+    if (
+      directAtCrossTime
+    ) {
       crossDirectReferenceRate =
         Number(
           directAtCrossTime.rate
@@ -599,7 +963,9 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   if (latestPrice) {
     const currentRate =
-      Number(latestPrice.rate);
+      Number(
+        latestPrice.rate
+      );
 
     const latestTime =
       new Date(
@@ -613,35 +979,48 @@ export async function getDashboardData(): Promise<DashboardData> {
       getClosestPrice(
         "AUD/THB",
         latestTime -
-          60 * 60 * 1000
+          60 *
+            60 *
+            1000
       ),
 
       getClosestPrice(
         "AUD/THB",
         latestTime -
-          4 * 60 * 60 * 1000
+          4 *
+            60 *
+            60 *
+            1000
       ),
     ]);
 
     if (price1H) {
       change1H =
         ((currentRate -
-          Number(price1H.rate)) /
-          Number(price1H.rate)) *
+          Number(
+            price1H.rate
+          )) /
+          Number(
+            price1H.rate
+          )) *
         100;
     }
 
     if (price4H) {
       change4H =
         ((currentRate -
-          Number(price4H.rate)) /
-          Number(price4H.rate)) *
+          Number(
+            price4H.rate
+          )) /
+          Number(
+            price4H.rate
+          )) *
         100;
     }
   }
 
   // =====================================================
-  // INTRADAY
+  // INTRADAY RANGE
   // =====================================================
 
   let intradayLow:
@@ -659,7 +1038,10 @@ export async function getDashboardData(): Promise<DashboardData> {
       ).getTime();
 
     const bangkokOffset =
-      7 * 60 * 60 * 1000;
+      7 *
+      60 *
+      60 *
+      1000;
 
     const bangkokTime =
       new Date(
@@ -675,63 +1057,81 @@ export async function getDashboardData(): Promise<DashboardData> {
         0,
         0,
         0
-      ) - bangkokOffset;
+      ) -
+      bangkokOffset;
 
     const endOfDay =
       startOfDay +
-      24 * 60 * 60 * 1000;
+      24 *
+        60 *
+        60 *
+        1000;
 
-    const { data: todayPrices } =
-      await supabaseAdmin
-        .from("market_prices")
-        .select("rate")
-        .eq(
-          "symbol",
-          "AUD/THB"
-        )
-        .gte(
-          "market_timestamp",
-          new Date(
-            startOfDay
-          ).toISOString()
-        )
-        .lt(
-          "market_timestamp",
-          new Date(
-            endOfDay
-          ).toISOString()
-        );
+    const {
+      data: todayPrices,
+    } = await supabaseAdmin
+      .from(
+        "market_prices"
+      )
+      .select("rate")
+      .eq(
+        "symbol",
+        "AUD/THB"
+      )
+      .gte(
+        "market_timestamp",
+        new Date(
+          startOfDay
+        ).toISOString()
+      )
+      .lt(
+        "market_timestamp",
+        new Date(
+          endOfDay
+        ).toISOString()
+      );
 
     if (
       todayPrices &&
-      todayPrices.length > 0
+      todayPrices.length >
+        0
     ) {
       const rates =
         todayPrices.map(
           (item) =>
-            Number(item.rate)
+            Number(
+              item.rate
+            )
         );
 
       intradayLow =
-        Math.min(...rates);
+        Math.min(
+          ...rates
+        );
 
       intradayHigh =
-        Math.max(...rates);
+        Math.max(
+          ...rates
+        );
     }
   }
 
   // =====================================================
-  // PRICE MOMENTUM
+  // PRICE / MOMENTUM
   // =====================================================
 
   const priceScore1H =
     change1H !== null
-      ? get1HScore(change1H)
+      ? get1HScore(
+          change1H
+        )
       : null;
 
   const priceScore4H =
     change4H !== null
-      ? get4HScore(change4H)
+      ? get4HScore(
+          change4H
+        )
       : null;
 
   let priceMomentumScore:
@@ -739,21 +1139,27 @@ export async function getDashboardData(): Promise<DashboardData> {
     | null = null;
 
   if (
-    priceScore1H !== null &&
-    priceScore4H !== null
+    priceScore1H !==
+      null &&
+    priceScore4H !==
+      null
   ) {
     priceMomentumScore =
       Math.round(
-        priceScore1H * 0.6 +
-        priceScore4H * 0.4
+        priceScore1H *
+          0.6 +
+          priceScore4H *
+            0.4
       );
   } else if (
-    priceScore1H !== null
+    priceScore1H !==
+    null
   ) {
     priceMomentumScore =
       priceScore1H;
   } else if (
-    priceScore4H !== null
+    priceScore4H !==
+    null
   ) {
     priceMomentumScore =
       priceScore4H;
@@ -772,7 +1178,8 @@ export async function getDashboardData(): Promise<DashboardData> {
     | null = null;
 
   if (
-    crossStatus === "GOOD" &&
+    crossStatus ===
+      "GOOD" &&
     matchedCross &&
     audUsdFreshness.status ===
       "FRESH" &&
@@ -785,7 +1192,9 @@ export async function getDashboardData(): Promise<DashboardData> {
 
     const oneHourAgo =
       matchedCross.matchedTime -
-      60 * 60 * 1000;
+      60 *
+        60 *
+        1000;
 
     const [
       audUsd1H,
@@ -808,20 +1217,14 @@ export async function getDashboardData(): Promise<DashboardData> {
       audUsd1H &&
       usdThb1H
     ) {
-      const audTime =
-        new Date(
-          audUsd1H.market_timestamp
-        ).getTime();
-
-      const thbTime =
-        new Date(
-          usdThb1H.market_timestamp
-        ).getTime();
-
       const historicalGap =
         Math.abs(
-          audTime -
-          thbTime
+          new Date(
+            audUsd1H.market_timestamp
+          ).getTime() -
+            new Date(
+              usdThb1H.market_timestamp
+            ).getTime()
         ) /
         (60 * 1000);
 
@@ -851,14 +1254,14 @@ export async function getDashboardData(): Promise<DashboardData> {
   }
 
   // =====================================================
-  // RELATIVE MARKET — USD/CNH V1
+  // USD/CNH
   // =====================================================
 
   let usdCnhChange1H:
     | number
     | null = null;
 
-  let relativeMarketScore:
+  let usdCnhScore:
     | number
     | null = null;
 
@@ -867,41 +1270,281 @@ export async function getDashboardData(): Promise<DashboardData> {
     usdCnhFreshness.status ===
       "FRESH"
   ) {
-    const latestUsdCnhTime =
+    const currentTime =
       new Date(
         latestUsdCnh.market_timestamp
       ).getTime();
 
-    const usdCnh1H =
+    const past =
       await getClosestPrice(
         "USD/CNH",
-        latestUsdCnhTime -
-          60 * 60 * 1000,
-        20
+        currentTime -
+          60 *
+            60 *
+            1000,
+        25
       );
 
-    if (usdCnh1H) {
-      const current =
+    if (past) {
+      const currentRate =
         Number(
           latestUsdCnh.rate
         );
 
-      const past =
+      const pastRate =
         Number(
-          usdCnh1H.rate
+          past.rate
         );
 
       usdCnhChange1H =
-        ((current - past) /
-          past) *
+        ((currentRate -
+          pastRate) /
+          pastRate) *
         100;
 
-      relativeMarketScore =
-        getUsdCnhScore(
+      usdCnhScore =
+        getAsianFxScore(
           usdCnhChange1H
         );
     }
   }
+
+  // =====================================================
+  // USD/SGD
+  // =====================================================
+
+  let usdSgdChange1H:
+    | number
+    | null = null;
+
+  let usdSgdScore:
+    | number
+    | null = null;
+
+  if (
+    latestUsdSgd &&
+    usdSgdFreshness.status ===
+      "FRESH"
+  ) {
+    const currentTime =
+      new Date(
+        latestUsdSgd.market_timestamp
+      ).getTime();
+
+    const past =
+      await getClosestPrice(
+        "USD/SGD",
+        currentTime -
+          60 *
+            60 *
+            1000,
+        25
+      );
+
+    if (past) {
+      const currentRate =
+        Number(
+          latestUsdSgd.rate
+        );
+
+      const pastRate =
+        Number(
+          past.rate
+        );
+
+      usdSgdChange1H =
+        ((currentRate -
+          pastRate) /
+          pastRate) *
+        100;
+
+      usdSgdScore =
+        getAsianFxScore(
+          usdSgdChange1H
+        );
+    }
+  }
+
+  // =====================================================
+  // AU-US 2Y YIELD
+  // =====================================================
+
+  let yieldSpread:
+    | number
+    | null = null;
+
+  let yieldSpreadChange1WBps:
+    | number
+    | null = null;
+
+  let yieldScore:
+    | number
+    | null = null;
+
+  let yieldDataGapDays:
+    | number
+    | null = null;
+
+  let yieldEffectiveWeight =
+    0;
+
+  const yieldInfo =
+    getYieldConfidence(
+      latestYieldSnapshot
+    );
+
+  const yieldConfidence =
+    yieldInfo.confidence;
+
+  const yieldDataAgeDays =
+    yieldInfo.maxAgeDays;
+
+  if (
+    latestYieldSnapshot
+  ) {
+    yieldSpread =
+      Number(
+        latestYieldSnapshot.spread
+      );
+
+    yieldDataGapDays =
+      Number(
+        latestYieldSnapshot.data_gap_days
+      );
+
+    if (
+      latestYieldSnapshot.spread_change_1w_bps !==
+        null &&
+      yieldConfidence !==
+        "STALE" &&
+      yieldConfidence !==
+        "MISSING"
+    ) {
+      yieldSpreadChange1WBps =
+        Number(
+          latestYieldSnapshot.spread_change_1w_bps
+        );
+
+      yieldScore =
+        getYieldScore(
+          yieldSpreadChange1WBps
+        );
+
+      // Yield มีน้ำหนักสูงสุด 50%
+      // ภายใน Relative Market
+      yieldEffectiveWeight =
+        50 *
+        yieldInfo.multiplier;
+    }
+  }
+
+  // =====================================================
+  // RELATIVE MARKET
+  //
+  // AU-US Yield 50%
+  // USD/CNH     35%
+  // USD/SGD     15%
+  // =====================================================
+
+  const relativeFactors: {
+    score: number | null;
+    weight: number;
+  }[] = [
+    {
+      score:
+        yieldScore,
+
+      weight:
+        yieldEffectiveWeight,
+    },
+
+    {
+      score:
+        usdCnhScore,
+
+      weight:
+        usdCnhScore !== null
+          ? 35
+          : 0,
+    },
+
+    {
+      score:
+        usdSgdScore,
+
+      weight:
+        usdSgdScore !== null
+          ? 15
+          : 0,
+    },
+  ];
+
+  const availableRelativeFactors =
+    relativeFactors.filter(
+      (factor) =>
+        factor.score !==
+          null &&
+        factor.weight >
+          0
+    );
+
+  const relativeMarketCoverage =
+    Number(
+      availableRelativeFactors
+        .reduce(
+          (
+            sum,
+            factor
+          ) =>
+            sum +
+            factor.weight,
+          0
+        )
+        .toFixed(1)
+    );
+
+  let relativeMarketScore:
+    | number
+    | null = null;
+
+  if (
+    relativeMarketCoverage >
+    0
+  ) {
+    const weightedTotal =
+      availableRelativeFactors.reduce(
+        (
+          sum,
+          factor
+        ) =>
+          sum +
+          Number(
+            factor.score
+          ) *
+            factor.weight,
+        0
+      );
+
+    relativeMarketScore =
+      Math.round(
+        weightedTotal /
+          relativeMarketCoverage
+      );
+  }
+
+  // Relative Market มีน้ำหนักสูงสุด
+  // 15% ใน FX Score หลัก
+  const relativeMarketEffectiveWeight =
+    relativeMarketScore !==
+      null
+      ? Number(
+          (
+            15 *
+            (relativeMarketCoverage /
+              100)
+          ).toFixed(2)
+        )
+      : 0;
 
   // =====================================================
   // MEAN REVERSION
@@ -917,8 +1560,10 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   if (
     latestPrice &&
-    intradayLow !== null &&
-    intradayHigh !== null &&
+    intradayLow !==
+      null &&
+    intradayHigh !==
+      null &&
     intradayHigh >
       intradayLow
   ) {
@@ -952,8 +1597,14 @@ export async function getDashboardData(): Promise<DashboardData> {
   }
 
   // =====================================================
-  // CORE SCORE
-  // ยังไม่รวม Relative Market
+  // CORE FX SCORE
+  //
+  // Price / Momentum   35
+  // Cross Currency     20
+  // Relative Market    15
+  // Mean Reversion      5
+  //
+  // Maximum = 75
   // =====================================================
 
   const coreFactors = [
@@ -962,11 +1613,20 @@ export async function getDashboardData(): Promise<DashboardData> {
         priceMomentumScore,
       weight: 35,
     },
+
     {
       score:
         crossCurrencyScore,
       weight: 20,
     },
+
+    {
+      score:
+        relativeMarketScore,
+      weight:
+        relativeMarketEffectiveWeight,
+    },
+
     {
       score:
         meanReversionScore,
@@ -978,15 +1638,24 @@ export async function getDashboardData(): Promise<DashboardData> {
     coreFactors.filter(
       (factor) =>
         factor.score !==
-        null
+          null &&
+        factor.weight >
+          0
     );
 
   const availableCoreWeight =
-    availableCoreFactors.reduce(
-      (sum, factor) =>
-        sum +
-        factor.weight,
-      0
+    Number(
+      availableCoreFactors
+        .reduce(
+          (
+            sum,
+            factor
+          ) =>
+            sum +
+            factor.weight,
+          0
+        )
+        .toFixed(1)
     );
 
   let coreFxScore:
@@ -994,11 +1663,15 @@ export async function getDashboardData(): Promise<DashboardData> {
     | null = null;
 
   if (
-    availableCoreWeight > 0
+    availableCoreWeight >
+    0
   ) {
     const weightedTotal =
       availableCoreFactors.reduce(
-        (sum, factor) =>
+        (
+          sum,
+          factor
+        ) =>
           sum +
           Number(
             factor.score
@@ -1013,6 +1686,10 @@ export async function getDashboardData(): Promise<DashboardData> {
           availableCoreWeight
       );
   }
+
+  // =====================================================
+  // BIAS
+  // =====================================================
 
   let coreBias =
     "Waiting for data";
@@ -1051,13 +1728,19 @@ export async function getDashboardData(): Promise<DashboardData> {
     latestDirect,
     latestAudUsd,
     latestUsdThb,
+
     latestUsdCnh,
+    latestUsdSgd,
+
+    latestYieldSnapshot,
 
     latestPriceFreshness,
     directFreshness,
     audUsdFreshness,
     usdThbFreshness,
+
     usdCnhFreshness,
+    usdSgdFreshness,
 
     change1H,
     change4H,
@@ -1072,8 +1755,23 @@ export async function getDashboardData(): Promise<DashboardData> {
     crossCurrencyScore,
     crossCurrencyChange1H,
 
-    relativeMarketScore,
     usdCnhChange1H,
+    usdSgdChange1H,
+
+    usdCnhScore,
+    usdSgdScore,
+
+    yieldSpread,
+    yieldSpreadChange1WBps,
+    yieldScore,
+    yieldConfidence,
+    yieldDataAgeDays,
+    yieldDataGapDays,
+    yieldEffectiveWeight,
+
+    relativeMarketScore,
+    relativeMarketCoverage,
+    relativeMarketEffectiveWeight,
 
     rangePosition,
     meanReversionScore,
