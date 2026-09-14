@@ -21,11 +21,10 @@ export async function GET(request: Request) {
       );
     }
 
-    // Core FX เท่านั้น
+    // Relative Market ทุก 30 นาที
     const symbols = [
-      "AUD/THB",
-      "AUD/USD",
-      "USD/THB",
+      "USD/CNH",
+      "USD/SGD",
     ];
 
     const results = [];
@@ -79,35 +78,10 @@ export async function GET(request: Request) {
         saved: !error,
         error: error?.message ?? null,
       });
-
-      // เก็บ AUD/THB Direct แยก
-      if (symbol === "AUD/THB") {
-        const { error: directError } = await supabaseAdmin
-          .from("market_prices")
-          .upsert(
-            {
-              symbol: "AUD/THB_DIRECT",
-              rate,
-              market_timestamp: marketTimestamp,
-              source: "twelvedata-direct",
-            },
-            {
-              onConflict: "symbol,market_timestamp",
-            }
-          );
-
-        results.push({
-          symbol: "AUD/THB_DIRECT",
-          rate,
-          marketTimestamp,
-          saved: !directError,
-          error: directError?.message ?? null,
-        });
-      }
     }
 
     return NextResponse.json({
-      group: "core-fx",
+      group: "relative-market",
       updated: true,
       results,
     });
