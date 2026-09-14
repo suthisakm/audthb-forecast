@@ -1,18 +1,6 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase-server";
 
-export type FreshnessStatus =
-  | "FRESH"
-  | "DELAYED"
-  | "STALE"
-  | "MARKET_CLOSED"
-  | "MISSING";
-
-export type FreshnessInfo = {
-  status: FreshnessStatus;
-  ageMinutes: number | null;
-};
-
 export type MarketRow = {
   rate: number | string;
   market_timestamp: string;
@@ -29,6 +17,18 @@ export type CrossStatus =
   | "STALE"
   | "INVALID"
   | "WAITING";
+
+export type FreshnessStatus =
+  | "FRESH"
+  | "DELAYED"
+  | "STALE"
+  | "MARKET_CLOSED"
+  | "MISSING";
+
+export type FreshnessInfo = {
+  status: FreshnessStatus;
+  ageMinutes: number | null;
+};
 
 export type DashboardData = {
   latestPrice: MarketRow | null;
@@ -62,12 +62,80 @@ export type DashboardData = {
   availableCoreWeight: number;
 
   directRate: number | null;
+
   crossRate: number | null;
   crossGap: number | null;
   crossGapPercent: number | null;
   crossTimeGapMinutes: number | null;
+  crossTimestamp: string | null;
+  crossDirectReferenceRate: number | null;
   crossStatus: CrossStatus;
 };
+
+// =========================================================
+// FRESHNESS
+// =========================================================
+
+function getFreshness(
+  row: MarketRow | null
+): FreshnessInfo {
+  if (!row) {
+    return {
+      status: "MISSING",
+      ageMinutes: null,
+    };
+  }
+
+  const now = new Date();
+
+  const bangkokDay =
+    new Intl.DateTimeFormat("en-US", {
+      timeZone: "Asia/Bangkok",
+      weekday: "short",
+    }).format(now);
+
+  const ageMinutes = Math.max(
+    0,
+    (now.getTime() -
+      new Date(
+        row.market_timestamp
+      ).getTime()) /
+      (60 * 1000)
+  );
+
+  if (
+    bangkokDay === "Sat" ||
+    bangkokDay === "Sun"
+  ) {
+    return {
+      status: "MARKET_CLOSED",
+      ageMinutes,
+    };
+  }
+
+  if (ageMinutes <= 20) {
+    return {
+      status: "FRESH",
+      ageMinutes,
+    };
+  }
+
+  if (ageMinutes <= 40) {
+    return {
+      status: "DELAYED",
+      ageMinutes,
+    };
+  }
+
+  return {
+    status: "STALE",
+    ageMinutes,
+  };
+}
+
+// =========================================================
+// FIND PRICE CLOSE TO A TARGET TIME
+// =========================================================
 
 async function getClosestPrice(
   symbol: string,
@@ -117,109 +185,243 @@ async function getClosestPrice(
   });
 }
 
-function get1HScore(change: number) {
+// =========================================================
+// FIND DIRECT AUD/THB CLOSE TO TARGET TIME
+// Prefer AUD/THB_DIRECT, fallback to AUD/THB
+// =========================================================
+
+async function getClosestDirectPrice(
+  targetTime: number,
+  toleranceMinutes = 20
+): Promise<PricePoint | null> {
+  const direct = await getClosestPrice(
+    "AUD/THB_DIRECT",
+    targetTime,
+    toleranceMinutes
+  );
+
+  if (direct) {
+    return direct;
+  }
+
+  return getClosestPrice(
+    "AUD/THB",
+    targetTime,
+    toleranceMinutes
+  );
+}
+
+// =========================================================
+// FIND LATEST MATCHED AUD/USD + USD/THB PAIR
+// =========================================================
+
+async function getMatchedCrossPair() {
+  const [
+    audUsdResult,
+    usdThbResult,
+  ] = await Promise.all([
+    supabaseAdmin
+      .from("market_prices")
+      .select(
+        "rate, market_timestamp"
+      )
+      .eq("symbol", "AUD/USD")
+      .order("market_timestamp", {
+        ascending: false,
+      })
+      .limit(18),
+
+    supabaseAdmin
+      .from("market_prices")
+      .select(
+        "rate, market_timestamp"
+      )
+      .eq("symbol", "USD/THB")
+      .order("market_timestamp", {
+        ascending: false,
+      })
+      .limit(18),
+  ]);
+
+  const audRows =
+    audUsdResult.data ?? [];
+
+  const thbRows =
+    usdThbResult.data ?? [];
+
+  if (
+    audRows.length === 0 ||
+    thbRows.length === 0
+  ) {
+    return null;
+  }
+
+  const candidates: {
+    audRate: number;
+    usdThbRate: number;
+
+    audTime: number;
+    usdThbTime: number;
+
+    gapMinutes: number;
+
+    matchedTime: number;
+  }[] = [];
+
+  for (const aud of audRows) {
+    for (const thb of thbRows) {
+      const audTime = new Date(
+        aud.market_timestamp
+      ).getTime();
+
+      const usdThbTime = new Date(
+        thb.market_timestamp
+      ).getTime();
+
+      const gapMinutes =
+        Math.abs(
+          audTime -
+            usdThbTime
+        ) /
+        (60 * 1000);
+
+      // ไม่จับคู่ถ้าห่างกันเกิน 10 นาที
+      if (gapMinutes <= 10) {
+        candidates.push({
+          audRate: Number(
+            aud.rate
+          ),
+
+          usdThbRate: Number(
+            thb.rate
+          ),
+
+          audTime,
+          usdThbTime,
+
+          gapMinutes,
+
+          // ใช้เวลาที่เก่ากว่าของสอง feed
+          // เพื่อไม่อ้างว่า Cross สดเกินข้อมูลต้นทาง
+          matchedTime: Math.min(
+            audTime,
+            usdThbTime
+          ),
+        });
+      }
+    }
+  }
+
+  if (
+    candidates.length === 0
+  ) {
+    return null;
+  }
+
+  // เลือกคู่ที่ใหม่ที่สุดก่อน
+  // ถ้าเวลาเท่ากันเลือก gap ที่น้อยกว่า
+  candidates.sort((a, b) => {
+    if (
+      b.matchedTime !==
+      a.matchedTime
+    ) {
+      return (
+        b.matchedTime -
+        a.matchedTime
+      );
+    }
+
+    return (
+      a.gapMinutes -
+      b.gapMinutes
+    );
+  });
+
+  return candidates[0];
+}
+
+// =========================================================
+// SCORE RULES
+// =========================================================
+
+function get1HScore(
+  change: number
+) {
   if (change >= 0.3) return 100;
   if (change >= 0.2) return 75;
   if (change >= 0.1) return 50;
   if (change >= 0.05) return 25;
 
-  if (change <= -0.3) return -100;
-  if (change <= -0.2) return -75;
-  if (change <= -0.1) return -50;
-  if (change <= -0.05) return -25;
+  if (change <= -0.3)
+    return -100;
+
+  if (change <= -0.2)
+    return -75;
+
+  if (change <= -0.1)
+    return -50;
+
+  if (change <= -0.05)
+    return -25;
 
   return 0;
 }
 
-function get4HScore(change: number) {
+function get4HScore(
+  change: number
+) {
   if (change >= 0.7) return 100;
   if (change >= 0.4) return 75;
   if (change >= 0.2) return 50;
   if (change >= 0.1) return 25;
 
-  if (change <= -0.7) return -100;
-  if (change <= -0.4) return -75;
-  if (change <= -0.2) return -50;
-  if (change <= -0.1) return -25;
+  if (change <= -0.7)
+    return -100;
+
+  if (change <= -0.4)
+    return -75;
+
+  if (change <= -0.2)
+    return -50;
+
+  if (change <= -0.1)
+    return -25;
 
   return 0;
 }
 
-function getCrossScore(change: number) {
+function getCrossScore(
+  change: number
+) {
   if (change >= 0.3) return 100;
   if (change >= 0.2) return 75;
   if (change >= 0.1) return 50;
   if (change >= 0.05) return 25;
 
-  if (change <= -0.3) return -100;
-  if (change <= -0.2) return -75;
-  if (change <= -0.1) return -50;
-  if (change <= -0.05) return -25;
+  if (change <= -0.3)
+    return -100;
+
+  if (change <= -0.2)
+    return -75;
+
+  if (change <= -0.1)
+    return -50;
+
+  if (change <= -0.05)
+    return -25;
 
   return 0;
 }
 
-function getFreshness(
-  row: MarketRow | null
-): FreshnessInfo {
-  if (!row) {
-    return {
-      status: "MISSING",
-      ageMinutes: null,
-    };
-  }
-
-  const now = new Date();
-
-  const bangkokDay = new Intl.DateTimeFormat(
-    "en-US",
-    {
-      timeZone: "Asia/Bangkok",
-      weekday: "short",
-    }
-  ).format(now);
-
-  const ageMinutes = Math.max(
-    0,
-    (now.getTime() -
-      new Date(
-        row.market_timestamp
-      ).getTime()) /
-      (60 * 1000)
-  );
-
-  // V1: เสาร์-อาทิตย์ถือว่าตลาด FX ปิด
-  if (
-    bangkokDay === "Sat" ||
-    bangkokDay === "Sun"
-  ) {
-    return {
-      status: "MARKET_CLOSED",
-      ageMinutes,
-    };
-  }
-
-  if (ageMinutes <= 20) {
-    return {
-      status: "FRESH",
-      ageMinutes,
-    };
-  }
-
-  if (ageMinutes <= 40) {
-    return {
-      status: "DELAYED",
-      ageMinutes,
-    };
-  }
-
-  return {
-    status: "STALE",
-    ageMinutes,
-  };
-}
+// =========================================================
+// MAIN DASHBOARD DATA
+// =========================================================
 
 export async function getDashboardData(): Promise<DashboardData> {
+  // -------------------------------------------------------
+  // LATEST MARKET DATA
+  // -------------------------------------------------------
+
   const [
     latestPriceResult,
     latestDirectResult,
@@ -243,7 +445,10 @@ export async function getDashboardData(): Promise<DashboardData> {
       .select(
         "rate, market_timestamp, source"
       )
-      .eq("symbol", "AUD/THB_DIRECT")
+      .eq(
+        "symbol",
+        "AUD/THB_DIRECT"
+      )
       .order("market_timestamp", {
         ascending: false,
       })
@@ -276,119 +481,181 @@ export async function getDashboardData(): Promise<DashboardData> {
   ]);
 
   const latestPrice =
-    latestPriceResult.data as MarketRow | null;
+    latestPriceResult.data as
+      | MarketRow
+      | null;
 
   const rawLatestDirect =
-    latestDirectResult.data as MarketRow | null;
+    latestDirectResult.data as
+      | MarketRow
+      | null;
 
   const latestAudUsd =
-    latestAudUsdResult.data as MarketRow | null;
+    latestAudUsdResult.data as
+      | MarketRow
+      | null;
 
   const latestUsdThb =
-    latestUsdThbResult.data as MarketRow | null;
+    latestUsdThbResult.data as
+      | MarketRow
+      | null;
 
-  // ถ้า AUD/THB_DIRECT ยังไม่มี
-  // ให้ AUD/THB เป็น Direct หลักแทน
+  // ถ้ายังไม่มี AUD/THB_DIRECT
+  // ให้ AUD/THB เดิมเป็น Direct
   const latestDirect =
-    rawLatestDirect ?? latestPrice;
-    
+    rawLatestDirect ??
+    latestPrice;
+
+  // -------------------------------------------------------
+  // FRESHNESS
+  // -------------------------------------------------------
+
   const latestPriceFreshness =
-  getFreshness(latestPrice);
+    getFreshness(latestPrice);
 
-const directFreshness =
-  getFreshness(latestDirect);
+  const directFreshness =
+    getFreshness(latestDirect);
 
-const audUsdFreshness =
-  getFreshness(latestAudUsd);
+  const audUsdFreshness =
+    getFreshness(latestAudUsd);
 
-const usdThbFreshness =
-  getFreshness(latestUsdThb);
+  const usdThbFreshness =
+    getFreshness(latestUsdThb);
 
-  // =====================================================
-  // DIRECT + CROSS
-  // =====================================================
+  // -------------------------------------------------------
+  // DIRECT RATE
+  // -------------------------------------------------------
 
-  const directRate = latestDirect
-  ? Number(latestDirect.rate)
-  : null;
+  const directRate =
+    latestDirect
+      ? Number(
+          latestDirect.rate
+        )
+      : null;
 
-  let crossRate: number | null = null;
-  let crossGap: number | null = null;
-  let crossGapPercent: number | null = null;
-  let crossTimeGapMinutes: number | null =
-    null;
+  // -------------------------------------------------------
+  // MATCHED-TIME CROSS
+  // -------------------------------------------------------
+
+  let crossRate:
+    | number
+    | null = null;
+
+  let crossGap:
+    | number
+    | null = null;
+
+  let crossGapPercent:
+    | number
+    | null = null;
+
+  let crossTimeGapMinutes:
+    | number
+    | null = null;
+
+  let crossTimestamp:
+    | string
+    | null = null;
+
+  let crossDirectReferenceRate:
+    | number
+    | null = null;
 
   let crossStatus: CrossStatus =
     "WAITING";
 
-  if (latestAudUsd && latestUsdThb) {
+  const matchedCross =
+    await getMatchedCrossPair();
+
+  if (matchedCross) {
     crossRate =
-      Number(latestAudUsd.rate) *
-      Number(latestUsdThb.rate);
-
-    const audUsdTime = new Date(
-      latestAudUsd.market_timestamp
-    ).getTime();
-
-    const usdThbTime = new Date(
-      latestUsdThb.market_timestamp
-    ).getTime();
+      matchedCross.audRate *
+      matchedCross.usdThbRate;
 
     crossTimeGapMinutes =
-      Math.abs(audUsdTime - usdThbTime) /
-      (60 * 1000);
+      matchedCross.gapMinutes;
 
-    if (crossTimeGapMinutes <= 2) {
+    crossTimestamp =
+      new Date(
+        matchedCross.matchedTime
+      ).toISOString();
+
+    if (
+      crossTimeGapMinutes <= 2
+    ) {
       crossStatus = "GOOD";
     } else if (
       crossTimeGapMinutes <= 10
     ) {
       crossStatus = "STALE";
     } else {
-      crossStatus = "INVALID";
+      crossStatus =
+        "INVALID";
+    }
+
+    // เทียบ Cross กับ Direct ในเวลาใกล้กัน
+    const directAtCrossTime =
+      await getClosestDirectPrice(
+        matchedCross.matchedTime,
+        20
+      );
+
+    if (directAtCrossTime) {
+      crossDirectReferenceRate =
+        Number(
+          directAtCrossTime.rate
+        );
+
+      crossGap =
+        crossRate -
+        crossDirectReferenceRate;
+
+      crossGapPercent =
+        (crossGap /
+          crossDirectReferenceRate) *
+        100;
     }
   }
 
-  if (
-    directRate !== null &&
-    crossRate !== null
-  ) {
-    crossGap =
-      crossRate - directRate;
+  // -------------------------------------------------------
+  // AUD/THB CHANGE 1H + 4H
+  // -------------------------------------------------------
 
-    crossGapPercent =
-      (crossGap / directRate) * 100;
-  }
+  let change1H:
+    | number
+    | null = null;
 
-  // =====================================================
-  // AUD/THB 1H + 4H
-  // =====================================================
-
-  let change1H: number | null = null;
-  let change4H: number | null = null;
+  let change4H:
+    | number
+    | null = null;
 
   if (latestPrice) {
-    const currentRate = Number(
-      latestPrice.rate
-    );
+    const currentRate =
+      Number(
+        latestPrice.rate
+      );
 
-    const latestTime = new Date(
-      latestPrice.market_timestamp
-    ).getTime();
+    const latestTime =
+      new Date(
+        latestPrice.market_timestamp
+      ).getTime();
 
-    const [price1H, price4H] =
-      await Promise.all([
-        getClosestPrice(
-          "AUD/THB",
-          latestTime - 60 * 60 * 1000
-        ),
+    const [
+      price1H,
+      price4H,
+    ] = await Promise.all([
+      getClosestPrice(
+        "AUD/THB",
+        latestTime -
+          60 * 60 * 1000
+      ),
 
-        getClosestPrice(
-          "AUD/THB",
-          latestTime -
-            4 * 60 * 60 * 1000
-        ),
-      ]);
+      getClosestPrice(
+        "AUD/THB",
+        latestTime -
+          4 * 60 * 60 * 1000
+      ),
+    ]);
 
     if (price1H) {
       change1H =
@@ -407,24 +674,32 @@ const usdThbFreshness =
     }
   }
 
-  // =====================================================
-  // INTRADAY
-  // =====================================================
+  // -------------------------------------------------------
+  // INTRADAY HIGH / LOW
+  // -------------------------------------------------------
 
-  let intradayLow: number | null = null;
-  let intradayHigh: number | null = null;
+  let intradayLow:
+    | number
+    | null = null;
+
+  let intradayHigh:
+    | number
+    | null = null;
 
   if (latestPrice) {
-    const latestTime = new Date(
-      latestPrice.market_timestamp
-    ).getTime();
+    const latestTime =
+      new Date(
+        latestPrice.market_timestamp
+      ).getTime();
 
     const bangkokOffset =
       7 * 60 * 60 * 1000;
 
-    const bangkokTime = new Date(
-      latestTime + bangkokOffset
-    );
+    const bangkokTime =
+      new Date(
+        latestTime +
+          bangkokOffset
+      );
 
     const startOfDay =
       Date.UTC(
@@ -444,7 +719,10 @@ const usdThbFreshness =
       await supabaseAdmin
         .from("market_prices")
         .select("rate")
-        .eq("symbol", "AUD/THB")
+        .eq(
+          "symbol",
+          "AUD/THB"
+        )
         .gte(
           "market_timestamp",
           new Date(
@@ -453,34 +731,45 @@ const usdThbFreshness =
         )
         .lt(
           "market_timestamp",
-          new Date(endOfDay).toISOString()
+          new Date(
+            endOfDay
+          ).toISOString()
         );
 
     if (
       todayPrices &&
       todayPrices.length > 0
     ) {
-      const rates = todayPrices.map(
-        (item) => Number(item.rate)
-      );
+      const rates =
+        todayPrices.map(
+          (item) =>
+            Number(item.rate)
+        );
 
-      intradayLow = Math.min(...rates);
-      intradayHigh = Math.max(...rates);
+      intradayLow =
+        Math.min(...rates);
+
+      intradayHigh =
+        Math.max(...rates);
     }
   }
 
-  // =====================================================
-  // PRICE SCORE
-  // =====================================================
+  // -------------------------------------------------------
+  // PRICE MOMENTUM SCORE
+  // -------------------------------------------------------
 
   const priceScore1H =
     change1H !== null
-      ? get1HScore(change1H)
+      ? get1HScore(
+          change1H
+        )
       : null;
 
   const priceScore4H =
     change4H !== null
-      ? get4HScore(change4H)
+      ? get4HScore(
+          change4H
+        )
       : null;
 
   let priceMomentumScore:
@@ -491,22 +780,28 @@ const usdThbFreshness =
     priceScore1H !== null &&
     priceScore4H !== null
   ) {
-    priceMomentumScore = Math.round(
-      priceScore1H * 0.6 +
-        priceScore4H * 0.4
-    );
-  } else if (priceScore1H !== null) {
+    priceMomentumScore =
+      Math.round(
+        priceScore1H *
+          0.6 +
+          priceScore4H *
+            0.4
+      );
+  } else if (
+    priceScore1H !== null
+  ) {
     priceMomentumScore =
       priceScore1H;
-  } else if (priceScore4H !== null) {
+  } else if (
+    priceScore4H !== null
+  ) {
     priceMomentumScore =
       priceScore4H;
   }
 
-  // =====================================================
+  // -------------------------------------------------------
   // CROSS CURRENCY SCORE
-  // Only GOOD data is allowed into score
-  // =====================================================
+  // -------------------------------------------------------
 
   let crossCurrencyScore:
     | number
@@ -517,62 +812,89 @@ const usdThbFreshness =
     | null = null;
 
   if (
-  crossStatus === "GOOD" &&
-  audUsdFreshness.status === "FRESH" &&
-  usdThbFreshness.status === "FRESH" &&
-  latestAudUsd &&
-  latestUsdThb
-) {
-    const referenceTime = Math.min(
-      new Date(
-        latestAudUsd.market_timestamp
-      ).getTime(),
-
-      new Date(
-        latestUsdThb.market_timestamp
-      ).getTime()
-    );
+    crossStatus === "GOOD" &&
+    matchedCross &&
+    audUsdFreshness.status ===
+      "FRESH" &&
+    usdThbFreshness.status ===
+      "FRESH"
+  ) {
+    const currentCross =
+      matchedCross.audRate *
+      matchedCross.usdThbRate;
 
     const oneHourAgo =
-      referenceTime - 60 * 60 * 1000;
+      matchedCross.matchedTime -
+      60 * 60 * 1000;
 
-    const [audUsd1H, usdThb1H] =
-      await Promise.all([
-        getClosestPrice(
-          "AUD/USD",
-          oneHourAgo
-        ),
+    const [
+      audUsd1H,
+      usdThb1H,
+    ] = await Promise.all([
+      getClosestPrice(
+        "AUD/USD",
+        oneHourAgo,
+        20
+      ),
 
-        getClosestPrice(
-          "USD/THB",
-          oneHourAgo
-        ),
-      ]);
+      getClosestPrice(
+        "USD/THB",
+        oneHourAgo,
+        20
+      ),
+    ]);
 
-    if (audUsd1H && usdThb1H) {
-      const currentCross =
-        Number(latestAudUsd.rate) *
-        Number(latestUsdThb.rate);
+    if (
+      audUsd1H &&
+      usdThb1H
+    ) {
+      const audTime =
+        new Date(
+          audUsd1H.market_timestamp
+        ).getTime();
 
-      const pastCross =
-        Number(audUsd1H.rate) *
-        Number(usdThb1H.rate);
+      const thbTime =
+        new Date(
+          usdThb1H.market_timestamp
+        ).getTime();
 
-      crossCurrencyChange1H =
-        ((currentCross - pastCross) /
-          pastCross) *
-        100;
+      const historicalGap =
+        Math.abs(
+          audTime -
+            thbTime
+        ) /
+        (60 * 1000);
 
-      crossCurrencyScore =
-        getCrossScore(
-          crossCurrencyChange1H
-        );
+      // Historical Cross
+      // ต้องเวลาใกล้กันด้วย
+      if (
+        historicalGap <= 2
+      ) {
+        const pastCross =
+          Number(
+            audUsd1H.rate
+          ) *
+          Number(
+            usdThb1H.rate
+          );
+
+        crossCurrencyChange1H =
+          ((currentCross -
+            pastCross) /
+            pastCross) *
+          100;
+
+        crossCurrencyScore =
+          getCrossScore(
+            crossCurrencyChange1H
+          );
+      }
     }
   }
 
-  // =====================================================
+  // -------------------------------------------------------
   // MEAN REVERSION
-  // =====================================================
+  // -------------------------------------------------------
 
   let rangePosition:
     | number
@@ -586,46 +908,56 @@ const usdThbFreshness =
     latestPrice &&
     intradayLow !== null &&
     intradayHigh !== null &&
-    intradayHigh > intradayLow
+    intradayHigh >
+      intradayLow
   ) {
-    const currentRate = Number(
-      latestPrice.rate
-    );
+    const currentRate =
+      Number(
+        latestPrice.rate
+      );
 
     rangePosition =
-      ((currentRate - intradayLow) /
+      ((currentRate -
+        intradayLow) /
         (intradayHigh -
           intradayLow)) *
       100;
 
-    meanReversionScore = Math.round(
-      -(rangePosition - 50) * 2
-    );
+    meanReversionScore =
+      Math.round(
+        -(rangePosition -
+          50) *
+          2
+      );
 
-    meanReversionScore = Math.max(
-      -100,
-      Math.min(
-        100,
-        meanReversionScore
-      )
-    );
+    meanReversionScore =
+      Math.max(
+        -100,
+        Math.min(
+          100,
+          meanReversionScore
+        )
+      );
   }
 
-  // =====================================================
-  // CORE SCORE
-  // =====================================================
+  // -------------------------------------------------------
+  // CORE FX SCORE
+  // -------------------------------------------------------
 
   const coreFactors = [
     {
-      score: priceMomentumScore,
+      score:
+        priceMomentumScore,
       weight: 35,
     },
     {
-      score: crossCurrencyScore,
+      score:
+        crossCurrencyScore,
       weight: 20,
     },
     {
-      score: meanReversionScore,
+      score:
+        meanReversionScore,
       weight: 5,
     },
   ];
@@ -633,13 +965,15 @@ const usdThbFreshness =
   const availableCoreFactors =
     coreFactors.filter(
       (factor) =>
-        factor.score !== null
+        factor.score !==
+        null
     );
 
   const availableCoreWeight =
     availableCoreFactors.reduce(
       (sum, factor) =>
-        sum + factor.weight,
+        sum +
+        factor.weight,
       0
     );
 
@@ -647,44 +981,62 @@ const usdThbFreshness =
     | number
     | null = null;
 
-  if (availableCoreWeight > 0) {
+  if (
+    availableCoreWeight > 0
+  ) {
     const weightedTotal =
       availableCoreFactors.reduce(
         (sum, factor) =>
           sum +
-          Number(factor.score) *
+          Number(
+            factor.score
+          ) *
             factor.weight,
         0
       );
 
-    coreFxScore = Math.round(
-      weightedTotal /
-        availableCoreWeight
-    );
+    coreFxScore =
+      Math.round(
+        weightedTotal /
+          availableCoreWeight
+      );
   }
 
   let coreBias =
     "Waiting for data";
 
-  if (coreFxScore !== null) {
-    if (coreFxScore >= 40) {
-      coreBias = "Strong Bullish";
+  if (
+    coreFxScore !== null
+  ) {
+    if (
+      coreFxScore >= 40
+    ) {
+      coreBias =
+        "Strong Bullish";
     } else if (
       coreFxScore >= 15
     ) {
-      coreBias = "Bullish";
+      coreBias =
+        "Bullish";
     } else if (
       coreFxScore <= -40
     ) {
-      coreBias = "Strong Bearish";
+      coreBias =
+        "Strong Bearish";
     } else if (
       coreFxScore <= -15
     ) {
-      coreBias = "Bearish";
+      coreBias =
+        "Bearish";
     } else {
-      coreBias = "Neutral";
+      coreBias =
+        "Neutral";
     }
   }
+
+  // -------------------------------------------------------
+  // RETURN
+  // -------------------------------------------------------
 
   return {
     latestPrice,
@@ -718,10 +1070,13 @@ const usdThbFreshness =
     availableCoreWeight,
 
     directRate,
+
     crossRate,
     crossGap,
     crossGapPercent,
     crossTimeGapMinutes,
+    crossTimestamp,
+    crossDirectReferenceRate,
     crossStatus,
   };
 }
