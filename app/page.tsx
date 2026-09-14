@@ -3,6 +3,7 @@ import CurrentRateCard from "@/components/CurrentRateCard";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import { getDashboardData } from "@/lib/dashboard-data";
+import DataHealth from "@/components/DataHealth";
 
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
@@ -21,6 +22,8 @@ export default async function Home() {
 
           <RefreshControls />
         </div>
+
+        <DataHealth data={data} />
 
         <div className="grid md:grid-cols-3 gap-4 mt-8">
           <CurrentRateCard
