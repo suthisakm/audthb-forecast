@@ -84,27 +84,62 @@ export function buildGrowthData(
     thailand,
   };
 
-  const comparison = (
+    const comparison = (
     left: typeof australia,
     right: typeof australia
   ) => {
+    const now = new Date();
+
+    const leftFreshness = getGrowthFreshness(
+      left.latest?.period ?? null,
+      now
+    );
+
+    const rightFreshness = getGrowthFreshness(
+      right.latest?.period ?? null,
+      now
+    );
+
     const samePeriod =
       left.latest?.period === right.latest?.period;
 
-    const available =
+    const dataAvailable =
       left.available && right.available && samePeriod;
+
+    const available =
+      dataAvailable &&
+      leftFreshness.usable &&
+      rightFreshness.usable;
+
+    let reason: string | null = null;
+
+    if (!left.available || !right.available) {
+      reason = "COUNTRY_DATA_UNAVAILABLE";
+    } else if (!samePeriod) {
+      reason = "PERIOD_MISMATCH";
+    } else if (!leftFreshness.usable) {
+      reason = leftFreshness.reason;
+    } else if (!rightFreshness.usable) {
+      reason = rightFreshness.reason;
+    }
 
     return {
       available,
-      period: available ? left.latest?.period : null,
+
+      period: samePeriod
+        ? left.latest?.period ?? null
+        : null,
+
       differencePp: available
         ? round(left.qoqPercent! - right.qoqPercent!)
         : null,
-      reason: available
-        ? null
-        : samePeriod
-          ? "COUNTRY_DATA_UNAVAILABLE"
-          : "PERIOD_MISMATCH",
+
+      reason,
+
+      freshness: {
+        left: leftFreshness,
+        right: rightFreshness,
+      },
     };
   };
 
@@ -170,7 +205,7 @@ export function buildGrowthData(
     legs,
 
     methodology:
-      "Experimental GDP-only Growth proxy. Real seasonally adjusted GDP QoQ, not annualized. AU-US and US-TH spread scores each have 50% weight. Missing legs reduce effective FX weight. Thresholds are not backtested; freshness filtering and other activity indicators are not yet implemented.",
+      "Experimental GDP-only Growth proxy. Real seasonally adjusted GDP QoQ, not annualized. AU-US and US-TH spread scores each have 50% weight. Missing legs reduce effective FX weight. Thresholds are not backtested. GDP data older than 180 days from quarter-end, or from a quarter that has not ended, is excluded from scoring. Other activity indicators are not yet implemented.",
   };
 }
 
@@ -225,4 +260,49 @@ export function getGrowthSpreadScore(
   if (score === 0) return 0;
 
   return differencePp > 0 ? score : -score;
+}
+
+export function getGrowthFreshness(
+  period: string | null,
+  now: Date = new Date()
+) {
+  const maxAgeDays = 180;
+  const match = period?.match(/^(\d{4})-Q([1-4])$/);
+
+  if (!match || !Number.isFinite(now.getTime())) {
+    return {
+      usable: false,
+      ageDays: null,
+      maxAgeDays,
+      reason: "INVALID_PERIOD_OR_DATE",
+    };
+  }
+
+  const year = Number(match[1]);
+  const quarter = Number(match[2]);
+
+  // Last day of the quarter, using UTC.
+  const periodEnd = Date.UTC(year, quarter * 3, 0);
+
+  const today = Date.UTC(
+    now.getUTCFullYear(),
+    now.getUTCMonth(),
+    now.getUTCDate()
+  );
+
+  const ageDays = Math.floor(
+    (today - periodEnd) / 86_400_000
+  );
+
+  return {
+    usable: ageDays >= 0 && ageDays <= maxAgeDays,
+    ageDays,
+    maxAgeDays,
+    reason:
+      ageDays < 0
+        ? "QUARTER_NOT_ENDED"
+        : ageDays > maxAgeDays
+          ? "STALE_DATA"
+          : null,
+  };
 }
