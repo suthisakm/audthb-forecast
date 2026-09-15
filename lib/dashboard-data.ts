@@ -5,6 +5,10 @@ import {
   getCommodityData,
   type CommodityFreshness,
 } from "@/lib/commodity-data";
+import {
+  getRiskData,
+  type RiskFreshness,
+} from "@/lib/risk-data";
 
 export type MarketRow = {
   rate: number | string;
@@ -147,9 +151,28 @@ export type DashboardData = {
   brentLiveFreshness: CommodityFreshness;
   brentLiveAgeMinutes: number | null;
 
+  ironOrePrice: number | null;
+  ironOreChange24H: number | null;
+  ironOreScore: number | null;
+  ironOreFreshness: CommodityFreshness;
+  ironOreAgeHours: number | null;
+  ironOreEffectiveWeight: number;
+
   commodityScore: number | null;
   commodityCoverage: number;
   commodityEffectiveFxWeight: number;
+
+  // =====================================================
+  // RISK
+  // =====================================================
+
+  riskPrice: number | null;
+  riskChange1H: number | null;
+  riskScore: number | null;
+  riskFreshness: RiskFreshness;
+  riskAgeMinutes: number | null;
+  riskEffectiveWeight: number;
+  riskSessionOpen: boolean;
 
   // =====================================================
   // MEAN REVERSION
@@ -782,6 +805,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     latestUsdSgdResult,
     latestYieldResult,
     commodityData,
+    riskData,
   ] = await Promise.all([
     supabaseAdmin
       .from(
@@ -936,6 +960,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       .maybeSingle(),
 
     getCommodityData(),
+    getRiskData(),
   ]);
 
   // =====================================================
@@ -1784,6 +1809,28 @@ export async function getDashboardData(): Promise<DashboardData> {
   const brentLiveAgeMinutes =
     commodityData.brentLive.ageMinutes;
 
+  const ironOrePrice =
+    commodityData.ironOre.latest
+      ? Number(
+          commodityData.ironOre.latest.price
+        )
+      : null;
+
+  const ironOreChange24H =
+    commodityData.ironOre.change24H;
+
+  const ironOreScore =
+    commodityData.ironOre.score;
+
+  const ironOreFreshness =
+    commodityData.ironOre.freshness;
+
+  const ironOreAgeHours =
+    commodityData.ironOre.ageHours;
+
+  const ironOreEffectiveWeight =
+    commodityData.ironOre.effectiveInternalWeight;
+
   const commodityScore =
     commodityData.commodityScore;
 
@@ -1792,6 +1839,31 @@ export async function getDashboardData(): Promise<DashboardData> {
 
   const commodityEffectiveFxWeight =
     commodityData.commodityEffectiveFxWeight;
+
+  // =====================================================
+  // RISK
+  // =====================================================
+
+  const riskPrice =
+    riskData.price;
+
+  const riskChange1H =
+    riskData.change1H;
+
+  const riskScore =
+    riskData.score;
+
+  const riskFreshness =
+    riskData.freshness;
+
+  const riskAgeMinutes =
+    riskData.ageMinutes;
+
+  const riskEffectiveWeight =
+    riskData.effectiveWeight;
+
+  const riskSessionOpen =
+    riskData.sessionOpen;
 
   // =====================================================
   // MEAN REVERSION
@@ -1859,9 +1931,10 @@ export async function getDashboardData(): Promise<DashboardData> {
   // Cross              20
   // Relative Market    15
   // Commodity          10
+  // Risk                5
   // Mean Reversion      5
   //
-  // Current max = 85
+  // Current max = 90
   // =====================================================
 
   const coreFactors = [
@@ -1893,6 +1966,14 @@ export async function getDashboardData(): Promise<DashboardData> {
 
       weight:
         commodityEffectiveFxWeight,
+    },
+
+    {
+      score:
+        riskScore,
+
+      weight:
+        riskEffectiveWeight,
     },
 
     {
@@ -2061,9 +2142,24 @@ export async function getDashboardData(): Promise<DashboardData> {
     brentLiveFreshness,
     brentLiveAgeMinutes,
 
+    ironOrePrice,
+    ironOreChange24H,
+    ironOreScore,
+    ironOreFreshness,
+    ironOreAgeHours,
+    ironOreEffectiveWeight,
+
     commodityScore,
     commodityCoverage,
     commodityEffectiveFxWeight,
+
+    riskPrice,
+    riskChange1H,
+    riskScore,
+    riskFreshness,
+    riskAgeMinutes,
+    riskEffectiveWeight,
+    riskSessionOpen,
 
     rangePosition,
     meanReversionScore,

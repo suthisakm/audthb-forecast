@@ -3,6 +3,7 @@ import CurrentRateCard from "@/components/CurrentRateCard";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import DataHealth from "@/components/DataHealth";
+import MarketClock from "@/components/MarketClock";
 
 import {
   getDashboardData,
@@ -51,6 +52,8 @@ export default async function Home() {
           <p className="text-slate-500 mt-1">
             Market monitoring and FX signal model
           </p>
+
+          <MarketClock />
         </div>
 
         {/* DATA HEALTH */}
@@ -79,8 +82,8 @@ export default async function Home() {
 
             <p className="text-sm text-slate-500 mt-3">
               จะเปิด Forecast 1H / 4H
-              หลัง Macro และ Risk
-              factors พร้อม และผ่านการ
+              หลัง Macro / Policy
+              factor พร้อม และผ่านการ
               calibrate / backtest
             </p>
           </div>
@@ -121,21 +124,21 @@ export default async function Home() {
                 {data.availableCoreWeight.toFixed(
                   1
                 )}
-                /85
+                /90
               </p>
 
               <p className="text-xs text-slate-500 mt-1">
                 Active factors:
                 Price, Cross,
                 Relative Market,
-                Commodity and
-                Mean Reversion.
+                Commodity, Risk
+                and Mean Reversion.
               </p>
 
               <p className="text-xs text-slate-600 mt-1">
                 Full model target:
-                100 after Macro
-                and Risk.
+                100 after
+                Macro / Policy.
               </p>
             </div>
           </div>
@@ -190,6 +193,11 @@ export default async function Home() {
             </p>
 
             <p>
+              Iron Ore:
+              OilPriceAPI
+            </p>
+
+            <p>
               Brent Live:
               OilPriceAPI
             </p>
@@ -202,6 +210,11 @@ export default async function Home() {
             <p>
               Gold:
               Gold-API
+            </p>
+
+            <p>
+              Risk / Volatility:
+              VIXY via Twelve Data
             </p>
           </div>
         </div>

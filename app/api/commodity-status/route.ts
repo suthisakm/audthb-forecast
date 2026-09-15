@@ -31,45 +31,61 @@ export async function GET(
     return NextResponse.json({
       updated: true,
 
-      gold: {
+      // ===================================================
+      // IRON ORE
+      // ===================================================
+
+      ironOre: {
         price:
-          data.gold.latest
+          data.ironOre.latest
             ? Number(
-                data.gold.latest.price
+                data.ironOre.latest.price
               )
             : null,
 
         timestamp:
-          data.gold.latest
+          data.ironOre.latest
             ?.market_timestamp ??
           null,
 
-        change1H:
-          data.gold.change1H !==
+        change24H:
+          data.ironOre.change24H !==
           null
             ? Number(
-                data.gold.change1H.toFixed(
+                data.ironOre.change24H.toFixed(
                   3
                 )
               )
             : null,
 
         freshness:
-          data.gold.freshness,
+          data.ironOre.freshness,
 
-        ageMinutes:
-          data.gold.ageMinutes !==
+        ageHours:
+          data.ironOre.ageHours !==
           null
             ? Number(
-                data.gold.ageMinutes.toFixed(
+                data.ironOre.ageHours.toFixed(
                   1
                 )
               )
             : null,
 
         score:
-          "MONITOR_ONLY",
+          data.ironOre.score,
+
+        internalWeight: {
+          effective:
+            data.ironOre.effectiveInternalWeight,
+
+          max:
+            data.ironOre.maxInternalWeight,
+        },
       },
+
+      // ===================================================
+      // BRENT
+      // ===================================================
 
       brentLive: {
         price:
@@ -109,12 +125,70 @@ export async function GET(
 
         score:
           data.brentLive.score,
+
+        internalWeight: {
+          effective:
+            data.brentLive.score !==
+            null
+              ? 30
+              : 0,
+
+          max: 30,
+        },
       },
 
-      ironOre: {
-        status:
-          "PENDING",
+      // ===================================================
+      // GOLD
+      // ===================================================
+
+      gold: {
+        price:
+          data.gold.latest
+            ? Number(
+                data.gold.latest.price
+              )
+            : null,
+
+        timestamp:
+          data.gold.latest
+            ?.market_timestamp ??
+          null,
+
+        change1H:
+          data.gold.change1H !==
+          null
+            ? Number(
+                data.gold.change1H.toFixed(
+                  3
+                )
+              )
+            : null,
+
+        freshness:
+          data.gold.freshness,
+
+        ageMinutes:
+          data.gold.ageMinutes !==
+          null
+            ? Number(
+                data.gold.ageMinutes.toFixed(
+                  1
+                )
+              )
+            : null,
+
+        score:
+          "MONITOR_ONLY",
+
+        internalWeight: {
+          effective: 0,
+          planned: 20,
+        },
       },
+
+      // ===================================================
+      // COMMODITY FACTOR
+      // ===================================================
 
       commodity: {
         score:
@@ -131,6 +205,11 @@ export async function GET(
       },
     });
   } catch (error) {
+    console.error(
+      "Commodity status error:",
+      error
+    );
+
     return NextResponse.json(
       {
         error:

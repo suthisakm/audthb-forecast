@@ -1,6 +1,10 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase-server";
 
+// =========================================================
+// TYPES
+// =========================================================
+
 export type CommodityRow = {
   price: number | string;
   market_timestamp: string;
@@ -29,20 +33,32 @@ export type CommodityData = {
     score: number | null;
   };
 
+  ironOre: {
+    latest: CommodityRow | null;
+    change24H: number | null;
+    freshness: CommodityFreshness;
+    ageHours: number | null;
+
+    score: number | null;
+
+    maxInternalWeight: number;
+    effectiveInternalWeight: number;
+  };
+
   commodityScore: number | null;
   commodityCoverage: number;
   commodityEffectiveFxWeight: number;
 };
 
 // =========================================================
-// CLOSEST PRICE
+// CLOSEST HISTORICAL PRICE
 // =========================================================
 
 async function getClosestCommodityPrice(
   symbol: string,
   source: string | null,
   targetTime: number,
-  toleranceMinutes = 45
+  toleranceMinutes: number
 ): Promise<CommodityRow | null> {
   const tolerance =
     toleranceMinutes *
@@ -51,9 +67,7 @@ async function getClosestCommodityPrice(
 
   let query =
     supabaseAdmin
-      .from(
-        "commodity_prices"
-      )
+      .from("commodity_prices")
       .select(
         "price, market_timestamp, source"
       )
@@ -132,7 +146,11 @@ async function getClosestCommodityPrice(
 }
 
 // =========================================================
-// FRESHNESS
+// LIVE FRESHNESS
+//
+// GOLD / BRENT
+//
+// Cron = every 60 minutes
 // =========================================================
 
 function getLiveFreshness(
@@ -151,10 +169,12 @@ function getLiveFreshness(
   const ageMinutes =
     Math.max(
       0,
-      (Date.now() -
+      (
+        Date.now() -
         new Date(
           row.market_timestamp
-        ).getTime()) /
+        ).getTime()
+      ) /
         (60 * 1000)
     );
 
@@ -179,7 +199,82 @@ function getLiveFreshness(
 }
 
 // =========================================================
+// IRON ORE FRESHNESS
+//
+// We poll only twice per day.
+//
+// Maximum normal gap:
+// 17:25 → 08:25 next day ≈ 15 hours
+//
+// <= 18H = FRESH
+// <= 30H = DELAYED
+// > 30H  = STALE
+//
+// This means "fresh enough for daily/regime signal",
+// NOT intraday-live freshness.
+// =========================================================
+
+function getIronOreFreshness(
+  row: CommodityRow | null
+): {
+  status: CommodityFreshness;
+  ageHours: number | null;
+  multiplier: number;
+} {
+  if (!row) {
+    return {
+      status: "MISSING",
+      ageHours: null,
+      multiplier: 0,
+    };
+  }
+
+  const ageHours =
+    Math.max(
+      0,
+      (
+        Date.now() -
+        new Date(
+          row.market_timestamp
+        ).getTime()
+      ) /
+        (
+          60 *
+          60 *
+          1000
+        )
+    );
+
+  if (ageHours <= 18) {
+    return {
+      status: "FRESH",
+      ageHours,
+      multiplier: 1,
+    };
+  }
+
+  if (ageHours <= 30) {
+    return {
+      status: "DELAYED",
+      ageHours,
+      multiplier: 0.75,
+    };
+  }
+
+  return {
+    status: "STALE",
+    ageHours,
+    multiplier: 0,
+  };
+}
+
+// =========================================================
 // BRENT SCORE V1
+//
+// Brent ↑
+// → Thailand energy import pressure ↑
+// → THB pressure
+// → AUD/THB positive
 // =========================================================
 
 function getBrentScore(
@@ -213,6 +308,50 @@ function getBrentScore(
 }
 
 // =========================================================
+// IRON ORE SCORE V1
+//
+// Iron Ore ↑
+// → Australia export outlook/support ↑
+// → AUD positive
+// → AUD/THB positive
+//
+// DAILY / 24H SIGNAL
+//
+// Thresholds are provisional.
+// Backtest later.
+// =========================================================
+
+function getIronOreScore(
+  change24H: number
+) {
+  if (change24H >= 3)
+    return 100;
+
+  if (change24H >= 2)
+    return 75;
+
+  if (change24H >= 1)
+    return 50;
+
+  if (change24H >= 0.5)
+    return 25;
+
+  if (change24H <= -3)
+    return -100;
+
+  if (change24H <= -2)
+    return -75;
+
+  if (change24H <= -1)
+    return -50;
+
+  if (change24H <= -0.5)
+    return -25;
+
+  return 0;
+}
+
+// =========================================================
 // MAIN
 // =========================================================
 
@@ -220,51 +359,84 @@ export async function getCommodityData(): Promise<CommodityData> {
   const [
     goldResult,
     brentResult,
-  ] = await Promise.all([
-    supabaseAdmin
-      .from(
-        "commodity_prices"
-      )
-      .select(
-        "price, market_timestamp, source"
-      )
-      .eq(
-        "symbol",
-        "GOLD_XAUUSD"
-      )
-      .order(
-        "market_timestamp",
-        {
-          ascending: false,
-        }
-      )
-      .limit(1)
-      .maybeSingle(),
+    ironOreResult,
+  ] =
+    await Promise.all([
+      // GOLD
+      supabaseAdmin
+        .from(
+          "commodity_prices"
+        )
+        .select(
+          "price, market_timestamp, source"
+        )
+        .eq(
+          "symbol",
+          "GOLD_XAUUSD"
+        )
+        .order(
+          "market_timestamp",
+          {
+            ascending: false,
+          }
+        )
+        .limit(1)
+        .maybeSingle(),
 
-    supabaseAdmin
-      .from(
-        "commodity_prices"
-      )
-      .select(
-        "price, market_timestamp, source"
-      )
-      .eq(
-        "symbol",
-        "BRENT_LIVE_USD"
-      )
-      .eq(
-        "source",
-        "OilPriceAPI publisher_primary"
-      )
-      .order(
-        "market_timestamp",
-        {
-          ascending: false,
-        }
-      )
-      .limit(1)
-      .maybeSingle(),
-  ]);
+      // BRENT
+      supabaseAdmin
+        .from(
+          "commodity_prices"
+        )
+        .select(
+          "price, market_timestamp, source"
+        )
+        .eq(
+          "symbol",
+          "BRENT_LIVE_USD"
+        )
+        .eq(
+          "source",
+          "OilPriceAPI publisher_primary"
+        )
+        .order(
+          "market_timestamp",
+          {
+            ascending: false,
+          }
+        )
+        .limit(1)
+        .maybeSingle(),
+
+      // IRON ORE
+      supabaseAdmin
+        .from(
+          "commodity_prices"
+        )
+        .select(
+          "price, market_timestamp, source"
+        )
+        .eq(
+          "symbol",
+          "IRON_ORE_USD"
+        )
+        .eq(
+          "source",
+          "OilPriceAPI iron-ore"
+        )
+        .order(
+          "market_timestamp",
+          {
+            ascending: false,
+          }
+        )
+        .limit(1)
+        .maybeSingle(),
+    ]);
+
+  // =====================================================
+  // ROWS
+  // =====================================================
 
   const goldLatest =
     goldResult.data as
@@ -276,6 +448,15 @@ export async function getCommodityData(): Promise<CommodityData> {
       | CommodityRow
       | null;
 
+  const ironOreLatest =
+    ironOreResult.data as
+      | CommodityRow
+      | null;
+
+  // =====================================================
+  // FRESHNESS
+  // =====================================================
+
   const goldFreshness =
     getLiveFreshness(
       goldLatest
@@ -286,8 +467,15 @@ export async function getCommodityData(): Promise<CommodityData> {
       brentLatest
     );
 
+  const ironOreFreshness =
+    getIronOreFreshness(
+      ironOreLatest
+    );
+
   // =====================================================
   // GOLD 1H
+  //
+  // MONITOR ONLY
   // =====================================================
 
   let goldChange1H:
@@ -336,9 +524,13 @@ export async function getCommodityData(): Promise<CommodityData> {
         previous !== 0
       ) {
         goldChange1H =
-          ((current -
-            previous) /
-            previous) *
+          (
+            (
+              current -
+              previous
+            ) /
+            previous
+          ) *
           100;
       }
     }
@@ -398,9 +590,13 @@ export async function getCommodityData(): Promise<CommodityData> {
         previous !== 0
       ) {
         brentChange1H =
-          ((current -
-            previous) /
-            previous) *
+          (
+            (
+              current -
+              previous
+            ) /
+            previous
+          ) *
           100;
 
         brentScore =
@@ -412,34 +608,208 @@ export async function getCommodityData(): Promise<CommodityData> {
   }
 
   // =====================================================
-  // COMMODITY V1
+  // IRON ORE 24H
   // =====================================================
+
+  let ironOreChange24H:
+    | number
+    | null = null;
+
+  let ironOreScore:
+    | number
+    | null = null;
+
+  if (
+    ironOreLatest &&
+    ironOreFreshness.status !==
+      "STALE" &&
+    ironOreFreshness.status !==
+      "MISSING"
+  ) {
+    const latestTime =
+      new Date(
+        ironOreLatest.market_timestamp
+      ).getTime();
+
+    // We already bootstrap provider's previous 24H price
+    // into commodity_prices.
+    //
+    // Wide tolerance because this is a daily/regime factor.
+    const past =
+      await getClosestCommodityPrice(
+        "IRON_ORE_USD",
+        "OilPriceAPI iron-ore",
+        latestTime -
+          24 *
+            60 *
+            60 *
+            1000,
+        360
+      );
+
+    if (past) {
+      const current =
+        Number(
+          ironOreLatest.price
+        );
+
+      const previous =
+        Number(
+          past.price
+        );
+
+      if (
+        Number.isFinite(
+          current
+        ) &&
+        Number.isFinite(
+          previous
+        ) &&
+        previous !== 0
+      ) {
+        ironOreChange24H =
+          (
+            (
+              current -
+              previous
+            ) /
+            previous
+          ) *
+          100;
+
+        ironOreScore =
+          getIronOreScore(
+            ironOreChange24H
+          );
+      }
+    }
+  }
+
+  // =====================================================
+  // IRON ORE EFFECTIVE INTERNAL WEIGHT
+  //
+  // Max = 50
+  //
+  // FRESH    50
+  // DELAYED  37.5
+  // STALE     0
+  // =====================================================
+
+  const ironOreMaxInternalWeight =
+    50;
+
+  const ironOreEffectiveInternalWeight =
+    ironOreScore !== null
+      ? Number(
+          (
+            ironOreMaxInternalWeight *
+            ironOreFreshness.multiplier
+          ).toFixed(1)
+        )
+      : 0;
+
+  // =====================================================
+  // COMMODITY SCORE
+  //
+  // Full planned structure:
+  //
+  // Iron Ore 50
+  // Brent    30
+  // Gold     20
+  //
+  // Gold still monitor-only.
+  // =====================================================
+
+  const factors = [
+    {
+      score:
+        ironOreScore,
+
+      weight:
+        ironOreEffectiveInternalWeight,
+    },
+
+    {
+      score:
+        brentScore,
+
+      weight:
+        brentScore !== null
+          ? 30
+          : 0,
+    },
+  ];
+
+  const availableFactors =
+    factors.filter(
+      (factor) =>
+        factor.score !==
+          null &&
+        factor.weight >
+          0
+    );
+
+  const commodityCoverage =
+    Number(
+      availableFactors
+        .reduce(
+          (
+            sum,
+            factor
+          ) =>
+            sum +
+            factor.weight,
+          0
+        )
+        .toFixed(1)
+    );
 
   let commodityScore:
     | number
     | null = null;
 
-  let commodityCoverage =
-    0;
-
   if (
-    brentScore !== null
+    commodityCoverage >
+    0
   ) {
-    commodityScore =
-      brentScore;
+    const weightedTotal =
+      availableFactors.reduce(
+        (
+          sum,
+          factor
+        ) =>
+          sum +
+          Number(
+            factor.score
+          ) *
+            factor.weight,
+        0
+      );
 
-    commodityCoverage =
-      30;
+    commodityScore =
+      Math.round(
+        weightedTotal /
+          commodityCoverage
+      );
   }
 
+  // Commodity = 10% of Full FX Model
   const commodityEffectiveFxWeight =
-    Number(
-      (
-        10 *
-        (commodityCoverage /
-          100)
-      ).toFixed(2)
-    );
+    commodityScore !== null
+      ? Number(
+          (
+            10 *
+            (
+              commodityCoverage /
+              100
+            )
+          ).toFixed(2)
+        )
+      : 0;
+
+  // =====================================================
+  // RETURN
+  // =====================================================
 
   return {
     gold: {
@@ -471,6 +841,29 @@ export async function getCommodityData(): Promise<CommodityData> {
 
       score:
         brentScore,
+    },
+
+    ironOre: {
+      latest:
+        ironOreLatest,
+
+      change24H:
+        ironOreChange24H,
+
+      freshness:
+        ironOreFreshness.status,
+
+      ageHours:
+        ironOreFreshness.ageHours,
+
+      score:
+        ironOreScore,
+
+      maxInternalWeight:
+        ironOreMaxInternalWeight,
+
+      effectiveInternalWeight:
+        ironOreEffectiveInternalWeight,
     },
 
     commodityScore,

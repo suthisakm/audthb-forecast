@@ -76,6 +76,12 @@ function freshnessClass(
     return "text-yellow-400";
   }
 
+  if (
+    status === "MARKET_CLOSED"
+  ) {
+    return "text-slate-400";
+  }
+
   return "text-red-400";
 }
 
@@ -316,18 +322,63 @@ export default function ScoreBreakdown({
             /10
           </p>
 
+          {/* IRON ORE */}
+
+          <div className="mt-3 pl-3 border-l border-slate-700">
+            <p className="text-sm">
+              Iron Ore: {" "}
+              {formatScore(
+                data.ironOreScore
+              )}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              Price: {" "}
+              {data.ironOrePrice !==
+              null
+                ? `$${data.ironOrePrice.toFixed(
+                    2
+                  )}`
+                : "--"}
+            </p>
+
+            <p className="text-xs text-slate-500">
+              24H Change: {" "}
+              {formatChange(
+                data.ironOreChange24H
+              )}
+              {" | "}
+              Commodity Weight: {" "}
+              {data.ironOreEffectiveWeight.toFixed(
+                1
+              )}
+              /50
+            </p>
+
+            <p className="text-xs mt-1">
+              Status: {" "}
+              <span
+                className={freshnessClass(
+                  data.ironOreFreshness
+                )}
+              >
+                {data.ironOreFreshness}
+              </span>
+            </p>
+          </div>
+
           {/* BRENT */}
 
           <div className="mt-3 pl-3 border-l border-slate-700">
             <p className="text-sm">
-              Brent Live:{" "}
+              Brent Live: {" "}
               {formatScore(
                 data.brentLiveScore
               )}
             </p>
 
             <p className="text-xs text-slate-500">
-              Price:{" "}
+              Price: {" "}
               {data.brentLivePrice !==
               null
                 ? `$${data.brentLivePrice.toFixed(
@@ -337,16 +388,16 @@ export default function ScoreBreakdown({
             </p>
 
             <p className="text-xs text-slate-500">
-              1H Change:{" "}
+              1H Change: {" "}
               {formatChange(
                 data.brentLiveChange1H
               )}
               {" | "}
-              Commodity Weight: 30%
+              Commodity Weight: 30/30
             </p>
 
             <p className="text-xs mt-1">
-              Status:{" "}
+              Status: {" "}
               <span
                 className={freshnessClass(
                   data.brentLiveFreshness
@@ -365,7 +416,7 @@ export default function ScoreBreakdown({
             </p>
 
             <p className="text-xs text-slate-500">
-              Price:{" "}
+              Price: {" "}
               {data.goldPrice !==
               null
                 ? `$${data.goldPrice.toFixed(
@@ -375,14 +426,16 @@ export default function ScoreBreakdown({
             </p>
 
             <p className="text-xs text-slate-500">
-              1H Change:{" "}
+              1H Change: {" "}
               {formatChange(
                 data.goldChange1H
               )}
+              {" | "}
+              Commodity Weight: 0/20
             </p>
 
             <p className="text-xs mt-1">
-              Status:{" "}
+              Status: {" "}
               <span
                 className={freshnessClass(
                   data.goldFreshness
@@ -394,22 +447,6 @@ export default function ScoreBreakdown({
 
             <p className="text-xs text-yellow-400 mt-1">
               Monitor Only — not scored yet
-            </p>
-          </div>
-
-          {/* IRON ORE */}
-
-          <div className="mt-3 pl-3 border-l border-slate-700">
-            <p className="text-sm">
-              Iron Ore
-            </p>
-
-            <p className="text-xs text-slate-500">
-              Pending data source
-            </p>
-
-            <p className="text-xs text-slate-600">
-              Planned Commodity Weight: 50%
             </p>
           </div>
         </div>
@@ -460,17 +497,75 @@ export default function ScoreBreakdown({
           </p>
         </div>
 
+        {/* ===============================================
+            RISK
+        =============================================== */}
+
         <div>
           <p>
-            Risk:{" "}
-            <span className="text-slate-500">
-              Pending
+            Risk / VIXY: {" "}
+            {formatScore(
+              data.riskScore
+            )}
+          </p>
+
+          <p className="text-sm text-slate-500">
+            Price: {" "}
+            {data.riskPrice !==
+            null
+              ? `$${data.riskPrice.toFixed(
+                  2
+                )}`
+              : "--"}
+          </p>
+
+          <p className="text-sm text-slate-500">
+            1H Change: {" "}
+            {formatChange(
+              data.riskChange1H
+            )}
+          </p>
+
+          <p className="text-sm text-slate-500">
+            FX Score Weight: {" "}
+            {data.riskEffectiveWeight.toFixed(
+              1
+            )}
+            /5
+          </p>
+
+          <p className="text-xs mt-1">
+            Status: {" "}
+            <span
+              className={freshnessClass(
+                data.riskFreshness
+              )}
+            >
+              {data.riskFreshness}
             </span>
           </p>
 
-          <p className="text-xs text-slate-600">
-            Planned FX Weight: 5%
+          <p className="text-xs text-slate-500">
+            Session: {" "}
+            {data.riskSessionOpen
+              ? "OPEN"
+              : "CLOSED"}
+            {" | "}
+            Age: {" "}
+            {data.riskAgeMinutes !==
+            null
+              ? `${data.riskAgeMinutes.toFixed(
+                  1
+                )} min`
+              : "--"}
           </p>
+
+          {data.riskFreshness ===
+            "MARKET_CLOSED" && (
+            <p className="text-xs text-slate-500 mt-1">
+              Market closed — excluded from current FX Score
+            </p>
+          )}
         </div>
       </div>
     </div>
