@@ -81,10 +81,8 @@ export default async function Home() {
             </p>
 
             <p className="text-sm text-slate-500 mt-3">
-              จะเปิด Forecast 1H / 4H
-              หลัง Macro / Policy
-              factor พร้อม และผ่านการ
-              calibrate / backtest
+              Forecast 1H / 4H จะเปิดหลังพัฒนาและทดสอบโมเดล
+              เทียบกับราคาจริง พร้อมปรับเกณฑ์และประเมินความแม่นยำ
             </p>
           </div>
 
@@ -124,21 +122,22 @@ export default async function Home() {
                 {data.availableCoreWeight.toFixed(
                   1
                 )}
-                /90
+                /100
               </p>
 
               <p className="text-xs text-slate-500 mt-1">
-                Active factors:
-                Price, Cross,
-                Relative Market,
-                Commodity, Risk
-                and Mean Reversion.
+                Model factors: Price, Cross, Relative Market,
+                Commodity, Macro / Policy, Risk and Mean Reversion.
               </p>
 
               <p className="text-xs text-slate-600 mt-1">
-                Full model target:
-                100 after
-                Macro / Policy.
+                Coverage แสดงน้ำหนักปัจจัยที่ใช้ได้ ไม่ใช่ความแม่นยำ
+                คะแนนรวมใช้น้ำหนักตามข้อมูลที่พร้อมในขณะนั้น
+              </p>
+
+              <p className="text-xs text-slate-500 mt-1">
+                Gold ยังเป็น Monitor Only จึงมี Coverage สูงสุด 98/100
+                และอาจลดลงเมื่อข้อมูลไม่พร้อมหรือตลาด VIXY ปิด
               </p>
             </div>
           </div>
