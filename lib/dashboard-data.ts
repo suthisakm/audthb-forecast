@@ -1,4 +1,5 @@
 import "server-only";
+import { getMacroCompositeData } from "@/lib/macro-composite-data";
 
 import { supabaseAdmin } from "@/lib/supabase-server";
 import {
@@ -185,6 +186,9 @@ export type DashboardData = {
   // CORE SCORE
   // =====================================================
 
+  macroScore: number | null;
+  macroCoverage: number;
+  macroEffectiveFxWeight: number;
   coreFxScore: number | null;
   coreBias: string;
   availableCoreWeight: number;
@@ -806,6 +810,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     latestYieldResult,
     commodityData,
     riskData,
+    macroData,
   ] = await Promise.all([
     supabaseAdmin
       .from(
@@ -959,8 +964,17 @@ export async function getDashboardData(): Promise<DashboardData> {
       .limit(1)
       .maybeSingle(),
 
-    getCommodityData(),
+        getCommodityData(),
     getRiskData(),
+    getMacroCompositeData().catch((error) => {
+      console.error("Dashboard macro data failed:", error);
+
+      return {
+        macroScore: null,
+        macroCoverage: 0,
+        macroEffectiveFxWeight: 0,
+      };
+    }),
   ]);
 
   // =====================================================
@@ -1933,11 +1947,17 @@ export async function getDashboardData(): Promise<DashboardData> {
   // Commodity          10
   // Risk                5
   // Mean Reversion      5
+  // Macro / Policy     10
   //
-  // Current max = 90
+  // Current max = 100
   // =====================================================
 
   const coreFactors = [
+    {
+      score: macroData.macroScore,
+      weight: macroData.macroEffectiveFxWeight,
+    },
+
     {
       score:
         priceMomentumScore,
@@ -2163,6 +2183,10 @@ export async function getDashboardData(): Promise<DashboardData> {
 
     rangePosition,
     meanReversionScore,
+
+    macroScore: macroData.macroScore,
+    macroCoverage: macroData.macroCoverage,
+    macroEffectiveFxWeight: macroData.macroEffectiveFxWeight,
 
     coreFxScore,
     coreBias,

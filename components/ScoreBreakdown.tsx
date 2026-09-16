@@ -484,16 +484,29 @@ export default function ScoreBreakdown({
             PENDING
         =============================================== */}
 
-        <div>
+                <div>
           <p>
             Macro / Policy:{" "}
-            <span className="text-slate-500">
-              Pending
-            </span>
+            {formatScore(data.macroScore)}
           </p>
 
-          <p className="text-xs text-slate-600">
-            Planned FX Weight: 10%
+          <p className="text-sm text-slate-500">
+            Coverage: {data.macroCoverage.toFixed(1)}/100
+          </p>
+
+          <p className="text-sm text-slate-500">
+            FX Score Weight:{" "}
+            {data.macroEffectiveFxWeight.toFixed(1)}/10
+          </p>
+
+          {data.macroScore === null && (
+            <p className="text-xs text-yellow-400 mt-1">
+              Macro unavailable — excluded from FX Score
+            </p>
+          )}
+
+          <p className="text-xs text-slate-400 mt-1">
+            Growth uses experimental GDP scoring.
           </p>
         </div>
 
