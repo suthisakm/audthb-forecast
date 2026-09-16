@@ -176,6 +176,40 @@ function isVixySessionOpen(
   );
 }
 
+function isSameVixySession(
+  latestTime: number,
+  pastTimestamp: string
+): boolean {
+  const pastTime = new Date(pastTimestamp).getTime();
+
+  if (
+    !Number.isFinite(latestTime) ||
+    !Number.isFinite(pastTime) ||
+    pastTime >= latestTime
+  ) {
+    return false;
+  }
+
+  const latestDate = new Date(latestTime);
+  const pastDate = new Date(pastTime);
+
+  if (
+    !isVixySessionOpen(latestDate) ||
+    !isVixySessionOpen(pastDate)
+  ) {
+    return false;
+  }
+
+  const latestNY = getNewYorkParts(latestDate);
+  const pastNY = getNewYorkParts(pastDate);
+
+  return (
+    latestNY.year === pastNY.year &&
+    latestNY.month === pastNY.month &&
+    latestNY.day === pastNY.day
+  );
+}
+
 // =========================================================
 // CLOSEST HISTORICAL VIXY
 // =========================================================
@@ -407,23 +441,36 @@ export async function getRiskData(): Promise<RiskData> {
     };
   }
 
-  const latestTime =
-    new Date(
-      latest.market_timestamp
-    ).getTime();
+    const latestTime =
+    new Date(latest.market_timestamp).getTime();
+
+  const currentPrice = Number(latest.rate);
+  const now = Date.now();
+
+  if (
+    !Number.isFinite(latestTime) ||
+    latestTime > now ||
+    !Number.isFinite(currentPrice) ||
+    currentPrice <= 0
+  ) {
+    console.error("Invalid latest VIXY price or timestamp");
+
+    return {
+      symbol: "VIXY",
+      price: null,
+      marketTimestamp: null,
+      change1H: null,
+      score: null,
+      freshness: "MISSING",
+      ageMinutes: null,
+      effectiveWeight: 0,
+      maxWeight: 5,
+      sessionOpen,
+    };
+  }
 
   const ageMinutes =
-    Math.max(
-      0,
-      (
-        Date.now() -
-        latestTime
-      ) /
-        (
-          60 *
-          1000
-        )
-    );
+    (now - latestTime) / (60 * 1000);
 
   // =======================================================
   // MARKET CLOSED
@@ -532,7 +579,13 @@ export async function getRiskData(): Promise<RiskData> {
         15
       );
 
-    if (past) {
+        if (
+          past &&
+          isSameVixySession(
+          latestTime,
+          past.market_timestamp
+          )
+        ) {
       const currentPrice =
         Number(
           latest.rate
@@ -550,7 +603,8 @@ export async function getRiskData(): Promise<RiskData> {
         Number.isFinite(
           pastPrice
         ) &&
-        pastPrice !== 0
+          currentPrice > 0 &&
+          pastPrice > 0
       ) {
         change1H =
           (
