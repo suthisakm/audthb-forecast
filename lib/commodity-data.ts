@@ -688,15 +688,19 @@ export async function getCommodityData(): Promise<CommodityData> {
   // =====================================================
   // IRON ORE EFFECTIVE INTERNAL WEIGHT
   //
-  // Max = 50
+  // Max = 45 (rebalanced from 50 after the Sep 2026 10-year correlation
+  // study -- see AUDTHB-historical-analysis-2026-09.md. Iron Ore never
+  // cleared statistical significance against AUD/THB at monthly
+  // resolution in that study, unlike Brent, so it now carries less
+  // internal weight than Brent instead of more.)
   //
-  // FRESH    50
-  // DELAYED  37.5
+  // FRESH    45
+  // DELAYED  33.75
   // STALE     0
   // =====================================================
 
   const ironOreMaxInternalWeight =
-    50;
+    45;
 
   const ironOreEffectiveInternalWeight =
     ironOreScore !== null
@@ -711,13 +715,17 @@ export async function getCommodityData(): Promise<CommodityData> {
   // =====================================================
   // COMMODITY SCORE
   //
-  // Full planned structure:
+  // Active structure (rebalanced Sep 2026, MODEL_VERSION 1.1.0):
   //
-  // Iron Ore 50
-  // Brent    30
-  // Gold     20
+  // Iron Ore 45
+  // Brent    55
   //
-  // Gold still monitor-only.
+  // These two now sum to 100 on their own -- Gold is excluded from the
+  // split entirely (not just monitor-only with a reserved slice) since
+  // the correlation study found ~zero relationship between Gold and
+  // AUD/THB over 15 years. Full Iron Ore + Brent coverage now reaches
+  // the full 10/10 top-level Commodity weight instead of capping at
+  // 8/10 the way it did while 20 points sat reserved for Gold.
   // =====================================================
 
   const factors = [
@@ -735,7 +743,7 @@ export async function getCommodityData(): Promise<CommodityData> {
 
       weight:
         brentScore !== null
-          ? 30
+          ? 55
           : 0,
     },
   ];

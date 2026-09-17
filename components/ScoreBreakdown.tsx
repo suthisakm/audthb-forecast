@@ -223,12 +223,12 @@ export default async function ScoreBreakdown({
           score={data.commodityScore}
           weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/10`}
         >
-          <p className="text-sm text-slate-500">Coverage: {data.commodityCoverage.toFixed(1)}/100 (internal split: Iron Ore 50% / Brent 30% / Gold 20%)</p>
+          <p className="text-sm text-slate-500">Coverage: {data.commodityCoverage.toFixed(1)}/100 (internal split: Brent 55% / Iron Ore 45% -- Gold excluded, monitor only)</p>
 
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Iron Ore: <span className={`font-mono font-semibold ${scoreColor(data.ironOreScore)}`}>{formatScore(data.ironOreScore)}</span></p>
             <p className="text-xs text-slate-500">Price: {data.ironOrePrice !== null ? `$${data.ironOrePrice.toFixed(2)}` : "--"}</p>
-            <p className="text-xs text-slate-500">24H Change: {formatChange(data.ironOreChange24H)} | Weight: {data.ironOreEffectiveWeight.toFixed(1)}/50</p>
+            <p className="text-xs text-slate-500">24H Change: {formatChange(data.ironOreChange24H)} | Weight: {data.ironOreEffectiveWeight.toFixed(1)}/45</p>
             <StatusBadge label={data.ironOreFreshness} tone={freshnessTone(data.ironOreFreshness)} />
             <Note>Australia's largest export -- higher iron ore prices historically support AUD.</Note>
           </div>
@@ -236,7 +236,7 @@ export default async function ScoreBreakdown({
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Brent Live: <span className={`font-mono font-semibold ${scoreColor(data.brentLiveScore)}`}>{formatScore(data.brentLiveScore)}</span></p>
             <p className="text-xs text-slate-500">Price: {data.brentLivePrice !== null ? `$${data.brentLivePrice.toFixed(2)}` : "--"}</p>
-            <p className="text-xs text-slate-500">1H Change: {formatChange(data.brentLiveChange1H)} | Weight: 30/30</p>
+            <p className="text-xs text-slate-500">1H Change: {formatChange(data.brentLiveChange1H)} | Weight: 55/55</p>
             <StatusBadge label={data.brentLiveFreshness} tone={freshnessTone(data.brentLiveFreshness)} />
           </div>
 

@@ -4,7 +4,7 @@ import { getMacroCompositeData } from "@/lib/macro-composite-data";
 // Bump when scoring logic (thresholds, weights, active factors) changes
 // materially -- fx_score_snapshots keys on this so a backtest can tell
 // which rules produced a given run.
-export const MODEL_VERSION = "1.0.0";
+export const MODEL_VERSION = "1.1.0";
 
 import { supabaseAdmin } from "@/lib/supabase-server";
 import {
