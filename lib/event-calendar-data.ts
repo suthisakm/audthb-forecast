@@ -91,3 +91,53 @@ export async function getEventCalendar() {
       "A quiet week here may mean not yet seeded, not that nothing is scheduled.",
   };
 }
+
+// =========================================================
+// EVENT RISK
+//
+// Workflow G (see AUDTHB-project-status.md): a HIGH-importance event
+// close by should flag that the current score is more likely to move
+// sharply, before the Forecast/Confidence layer (workflow F) exists to
+// do this itself. "HIGH" = a HIGH-importance event inside the next 24h;
+// "WATCH" = one inside the next 72h. Silence means nothing in the
+// hand-curated calendar's covered window is that close -- not a
+// guarantee nothing is scheduled (same caveat as getEventCalendar).
+// =========================================================
+
+export type EventRiskLevel = "HIGH" | "WATCH" | "NONE";
+
+export type EventRisk = {
+  level: EventRiskLevel;
+  event: CalendarEvent | null;
+  hoursUntil: number | null;
+};
+
+const EVENT_RISK_HIGH_WINDOW_HOURS = 24;
+const EVENT_RISK_WATCH_WINDOW_HOURS = 72;
+
+export async function getEventRisk(): Promise<EventRisk> {
+  const now = new Date();
+  const windowEnd = new Date(now.getTime() + EVENT_RISK_WATCH_WINDOW_HOURS * 60 * 60 * 1000);
+
+  const { data, error } = await supabaseAdmin
+    .from("event_calendar")
+    .select("event_time,country,currency,event_name,category,importance,reference_period,source,source_url")
+    .eq("importance", "HIGH")
+    .gte("event_time", now.toISOString())
+    .lt("event_time", windowEnd.toISOString())
+    .order("event_time", { ascending: true })
+    .limit(1);
+
+  if (error || !data || data.length === 0) {
+    return { level: "NONE", event: null, hoursUntil: null };
+  }
+
+  const nextEvent = toCalendarEvent(data[0] as DbEventRow);
+  const hoursUntil = (new Date(nextEvent.eventTime).getTime() - now.getTime()) / (60 * 60 * 1000);
+
+  return {
+    level: hoursUntil <= EVENT_RISK_HIGH_WINDOW_HOURS ? "HIGH" : "WATCH",
+    event: nextEvent,
+    hoursUntil: Math.round(hoursUntil * 10) / 10,
+  };
+}

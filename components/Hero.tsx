@@ -1,6 +1,12 @@
 import type { DashboardData } from "@/lib/dashboard-data";
+import { getEventRisk } from "@/lib/event-calendar-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import ScoreGauge from "@/components/ScoreGauge";
+
+function formatHoursUntil(hours: number) {
+  if (hours < 1) return `${Math.round(hours * 60)} min`;
+  return `${hours.toFixed(1)}h`;
+}
 
 function freshnessTone(status: string): BadgeTone {
   if (status === "FRESH") return "emerald";
@@ -38,7 +44,9 @@ function feedHealthDot(data: DashboardData) {
   return "bg-amber-500";
 }
 
-export default function Hero({ data }: { data: DashboardData }) {
+export default async function Hero({ data }: { data: DashboardData }) {
+  const eventRisk = await getEventRisk();
+
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 sm:p-8 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
       <div className="grid md:grid-cols-2 gap-8">
@@ -130,6 +138,19 @@ export default function Hero({ data }: { data: DashboardData }) {
           </div>
 
           <ScoreGauge score={data.coreFxScore} />
+
+          {eventRisk.level !== "NONE" && eventRisk.event && eventRisk.hoursUntil !== null && (
+            <div
+              className={`mt-4 rounded-lg px-3 py-2 text-xs leading-relaxed ${
+                eventRisk.level === "HIGH"
+                  ? "bg-red-500/10 text-red-400"
+                  : "bg-amber-500/10 text-amber-400"
+              }`}
+            >
+              Event Risk ({eventRisk.level}): {eventRisk.event.eventName} ({eventRisk.event.currency}) in{" "}
+              {formatHoursUntil(eventRisk.hoursUntil)} -- expect volatility, treat this score with extra caution.
+            </div>
+          )}
 
           <div className="mt-5 pt-4 border-t border-slate-800">
             <div className="flex items-center justify-between">
