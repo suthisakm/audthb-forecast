@@ -3,6 +3,7 @@ import type {
   YieldConfidence,
 } from "@/lib/dashboard-data";
 import { getMacroCompositeData } from "@/lib/macro-composite-data";
+import { getTradeBalanceData } from "@/lib/trade-balance-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 
 function formatScore(score: number | null) {
@@ -118,6 +119,7 @@ export default async function ScoreBreakdown({
   data: DashboardData;
 }) {
   const macro = await getMacroCompositeData();
+  const tradeBalance = await getTradeBalanceData();
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
@@ -294,7 +296,22 @@ export default async function ScoreBreakdown({
             <StatusBadge label="Experimental" tone="amber" />
           </div>
 
-          <Note>Growth uses experimental GDP-only scoring, not yet backtested. Each Macro sub-component fails independently -- one missing input excludes only that piece, not the whole Macro score.</Note>
+          {/* TRADE BALANCE -- monitor only, not part of the score yet */}
+          <div className="pl-3 border-l border-slate-700 space-y-1.5">
+            <p className="text-sm">Trade Balance (Current Account)</p>
+            {(["australia", "thailand"] as const).map((key) => {
+              const country = tradeBalance.countries[key];
+              return (
+                <p key={key} className="text-xs text-slate-500">
+                  {country.label}: {country.valueUsdBillions !== null ? `$${country.valueUsdBillions.toFixed(2)}B` : "--"}
+                  {country.latestPeriod ? ` (${country.latestPeriod})` : ""}
+                </p>
+              );
+            })}
+            <StatusBadge label="Monitor Only" tone="amber" />
+          </div>
+
+          <Note>Growth uses experimental GDP-only scoring, not yet backtested. Trade Balance is tracked but not yet scored. Each Macro sub-component fails independently -- one missing input excludes only that piece, not the whole Macro score.</Note>
         </Factor>
 
         {/* RISK */}
