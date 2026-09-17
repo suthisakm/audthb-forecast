@@ -5,152 +5,43 @@ import {
   useState,
 } from "react";
 
-type ClockValue = {
-  time: string;
-  date: string;
-  zone: string;
-};
-
-function getClock(
-  now: Date,
-  timeZone: string
-): ClockValue {
-  const time =
-    new Intl.DateTimeFormat(
-      "en-GB",
-      {
-        timeZone,
-        hour: "2-digit",
-        minute: "2-digit",
-        second: "2-digit",
-        hour12: false,
-      }
-    ).format(now);
-
-  const date =
-    new Intl.DateTimeFormat(
-      "en-GB",
-      {
-        timeZone,
-        weekday: "short",
-        day: "2-digit",
-        month: "short",
-        year: "numeric",
-      }
-    ).format(now);
-
-  const zone =
-    new Intl.DateTimeFormat(
-      "en-US",
-      {
-        timeZone,
-        timeZoneName: "short",
-      }
-    )
-      .formatToParts(now)
-      .find(
-        (part) =>
-          part.type ===
-          "timeZoneName"
-      )?.value ?? "";
-
-  return {
-    time,
-    date,
-    zone,
-  };
+function getTime(now: Date, timeZone: string): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone,
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+    hour12: false,
+  }).format(now);
 }
 
+// Two secondary reference clocks -- useful context, not the headline of
+// the page, so this stays a single quiet line rather than the pair of
+// large bordered cards it used to be (those competed visually with the
+// Hero's own big rate number for the same "biggest thing on screen"
+// attention).
 export default function MarketClock() {
-  const [now, setNow] =
-    useState<Date | null>(
-      null
-    );
+  const [now, setNow] = useState<Date | null>(null);
 
   useEffect(() => {
     setNow(new Date());
-
-    const timer =
-      setInterval(() => {
-        setNow(
-          new Date()
-        );
-      }, 1000);
-
-    return () =>
-      clearInterval(
-        timer
-      );
+    const timer = setInterval(() => setNow(new Date()), 1000);
+    return () => clearInterval(timer);
   }, []);
 
-  if (!now) {
-    return (
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 animate-pulse h-24" />
-        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 animate-pulse h-24" />
-      </div>
-    );
-  }
-
-  const thailand =
-    getClock(
-      now,
-      "Asia/Bangkok"
-    );
-
-  const australia =
-    getClock(
-      now,
-      "Australia/Sydney"
-    );
-
   return (
-    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-      {/* THAILAND */}
+    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-500 dark:text-slate-400 tabular-nums">
+      <span className="flex items-baseline gap-1.5">
+        <span className="text-slate-600 dark:text-slate-300 font-medium">Bangkok</span>
+        <span className="font-mono">{now ? getTime(now, "Asia/Bangkok") : "--:--:--"}</span>
+      </span>
 
-      <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Thailand
-          </p>
+      <span className="text-slate-300 dark:text-slate-700">|</span>
 
-          <span className="text-xs text-slate-500">
-            {thailand.zone}
-          </span>
-        </div>
-
-        <p className="mt-1 text-2xl font-semibold">
-          {thailand.time}
-        </p>
-
-        <p className="text-xs text-slate-500 mt-1">
-          Bangkok ·{" "}
-          {thailand.date}
-        </p>
-      </div>
-
-      {/* AUSTRALIA */}
-
-      <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-500 dark:text-slate-400">
-            Australia
-          </p>
-
-          <span className="text-xs text-slate-500">
-            {australia.zone}
-          </span>
-        </div>
-
-        <p className="mt-1 text-2xl font-semibold">
-          {australia.time}
-        </p>
-
-        <p className="text-xs text-slate-500 mt-1">
-          Sydney ·{" "}
-          {australia.date}
-        </p>
-      </div>
+      <span className="flex items-baseline gap-1.5">
+        <span className="text-slate-600 dark:text-slate-300 font-medium">Sydney</span>
+        <span className="font-mono">{now ? getTime(now, "Australia/Sydney") : "--:--:--"}</span>
+      </span>
     </div>
   );
 }

@@ -39,6 +39,18 @@ export const revalidate =
 const CARD =
   "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700";
 
+// Groups the page's growing card list under a quiet label instead of
+// adding real navigation (a sidebar/tabs structure was tried and
+// explicitly rejected earlier) -- just enough hierarchy that 9 stacked
+// cards reads as three topics, not one undifferentiated scroll.
+function SectionLabel({ children }: { children: string }) {
+  return (
+    <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-3">
+      {children}
+    </p>
+  );
+}
+
 export default async function Home() {
   const data =
     await getDashboardData();
@@ -90,7 +102,7 @@ export default async function Home() {
             </p>
           </div>
 
-          <div className="flex items-start gap-3">
+          <div className="flex items-center gap-4">
             <MarketClock />
             <ThemeToggle />
           </div>
@@ -100,44 +112,50 @@ export default async function Home() {
 
         <Alerts alerts={alerts} />
 
-        {/* HERO: RATE + CORE FX SCORE */}
+        {/* MARKET: RATE, CORE FX SCORE, RECAP, LIVE RATES */}
 
-        <div className="mt-6">
+        <div className="mt-10">
+          <SectionLabel>Market</SectionLabel>
           <Hero data={data} />
         </div>
 
-        {/* DAILY RECAP (AUD/THB PRICE) */}
-
         <DailyRecap recap={dailyRecap} data={data} />
-
-        {/* MARKET RATES */}
 
         <MarketRates data={data} />
 
-        {/* SCORE BREAKDOWN */}
+        {/* SIGNAL MODEL */}
 
-        <ScoreBreakdown data={data} />
+        <div className="mt-10">
+          <SectionLabel>Signal Model</SectionLabel>
+          <ScoreBreakdown data={data} />
+        </div>
 
-        {/* EVENT CALENDAR */}
+        {/* CONTEXT & NEWS */}
 
-        <EventCalendar
-          today={eventCalendar.today}
-          thisWeek={eventCalendar.thisWeek}
-          coverageNote={eventCalendar.coverageNote}
-        />
-
-        {/* AI NEWS SIGNALS */}
+        <div className="mt-10">
+          <SectionLabel>Context &amp; News</SectionLabel>
+          <EventCalendar
+            today={eventCalendar.today}
+            thisWeek={eventCalendar.thisWeek}
+            coverageNote={eventCalendar.coverageNote}
+          />
+        </div>
 
         <NewsSentiment signals={newsSentiment.signals} error={newsSentiment.error} />
 
-        {/* SOURCES */}
+        {/* SOURCES -- reference material, not a live signal, so this is
+        deliberately quieter than the cards above it: no hover highlight,
+        smaller heading, muted border. */}
 
-        <div className={`${CARD} mt-6 mb-8`}>
-          <h2 className="text-xl font-semibold tracking-tight">
-            Sources
-          </h2>
+        <div className="mt-10">
+          <SectionLabel>Reference</SectionLabel>
 
-          <div className="mt-4 text-sm text-slate-500 dark:text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-2">
+          <div className="rounded-xl border border-slate-200/70 dark:border-slate-800/70 p-6 mb-8">
+            <h2 className="text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-400">
+              Sources
+            </h2>
+
+            <div className="mt-4 text-sm text-slate-500 dark:text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-2">
             <p>
               FX Market Data:{" "}
               <span className="text-slate-700 dark:text-slate-300">Twelve Data</span>
@@ -199,6 +217,7 @@ export default async function Home() {
                 Alpha Vantage News + Google Gemini
               </span>
             </p>
+            </div>
           </div>
         </div>
 
