@@ -86,11 +86,11 @@ export default function DataHealth({
         </div>
       </div>
 
-      <div className="grid grid-cols-3 gap-3 mt-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 mt-4">
         {feeds.map((feed) => (
           <div
             key={feed.name}
-            className="rounded-lg bg-slate-950 p-3 flex items-center justify-between"
+            className="rounded-lg bg-slate-950 p-3 flex items-center justify-between gap-2"
           >
             <p className="text-sm text-slate-400">
               {feed.name}

@@ -1,5 +1,5 @@
 import RefreshControls from "@/components/RefreshControls";
-import CurrentRateCard from "@/components/CurrentRateCard";
+import Hero from "@/components/Hero";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import DataHealth from "@/components/DataHealth";
@@ -7,7 +7,6 @@ import Alerts from "@/components/Alerts";
 import DailyRecap from "@/components/DailyRecap";
 import MarketClock from "@/components/MarketClock";
 import EventCalendar from "@/components/EventCalendar";
-import ScoreGauge from "@/components/ScoreGauge";
 
 import {
   getDashboardData,
@@ -30,24 +29,6 @@ export const dynamic =
 
 export const revalidate =
   0;
-
-function scoreColor(
-  score: number | null
-) {
-  if (score === null) {
-    return "text-slate-400";
-  }
-
-  if (score >= 15) {
-    return "text-emerald-400";
-  }
-
-  if (score <= -15) {
-    return "text-red-400";
-  }
-
-  return "text-amber-400";
-}
 
 const CARD =
   "rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700";
@@ -72,10 +53,10 @@ export default async function Home() {
       {/* TOP ACCENT BAR */}
       <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
 
-      <div className="max-w-7xl mx-auto px-4 py-8">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* HEADER */}
 
-        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+        <div className="mb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2.5">
               <span className="relative flex h-2.5 w-2.5">
@@ -88,11 +69,11 @@ export default async function Home() {
               </span>
             </div>
 
-            <h1 className="text-3xl font-bold tracking-tight mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-2">
               AUD/THB Forecast Dashboard
             </h1>
 
-            <p className="text-slate-500 mt-1">
+            <p className="text-slate-500 mt-1 text-sm sm:text-base">
               Market monitoring and FX signal model
             </p>
           </div>
@@ -112,87 +93,10 @@ export default async function Home() {
           alerts={alerts}
         />
 
-        {/* TOP CARDS */}
+        {/* HERO: RATE + CORE FX SCORE */}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
-          <CurrentRateCard
-            data={data}
-          />
-
-          {/* FORECAST */}
-
-          <div className={CARD}>
-            <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">
-              Forecast
-            </p>
-
-            <p className="text-2xl font-bold mt-2 text-slate-300">
-              ยังไม่เปิดใช้
-            </p>
-
-            <p className="text-sm text-slate-500 mt-3 leading-relaxed">
-              Forecast 1H / 4H จะเปิดหลังพัฒนาและทดสอบโมเดล
-              เทียบกับราคาจริง พร้อมปรับเกณฑ์และประเมินความแม่นยำ
-            </p>
-          </div>
-
-          {/* CORE FX SCORE */}
-
-          <div className={CARD}>
-            <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">
-              Core FX Score
-            </p>
-
-            <p
-              className={`text-4xl font-bold font-mono mt-2 tabular-nums ${scoreColor(
-                data.coreFxScore
-              )}`}
-            >
-              {data.coreFxScore !==
-              null
-                ? `${
-                    data.coreFxScore >
-                    0
-                      ? "+"
-                      : ""
-                  }${data.coreFxScore}`
-                : "--"}
-            </p>
-
-            <p className="text-lg font-semibold mt-2">
-              {data.coreBias}
-            </p>
-
-            <ScoreGauge score={data.coreFxScore} />
-
-            <div className="mt-4 pt-4 border-t border-slate-800">
-              <p className="text-sm text-slate-400">
-                Model Coverage
-              </p>
-
-              <p className="text-lg font-semibold tabular-nums">
-                {data.availableCoreWeight.toFixed(
-                  1
-                )}
-                /100
-              </p>
-
-              <p className="text-xs text-slate-500 mt-1">
-                Model factors: Price, Cross, Relative Market,
-                Commodity, Macro / Policy, Risk and Mean Reversion.
-              </p>
-
-              <p className="text-xs text-slate-600 mt-1">
-                Coverage แสดงน้ำหนักปัจจัยที่ใช้ได้ ไม่ใช่ความแม่นยำ
-                คะแนนรวมใช้น้ำหนักตามข้อมูลที่พร้อมในขณะนั้น
-              </p>
-
-              <p className="text-xs text-slate-500 mt-1">
-                Gold ยังเป็น Monitor Only จึงมี Coverage สูงสุด 98/100
-                และอาจลดลงเมื่อข้อมูลไม่พร้อมหรือตลาด VIXY ปิด
-              </p>
-            </div>
-          </div>
+        <div className="mt-6">
+          <Hero data={data} />
         </div>
 
         {/* DAILY RECAP */}
