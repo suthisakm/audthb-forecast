@@ -2,6 +2,7 @@ import type {
   DashboardData,
   YieldConfidence,
 } from "@/lib/dashboard-data";
+import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 
 function formatScore(
   score: number | null
@@ -39,50 +40,48 @@ function formatBps(
   }${value.toFixed(1)} bps`;
 }
 
-function confidenceClass(
+function confidenceTone(
   confidence:
     YieldConfidence
-) {
+): BadgeTone {
   switch (
     confidence
   ) {
     case "HIGH":
-      return "text-green-400";
+      return "emerald";
 
     case "MEDIUM":
-      return "text-yellow-400";
-
     case "LOW":
-      return "text-orange-400";
+      return "amber";
 
     case "STALE":
     case "MISSING":
-      return "text-red-400";
+      return "red";
   }
 }
 
-function freshnessClass(
+function freshnessTone(
   status: string
-) {
+): BadgeTone {
   if (
     status === "FRESH"
   ) {
-    return "text-green-400";
+    return "emerald";
   }
 
   if (
     status === "DELAYED"
   ) {
-    return "text-yellow-400";
+    return "amber";
   }
 
   if (
     status === "MARKET_CLOSED"
   ) {
-    return "text-slate-400";
+    return "slate";
   }
 
-  return "text-red-400";
+  return "red";
 }
 
 export default function ScoreBreakdown({
@@ -91,7 +90,7 @@ export default function ScoreBreakdown({
   data: DashboardData;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">
         Score Breakdown
       </h2>
@@ -152,7 +151,7 @@ export default function ScoreBreakdown({
 
           {data.crossStatus !==
             "GOOD" && (
-            <p className="text-xs text-yellow-400 mt-1">
+            <p className="text-xs text-amber-400 mt-1">
               Cross excluded:{" "}
               {data.crossStatus}
             </p>
@@ -227,16 +226,12 @@ export default function ScoreBreakdown({
               /50
             </p>
 
-            <p className="text-xs mt-1">
-              Confidence:{" "}
-              <span
-                className={confidenceClass(
-                  data.yieldConfidence
-                )}
-              >
-                {data.yieldConfidence}
-              </span>
-            </p>
+            <div className="mt-1.5">
+              <StatusBadge
+                label={`Confidence: ${data.yieldConfidence}`}
+                tone={confidenceTone(data.yieldConfidence)}
+              />
+            </div>
 
             <p className="text-xs text-slate-500">
               Oldest data:{" "}
@@ -355,16 +350,12 @@ export default function ScoreBreakdown({
               /50
             </p>
 
-            <p className="text-xs mt-1">
-              Status: {" "}
-              <span
-                className={freshnessClass(
-                  data.ironOreFreshness
-                )}
-              >
-                {data.ironOreFreshness}
-              </span>
-            </p>
+            <div className="mt-1.5">
+              <StatusBadge
+                label={data.ironOreFreshness}
+                tone={freshnessTone(data.ironOreFreshness)}
+              />
+            </div>
           </div>
 
           {/* BRENT */}
@@ -396,16 +387,12 @@ export default function ScoreBreakdown({
               Commodity Weight: 30/30
             </p>
 
-            <p className="text-xs mt-1">
-              Status: {" "}
-              <span
-                className={freshnessClass(
-                  data.brentLiveFreshness
-                )}
-              >
-                {data.brentLiveFreshness}
-              </span>
-            </p>
+            <div className="mt-1.5">
+              <StatusBadge
+                label={data.brentLiveFreshness}
+                tone={freshnessTone(data.brentLiveFreshness)}
+              />
+            </div>
           </div>
 
           {/* GOLD */}
@@ -434,20 +421,14 @@ export default function ScoreBreakdown({
               Commodity Weight: 0/20
             </p>
 
-            <p className="text-xs mt-1">
-              Status: {" "}
-              <span
-                className={freshnessClass(
-                  data.goldFreshness
-                )}
-              >
-                {data.goldFreshness}
-              </span>
-            </p>
+            <div className="mt-1.5 flex flex-wrap gap-1.5">
+              <StatusBadge
+                label={data.goldFreshness}
+                tone={freshnessTone(data.goldFreshness)}
+              />
 
-            <p className="text-xs text-yellow-400 mt-1">
-              Monitor Only — not scored yet
-            </p>
+              <StatusBadge label="Monitor Only" tone="amber" />
+            </div>
           </div>
         </div>
 
@@ -500,7 +481,7 @@ export default function ScoreBreakdown({
           </p>
 
           {data.macroScore === null && (
-            <p className="text-xs text-yellow-400 mt-1">
+            <p className="text-xs text-amber-400 mt-1">
               Macro unavailable — excluded from FX Score
             </p>
           )}
@@ -547,16 +528,12 @@ export default function ScoreBreakdown({
             /5
           </p>
 
-          <p className="text-xs mt-1">
-            Status: {" "}
-            <span
-              className={freshnessClass(
-                data.riskFreshness
-              )}
-            >
-              {data.riskFreshness}
-            </span>
-          </p>
+          <div className="mt-1.5">
+            <StatusBadge
+              label={data.riskFreshness}
+              tone={freshnessTone(data.riskFreshness)}
+            />
+          </div>
 
           <p className="text-xs text-slate-500">
             Session: {" "}

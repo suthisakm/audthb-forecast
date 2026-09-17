@@ -50,7 +50,7 @@ function Sparkline({ points }: { points: DailyRecap["points"] }) {
 export default function DailyRecap({ recap }: { recap: DailyRecap }) {
   if (recap.sampleSize === 0) {
     return (
-      <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20">
+      <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
         <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
         <p className="text-sm text-slate-500 mt-2">
           No Core FX Score snapshots yet today -- check back after the score-snapshot cron has run.
@@ -62,7 +62,7 @@ export default function DailyRecap({ recap }: { recap: DailyRecap }) {
   const dominantBias = Object.entries(recap.biasCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "--";
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
@@ -71,7 +71,7 @@ export default function DailyRecap({ recap }: { recap: DailyRecap }) {
           </p>
         </div>
 
-        <p className={`text-3xl font-bold tabular-nums ${scoreColor(recap.latestScore)}`}>
+        <p className={`text-3xl font-bold font-mono tabular-nums ${scoreColor(recap.latestScore)}`}>
           {formatScore(recap.latestScore)}
         </p>
       </div>
@@ -83,21 +83,21 @@ export default function DailyRecap({ recap }: { recap: DailyRecap }) {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
         <div className="rounded-lg bg-slate-950 p-3">
           <p className="text-xs text-slate-500">Open</p>
-          <p className={`text-sm font-semibold mt-0.5 tabular-nums ${scoreColor(recap.openScore)}`}>
+          <p className={`text-sm font-semibold font-mono mt-0.5 tabular-nums ${scoreColor(recap.openScore)}`}>
             {formatScore(recap.openScore)}
           </p>
         </div>
 
         <div className="rounded-lg bg-slate-950 p-3">
           <p className="text-xs text-slate-500">High</p>
-          <p className="text-sm font-semibold mt-0.5 tabular-nums text-emerald-400">
+          <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-emerald-400">
             {formatScore(recap.maxScore)}
           </p>
         </div>
 
         <div className="rounded-lg bg-slate-950 p-3">
           <p className="text-xs text-slate-500">Low</p>
-          <p className="text-sm font-semibold mt-0.5 tabular-nums text-red-400">
+          <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-red-400">
             {formatScore(recap.minScore)}
           </p>
         </div>

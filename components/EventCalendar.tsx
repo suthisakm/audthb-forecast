@@ -1,9 +1,16 @@
 import type { CalendarEvent } from "@/lib/event-calendar-data";
+import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 
 function importanceColor(importance: string) {
   if (importance === "HIGH") return "text-red-400";
-  if (importance === "MEDIUM") return "text-yellow-400";
+  if (importance === "MEDIUM") return "text-amber-400";
   return "text-slate-400";
+}
+
+function importanceTone(importance: string): BadgeTone {
+  if (importance === "HIGH") return "red";
+  if (importance === "MEDIUM") return "amber";
+  return "slate";
 }
 
 function formatEventTime(eventTime: string) {
@@ -34,9 +41,9 @@ function EventRow({ event }: { event: CalendarEvent }) {
         <p className="text-xs text-slate-500 mt-0.5">{formatEventTime(event.eventTime)} (Bangkok)</p>
       </div>
 
-      <span className={`text-xs shrink-0 ${importanceColor(event.importance)}`}>
-        {event.importance}
-      </span>
+      <div className="shrink-0">
+        <StatusBadge label={event.importance} tone={importanceTone(event.importance)} />
+      </div>
     </div>
   );
 }
@@ -51,7 +58,7 @@ export default function EventCalendar({
   coverageNote: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">Event Calendar</h2>
 
       <p className="text-xs text-slate-600 mt-1">{coverageNote}</p>

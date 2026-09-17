@@ -2,6 +2,7 @@ import type {
   DashboardData,
   FreshnessInfo,
 } from "@/lib/dashboard-data";
+import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 
 function formatTime(timestamp: string) {
   return new Date(timestamp).toLocaleString(
@@ -15,36 +16,33 @@ function formatTime(timestamp: string) {
   );
 }
 
+const FRESHNESS_TONE: Record<FreshnessInfo["status"], BadgeTone> = {
+  FRESH: "emerald",
+  DELAYED: "amber",
+  STALE: "red",
+  MARKET_CLOSED: "slate",
+  MISSING: "red",
+};
+
+const FRESHNESS_LABEL: Record<FreshnessInfo["status"], string> = {
+  FRESH: "LIVE",
+  DELAYED: "DELAYED",
+  STALE: "STALE",
+  MARKET_CLOSED: "MARKET CLOSED",
+  MISSING: "NO DATA",
+};
+
 function FreshnessBadge({
   freshness,
 }: {
   freshness: FreshnessInfo;
 }) {
-  const styles = {
-    FRESH: "text-green-400",
-    DELAYED: "text-yellow-400",
-    STALE: "text-red-400",
-    MARKET_CLOSED: "text-slate-400",
-    MISSING: "text-red-400",
-  };
-
-  const labels = {
-    FRESH: "LIVE",
-    DELAYED: "DELAYED",
-    STALE: "STALE",
-    MARKET_CLOSED: "MARKET CLOSED",
-    MISSING: "NO DATA",
-  };
-
   return (
-    <div className="mt-2">
-      <p
-        className={`text-xs font-semibold ${
-          styles[freshness.status]
-        }`}
-      >
-        {labels[freshness.status]}
-      </p>
+    <div className="mt-2 space-y-1">
+      <StatusBadge
+        label={FRESHNESS_LABEL[freshness.status]}
+        tone={FRESHNESS_TONE[freshness.status]}
+      />
 
       {freshness.ageMinutes !== null &&
         freshness.status !== "MARKET_CLOSED" && (
@@ -62,7 +60,7 @@ export default function MarketRates({
   data: DashboardData;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">
         Market Rates
       </h2>
@@ -75,7 +73,7 @@ export default function MarketRates({
             AUD/THB Direct
           </p>
 
-          <p className="text-2xl font-bold mt-1">
+          <p className="text-2xl font-bold font-mono mt-1">
             {data.directRate !== null
               ? data.directRate.toFixed(4)
               : "--"}
@@ -100,7 +98,7 @@ export default function MarketRates({
             AUD/THB Cross
           </p>
 
-          <p className="text-2xl font-bold mt-1">
+          <p className="text-2xl font-bold font-mono mt-1">
             {data.crossRate !== null
               ? data.crossRate.toFixed(4)
               : "--"}
@@ -113,23 +111,21 @@ export default function MarketRates({
             </p>
           )}
 
-          <p className="text-xs mt-2">
-            Cross Status:{" "}
-            <span
-              className={
+          <div className="mt-2">
+            <StatusBadge
+              label={data.crossStatus}
+              tone={
                 data.crossStatus === "GOOD"
-                  ? "text-green-400"
+                  ? "emerald"
                   : data.crossStatus === "STALE"
-                    ? "text-yellow-400"
-                    : "text-red-400"
+                    ? "amber"
+                    : "red"
               }
-            >
-              {data.crossStatus}
-            </span>
-          </p>
+            />
+          </div>
 
           {data.crossTimeGapMinutes !== null && (
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-500 mt-1">
               Source gap:{" "}
               {data.crossTimeGapMinutes.toFixed(1)} min
             </p>
@@ -142,7 +138,7 @@ export default function MarketRates({
             AUD/USD
           </p>
 
-          <p className="text-2xl font-bold mt-1">
+          <p className="text-2xl font-bold font-mono mt-1">
             {data.latestAudUsd
               ? Number(
                   data.latestAudUsd.rate
@@ -169,7 +165,7 @@ export default function MarketRates({
             USD/THB
           </p>
 
-          <p className="text-2xl font-bold mt-1">
+          <p className="text-2xl font-bold font-mono mt-1">
             {data.latestUsdThb
               ? Number(
                   data.latestUsdThb.rate
@@ -197,7 +193,7 @@ export default function MarketRates({
           Matched-Time Cross Gap
         </p>
 
-        <p className="text-lg font-semibold">
+        <p className="text-lg font-semibold font-mono">
           {data.crossGap !== null &&
           data.crossGapPercent !== null
             ? `${
@@ -224,8 +220,8 @@ export default function MarketRates({
         data.usdThbFreshness.status !== "FRESH") &&
         data.audUsdFreshness.status !==
           "MARKET_CLOSED" && (
-          <div className="mt-4 rounded-lg bg-yellow-950/30 border border-yellow-900 p-3">
-            <p className="text-sm text-yellow-400">
+          <div className="mt-4 rounded-lg bg-amber-950/30 border border-amber-900 p-3">
+            <p className="text-sm text-amber-400">
               ⚠ Cross Currency Score only uses
               matched-time data when source data
               is fresh.

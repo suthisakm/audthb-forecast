@@ -7,6 +7,7 @@ import Alerts from "@/components/Alerts";
 import DailyRecap from "@/components/DailyRecap";
 import MarketClock from "@/components/MarketClock";
 import EventCalendar from "@/components/EventCalendar";
+import ScoreGauge from "@/components/ScoreGauge";
 
 import {
   getDashboardData,
@@ -49,7 +50,7 @@ function scoreColor(
 }
 
 const CARD =
-  "rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/20";
+  "rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700";
 
 export default async function Home() {
   const data =
@@ -65,7 +66,7 @@ export default async function Home() {
     await getDailyRecap();
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
+    <main className="min-h-screen bg-slate-950 text-white bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(56,189,248,0.10),rgba(2,6,23,0))]">
       <RefreshControls />
 
       {/* TOP ACCENT BAR */}
@@ -143,7 +144,7 @@ export default async function Home() {
             </p>
 
             <p
-              className={`text-4xl font-bold mt-2 tabular-nums ${scoreColor(
+              className={`text-4xl font-bold font-mono mt-2 tabular-nums ${scoreColor(
                 data.coreFxScore
               )}`}
             >
@@ -161,6 +162,8 @@ export default async function Home() {
             <p className="text-lg font-semibold mt-2">
               {data.coreBias}
             </p>
+
+            <ScoreGauge score={data.coreFxScore} />
 
             <div className="mt-4 pt-4 border-t border-slate-800">
               <p className="text-sm text-slate-400">

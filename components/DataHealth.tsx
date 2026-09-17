@@ -1,4 +1,12 @@
 import type { DashboardData } from "@/lib/dashboard-data";
+import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
+
+function freshnessTone(status: string): BadgeTone {
+  if (status === "FRESH") return "emerald";
+  if (status === "DELAYED") return "amber";
+  if (status === "MARKET_CLOSED") return "slate";
+  return "red";
+}
 
 export default function DataHealth({
   data,
@@ -53,7 +61,7 @@ export default function DataHealth({
   }
 
   return (
-    <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
+    <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="font-semibold">
@@ -65,21 +73,15 @@ export default function DataHealth({
           </p>
         </div>
 
-        <div className="flex gap-4 text-sm">
-          <span className="text-emerald-400">
-            {healthyCount}/3 Fresh
-          </span>
+        <div className="flex gap-2 text-sm">
+          <StatusBadge label={`${healthyCount}/3 Fresh`} tone="emerald" />
 
           {delayedCount > 0 && (
-            <span className="text-amber-400">
-              {delayedCount} Delayed
-            </span>
+            <StatusBadge label={`${delayedCount} Delayed`} tone="amber" />
           )}
 
           {staleCount > 0 && (
-            <span className="text-red-400">
-              {staleCount} Stale
-            </span>
+            <StatusBadge label={`${staleCount} Stale`} tone="red" />
           )}
         </div>
       </div>
@@ -88,25 +90,16 @@ export default function DataHealth({
         {feeds.map((feed) => (
           <div
             key={feed.name}
-            className="rounded-lg bg-slate-950 p-3"
+            className="rounded-lg bg-slate-950 p-3 flex items-center justify-between"
           >
             <p className="text-sm text-slate-400">
               {feed.name}
             </p>
 
-            <p
-              className={`text-sm font-semibold mt-1 ${
-                feed.status === "FRESH"
-                  ? "text-emerald-400"
-                  : feed.status === "DELAYED"
-                    ? "text-amber-400"
-                    : feed.status === "MARKET_CLOSED"
-                      ? "text-slate-400"
-                      : "text-red-400"
-              }`}
-            >
-              {feed.status}
-            </p>
+            <StatusBadge
+              label={feed.status}
+              tone={freshnessTone(feed.status)}
+            />
           </div>
         ))}
       </div>
