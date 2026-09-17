@@ -8,6 +8,7 @@ import Alerts from "@/components/Alerts";
 import DailyRecap from "@/components/DailyRecap";
 import MarketClock from "@/components/MarketClock";
 import EventCalendar from "@/components/EventCalendar";
+import NewsSentiment from "@/components/NewsSentiment";
 
 import {
   getDashboardData,
@@ -16,6 +17,10 @@ import {
 import {
   getEventCalendar,
 } from "@/lib/event-calendar-data";
+
+import {
+  getRecentNewsSignals,
+} from "@/lib/news-sentiment-data";
 
 import {
   getAlerts,
@@ -46,6 +51,9 @@ export default async function Home() {
 
   const dailyRecap =
     await getDailyRecap();
+
+  const newsSentiment =
+    await getRecentNewsSignals();
 
   return (
     <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
@@ -118,6 +126,10 @@ export default async function Home() {
           coverageNote={eventCalendar.coverageNote}
         />
 
+        {/* AI NEWS SIGNALS */}
+
+        <NewsSentiment signals={newsSentiment.signals} error={newsSentiment.error} />
+
         {/* SOURCES */}
 
         <div className={`${CARD} mt-6 mb-8`}>
@@ -179,6 +191,13 @@ export default async function Home() {
             <p>
               Risk / Volatility:{" "}
               <span className="text-slate-700 dark:text-slate-300">VIXY via Twelve Data</span>
+            </p>
+
+            <p>
+              AI News Signals:{" "}
+              <span className="text-slate-700 dark:text-slate-300">
+                Alpha Vantage News + Google Gemini
+              </span>
             </p>
           </div>
         </div>

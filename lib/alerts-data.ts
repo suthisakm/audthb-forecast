@@ -2,6 +2,7 @@ import "server-only";
 import type { DashboardData, FreshnessStatus } from "@/lib/dashboard-data";
 import { getMacroCompositeData } from "@/lib/macro-composite-data";
 import { getEventRisk } from "@/lib/event-calendar-data";
+import { getRecentNewsSignals } from "@/lib/news-sentiment-data";
 
 // Surfaces "is a feed/job actually working right now" alerts, distinct
 // from DataHealth (which only covers the 3 core FX rates). There is no
@@ -102,6 +103,25 @@ export async function getAlerts(data: DashboardData): Promise<Alert[]> {
       severity: eventRisk.level === "HIGH" ? "critical" : "warning",
       label: `Event Risk: ${eventRisk.event.eventName}`,
       detail: `${eventRisk.event.currency} -- in ${hoursLabel} (${eventRisk.level}) -- expect volatility, treat the Core FX Score with extra caution.`,
+    });
+  }
+
+  // AI News Signals: an unscheduled Fed/Trump/RBA/BOT headline the AI
+  // rated HIGH-magnitude and reasonably confident in is exactly the kind
+  // of thing Event Risk above can't see, since it never appears on any
+  // calendar. Only recent (last 6h) signals qualify -- older ones have
+  // likely already been priced in.
+  const news = await getRecentNewsSignals(5);
+  const recentHighImpact = news.signals.find((signal) => {
+    const ageHours = (Date.now() - new Date(signal.publishedAt).getTime()) / (60 * 60 * 1000);
+    return signal.aiMagnitude === "HIGH" && signal.aiConfidence >= 0.6 && ageHours <= 6;
+  });
+
+  if (recentHighImpact) {
+    candidates.push({
+      severity: "warning",
+      label: `AI News Signal: ${recentHighImpact.title}`,
+      detail: `${recentHighImpact.aiDirection.replace("_", " ")} -- ${recentHighImpact.aiRationale}`,
     });
   }
 
