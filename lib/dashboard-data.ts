@@ -242,16 +242,24 @@ function getFreshness(
       }
     ).format(now);
 
-  const ageMinutes =
-    Math.max(
-      0,
+  const rawAgeMinutes =
+    (now.getTime() -
+      new Date(
+        row.market_timestamp
+      ).getTime()) /
+      (60 * 1000);
 
-      (now.getTime() -
-        new Date(
-          row.market_timestamp
-        ).getTime()) /
-        (60 * 1000)
-    );
+  // A future timestamp means the row is corrupt or clock-skewed,
+  // not "extra fresh" -- never clamp it into looking newer than now.
+  if (rawAgeMinutes < 0) {
+    return {
+      status: "STALE",
+      ageMinutes: rawAgeMinutes,
+    };
+  }
+
+  const ageMinutes =
+    rawAgeMinutes;
 
   if (
     bangkokDay === "Sat" ||
@@ -1345,7 +1353,15 @@ export async function getDashboardData(): Promise<DashboardData> {
   // PRICE / MOMENTUM
   // =====================================================
 
+  // A stale "current" price makes 1H/4H change measure the wrong
+  // window entirely, not just a lower-confidence version of it --
+  // null the score rather than mislabel old movement as current.
+  const priceDataFresh =
+    latestPriceFreshness.status !==
+    "STALE";
+
   const priceScore1H =
+    priceDataFresh &&
     change1H !== null
       ? get1HScore(
           change1H
@@ -1353,6 +1369,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       : null;
 
   const priceScore4H =
+    priceDataFresh &&
     change4H !== null
       ? get4HScore(
           change4H
@@ -1892,6 +1909,7 @@ export async function getDashboardData(): Promise<DashboardData> {
     | null = null;
 
   if (
+    priceDataFresh &&
     latestPrice &&
     intradayLow !==
       null &&
