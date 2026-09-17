@@ -1,6 +1,7 @@
 import "server-only";
 import type { DashboardData, FreshnessStatus } from "@/lib/dashboard-data";
 import { getMacroCompositeData } from "@/lib/macro-composite-data";
+import { getEventRisk } from "@/lib/event-calendar-data";
 
 // Surfaces "is a feed/job actually working right now" alerts, distinct
 // from DataHealth (which only covers the 3 core FX rates). There is no
@@ -88,6 +89,20 @@ export async function getAlerts(data: DashboardData): Promise<Alert[]> {
         detail: "No usable data this run -- excluded from Macro Score, other Macro components unaffected.",
       });
     }
+  }
+
+  // Workflow G: a HIGH-importance event close by isn't a data/job
+  // problem like the rest of this list, but it's exactly the kind of
+  // thing that should interrupt a glance at the dashboard, so it rides
+  // along here rather than only living in Hero's smaller caveat banner.
+  const eventRisk = await getEventRisk();
+  if (eventRisk.level !== "NONE" && eventRisk.event && eventRisk.hoursUntil !== null) {
+    const hoursLabel = eventRisk.hoursUntil < 1 ? `${Math.round(eventRisk.hoursUntil * 60)} min` : `${eventRisk.hoursUntil.toFixed(1)}h`;
+    candidates.push({
+      severity: eventRisk.level === "HIGH" ? "critical" : "warning",
+      label: `Event Risk: ${eventRisk.event.eventName}`,
+      detail: `${eventRisk.event.currency} -- in ${hoursLabel} (${eventRisk.level}) -- expect volatility, treat the Core FX Score with extra caution.`,
+    });
   }
 
   return candidates.filter((alert): alert is Alert => alert !== null);

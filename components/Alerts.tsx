@@ -24,10 +24,10 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
 
         <div className="flex gap-4 text-sm">
           {criticalCount > 0 && (
-            <span className="text-red-400">{criticalCount} Missing</span>
+            <span className="text-red-400">{criticalCount} Critical</span>
           )}
           {warningCount > 0 && (
-            <span className="text-amber-400">{warningCount} Stale</span>
+            <span className="text-amber-400">{warningCount} Warning</span>
           )}
         </div>
       </div>
