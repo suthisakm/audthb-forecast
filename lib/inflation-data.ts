@@ -820,7 +820,8 @@ export async function getInflationData():
   if (
     error
   ) {
-    throw new Error(
+    // An Inflation DB outage must not remove the other macro components.
+    console.error(
       `Inflation database error: ${error.message}`
     );
   }

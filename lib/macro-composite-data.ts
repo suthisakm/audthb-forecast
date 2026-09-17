@@ -280,12 +280,14 @@ async function getPolicyData():
   if (
     error
   ) {
-    throw new Error(
+    // A Policy DB outage must not remove the other macro components.
+    console.error(
       `Macro policy DB error: ${error.message}`
     );
   }
 
   if (
+    error ||
     !data
   ) {
     return {

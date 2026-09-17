@@ -2034,7 +2034,8 @@ export async function getLabourData():
   if (
     error
   ) {
-    throw new Error(
+    // A Labour DB outage must not remove the other macro components.
+    console.error(
       `Labour DB error: ${error.message}`
     );
   }
