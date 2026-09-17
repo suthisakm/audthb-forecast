@@ -149,7 +149,7 @@ export default async function ScoreBreakdown({
         {/* PRICE */}
         <Factor
           name="Price / Momentum"
-          tooltip="How much AUD/THB has moved over the last 1 and 4 hours. The single biggest factor in the score."
+          tooltip="Recent price action is the most direct read on what the market is doing right now -- it reflects new information before macro data or news has a chance to catch up."
           score={data.priceMomentumScore}
           weightLabel="FX Weight: 35%"
         >
@@ -162,7 +162,7 @@ export default async function ScoreBreakdown({
         {/* CROSS */}
         <Factor
           name="Cross Currency"
-          tooltip="Cross-checks the direct AUD/THB rate against AUD/USD x USD/THB computed independently, to confirm the move is real."
+          tooltip="AUD/THB trades thinly compared to major pairs, so a single feed can glitch or lag. Confirming the move independently is what separates a real market move from noise in one data source."
           score={data.crossCurrencyScore}
           weightLabel="FX Weight: 20%"
         >
@@ -181,7 +181,7 @@ export default async function ScoreBreakdown({
         {/* RELATIVE MARKET */}
         <Factor
           name="Relative Market"
-          tooltip="AU-US bond yield spread plus USD/CNH and USD/SGD, as a proxy for regional risk appetite."
+          tooltip="AUD/THB doesn't move in isolation -- capital flows chase yield and regional risk appetite, shifting the pair even when nothing has changed in Australia or Thailand specifically."
           score={data.relativeMarketScore}
           weightLabel={`Weight: ${data.relativeMarketEffectiveWeight.toFixed(1)}/15`}
         >
@@ -219,7 +219,7 @@ export default async function ScoreBreakdown({
         {/* COMMODITY */}
         <Factor
           name="Commodity"
-          tooltip="Iron Ore and Brent oil prices -- major Australian exports. Gold is tracked but not yet scored."
+          tooltip="Australia's economy runs heavily on commodity exports, so commodity prices can move AUD on their own, independent of anything happening with Thailand or the exchange rate itself."
           score={data.commodityScore}
           weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/10`}
         >
@@ -255,7 +255,7 @@ export default async function ScoreBreakdown({
         {/* MEAN REVERSION */}
         <Factor
           name="Mean Reversion"
-          tooltip="Where today's rate sits in its intraday range. Extremes tend to pull back toward the middle."
+          tooltip="A rate that has moved too far too fast within the day tends to partially snap back. Without this, the model would keep leaning into an already-stretched move instead of allowing for a pullback."
           score={data.meanReversionScore}
           weightLabel="FX Weight: 5%"
         >
@@ -271,7 +271,7 @@ export default async function ScoreBreakdown({
         {/* MACRO */}
         <Factor
           name="Macro / Policy"
-          tooltip="Central bank interest rates, inflation, employment and GDP for Australia, the US and Thailand."
+          tooltip="Interest rates, inflation, jobs and growth set the medium-term direction underneath the day's price swings -- without them the score would only ever react to short-term noise, never the underlying economic trend."
           score={data.macroScore}
           weightLabel={`Weight: ${data.macroEffectiveFxWeight.toFixed(1)}/10`}
         >
@@ -354,7 +354,7 @@ export default async function ScoreBreakdown({
         {/* RISK */}
         <Factor
           name="Risk / VIXY"
-          tooltip="A volatility index. Rising volatility usually means investors sell risk currencies like AUD."
+          tooltip="AUD is a 'risk' currency -- when market volatility spikes, investors often sell it for safety even though nothing has actually changed in Australia or Thailand."
           score={data.riskScore}
           weightLabel={`Weight: ${data.riskEffectiveWeight.toFixed(1)}/5`}
         >
