@@ -17,17 +17,17 @@ function freshnessTone(status: string): BadgeTone {
 }
 
 function changeColor(value: number | null) {
-  if (value === null) return "text-slate-400";
-  if (value > 0) return "text-emerald-400";
-  if (value < 0) return "text-red-400";
-  return "text-slate-400";
+  if (value === null) return "text-slate-500 dark:text-slate-400";
+  if (value > 0) return "text-emerald-700 dark:text-emerald-400";
+  if (value < 0) return "text-red-700 dark:text-red-400";
+  return "text-slate-500 dark:text-slate-400";
 }
 
 function scoreColor(score: number | null) {
-  if (score === null) return "text-slate-400";
-  if (score >= 15) return "text-emerald-400";
-  if (score <= -15) return "text-red-400";
-  return "text-amber-400";
+  if (score === null) return "text-slate-500 dark:text-slate-400";
+  if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
+  if (score <= -15) return "text-red-700 dark:text-red-400";
+  return "text-amber-700 dark:text-amber-400";
 }
 
 function coreFeeds(data: DashboardData) {
@@ -49,12 +49,12 @@ export default async function Hero({ data }: { data: DashboardData }) {
   const eventRisk = await getEventRisk();
 
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 sm:p-8 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="grid md:grid-cols-2 gap-8">
         {/* RATE */}
-        <div className="md:border-r md:border-slate-800 md:pr-8">
+        <div className="md:border-r border-slate-200 dark:border-slate-800 md:pr-8">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">
               AUD/THB Spot
             </p>
 
@@ -89,7 +89,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
           </div>
 
           {data.latestPrice && (
-            <p className="text-xs text-slate-600 mt-3">
+            <p className="text-xs text-slate-500 mt-3">
               Updated{" "}
               {new Date(data.latestPrice.market_timestamp).toLocaleString("en-GB", {
                 timeZone: "Asia/Bangkok",
@@ -106,16 +106,16 @@ export default async function Hero({ data }: { data: DashboardData }) {
           {/* DATA HEALTH -- kept deliberately understated: a dot and a
               count, not its own card, since this is a "just so you know"
               signal, not something that needs to compete for attention. */}
-          <p className="text-[11px] text-slate-600 mt-1.5 flex items-center gap-1.5">
+          <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1.5">
             <span className={`inline-block h-1.5 w-1.5 rounded-full ${feedHealthDot(data)}`} />
             {feedHealthCount(data)}/3 core feeds fresh
           </p>
 
-          <div className="mt-5 pt-4 border-t border-slate-800">
+          <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">
               Forecast 1H / 4H
             </p>
-            <p className="text-sm text-slate-400 mt-1 leading-relaxed">
+            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
               ยังไม่เปิดใช้ -- จะเปิดหลังพัฒนาและทดสอบโมเดลเทียบกับราคาจริง
               พร้อมปรับเกณฑ์และประเมินความแม่นยำ
             </p>
@@ -124,7 +124,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
 
         {/* CORE FX SCORE */}
         <div>
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-widest inline-flex items-center">
+          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest inline-flex items-center">
             Core FX Score
             <InfoTip text="A weighted composite of 7 market and macro factors, from -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
@@ -136,7 +136,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
                 : "--"}
             </p>
 
-            <p className="text-lg font-semibold text-slate-300">{data.coreBias}</p>
+            <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{data.coreBias}</p>
           </div>
 
           <ScoreGauge score={data.coreFxScore} />
@@ -145,8 +145,8 @@ export default async function Hero({ data }: { data: DashboardData }) {
             <div
               className={`mt-4 rounded-lg px-3 py-2 text-xs leading-relaxed ${
                 eventRisk.level === "HIGH"
-                  ? "bg-red-500/10 text-red-400"
-                  : "bg-amber-500/10 text-amber-400"
+                  ? "bg-red-500/10 text-red-700 dark:text-red-400"
+                  : "bg-amber-500/10 text-amber-700 dark:text-amber-400"
               }`}
             >
               Event Risk ({eventRisk.level}): {eventRisk.event.eventName} ({eventRisk.event.currency}) in{" "}
@@ -154,9 +154,9 @@ export default async function Hero({ data }: { data: DashboardData }) {
             </div>
           )}
 
-          <div className="mt-5 pt-4 border-t border-slate-800">
+          <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400 inline-flex items-center">
+              <p className="text-sm text-slate-500 dark:text-slate-400 inline-flex items-center">
                 Model Coverage
                 <InfoTip text="How much of the model's total weight had usable data this run. Lower coverage means the score rests on fewer signals than usual." />
               </p>
@@ -169,7 +169,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
               Model factors: Price, Cross, Relative Market, Commodity, Macro / Policy, Risk and Mean Reversion.
             </p>
 
-            <p className="text-xs text-slate-600 mt-1">
+            <p className="text-xs text-slate-500 mt-1">
               Coverage แสดงน้ำหนักปัจจัยที่ใช้ได้ ไม่ใช่ความแม่นยำ คะแนนรวมใช้น้ำหนักตามข้อมูลที่พร้อมในขณะนั้น
             </p>
 

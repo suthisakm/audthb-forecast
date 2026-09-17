@@ -85,9 +85,9 @@ export default function MarketClock() {
 
   if (!now) {
     return (
-      <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <div className="bg-slate-900 rounded-xl p-4 animate-pulse h-24" />
-        <div className="bg-slate-900 rounded-xl p-4 animate-pulse h-24" />
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 animate-pulse h-24" />
+        <div className="bg-white dark:bg-slate-900 rounded-xl p-4 animate-pulse h-24" />
       </div>
     );
   }
@@ -105,12 +105,12 @@ export default function MarketClock() {
     );
 
   return (
-    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-3">
+    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
       {/* THAILAND */}
 
-      <div className="bg-slate-900 rounded-xl p-4 border border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Thailand
           </p>
 
@@ -131,9 +131,9 @@ export default function MarketClock() {
 
       {/* AUSTRALIA */}
 
-      <div className="bg-slate-900 rounded-xl p-4 border border-slate-800">
+      <div className="bg-white dark:bg-slate-900 rounded-xl p-4 border border-slate-200 dark:border-slate-800">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-slate-400">
+          <p className="text-sm text-slate-500 dark:text-slate-400">
             Australia
           </p>
 

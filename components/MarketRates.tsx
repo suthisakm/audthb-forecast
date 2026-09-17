@@ -60,7 +60,7 @@ export default function MarketRates({
   data: DashboardData;
 }) {
   return (
-    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">
         Market Rates
       </h2>
@@ -69,7 +69,7 @@ export default function MarketRates({
 
         {/* AUD/THB DIRECT */}
         <div>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
             AUD/THB Direct
           </p>
 
@@ -94,7 +94,7 @@ export default function MarketRates({
 
         {/* AUD/THB CROSS */}
         <div>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
             AUD/THB Cross
           </p>
 
@@ -134,7 +134,7 @@ export default function MarketRates({
 
         {/* AUD/USD */}
         <div>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
             AUD/USD
           </p>
 
@@ -161,7 +161,7 @@ export default function MarketRates({
 
         {/* USD/THB */}
         <div>
-          <p className="text-slate-400 text-sm">
+          <p className="text-slate-500 dark:text-slate-400 text-sm">
             USD/THB
           </p>
 
@@ -188,8 +188,8 @@ export default function MarketRates({
       </div>
 
       {/* MATCHED-TIME CROSS GAP */}
-      <div className="border-t border-slate-800 mt-5 pt-4">
-        <p className="text-sm text-slate-400">
+      <div className="border-t border-slate-200 dark:border-slate-800 mt-5 pt-4">
+        <p className="text-sm text-slate-500 dark:text-slate-400">
           Matched-Time Cross Gap
         </p>
 
@@ -220,8 +220,8 @@ export default function MarketRates({
         data.usdThbFreshness.status !== "FRESH") &&
         data.audUsdFreshness.status !==
           "MARKET_CLOSED" && (
-          <div className="mt-4 rounded-lg bg-amber-950/30 border border-amber-900 p-3">
-            <p className="text-sm text-amber-400">
+          <div className="mt-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-3">
+            <p className="text-sm text-amber-700 dark:text-amber-400">
               ⚠ Cross Currency Score only uses
               matched-time data when source data
               is fresh.

@@ -11,10 +11,10 @@ function freshnessTone(status: string): BadgeTone {
 }
 
 function scoreColor(score: number | null) {
-  if (score === null) return "text-slate-400";
-  if (score >= 15) return "text-emerald-400";
-  if (score <= -15) return "text-red-400";
-  return "text-amber-400";
+  if (score === null) return "text-slate-500 dark:text-slate-400";
+  if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
+  if (score <= -15) return "text-red-700 dark:text-red-400";
+  return "text-amber-700 dark:text-amber-400";
 }
 
 // Shows once the Hero card has scrolled out of view, so the headline
@@ -48,7 +48,7 @@ export default function StickyBar({
         visible ? "translate-y-0" : "-translate-y-full"
       }`}
     >
-      <div className="border-b border-slate-800 bg-slate-950/90 backdrop-blur">
+      <div className="border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-950/90 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide hidden sm:inline">
@@ -67,7 +67,7 @@ export default function StickyBar({
             <span className={`font-mono font-bold tabular-nums text-sm sm:text-base ${scoreColor(score)}`}>
               {score !== null ? `${score > 0 ? "+" : ""}${score}` : "--"}
             </span>
-            <span className="text-xs text-slate-400 hidden sm:inline">{bias}</span>
+            <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">{bias}</span>
           </div>
         </div>
       </div>

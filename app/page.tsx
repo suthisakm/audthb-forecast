@@ -1,5 +1,6 @@
 import RefreshControls from "@/components/RefreshControls";
 import StickyBar from "@/components/StickyBar";
+import ThemeToggle from "@/components/ThemeToggle";
 import Hero from "@/components/Hero";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
@@ -31,7 +32,7 @@ export const revalidate =
   0;
 
 const CARD =
-  "rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700";
+  "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700";
 
 export default async function Home() {
   const data =
@@ -47,7 +48,7 @@ export default async function Home() {
     await getDailyRecap();
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(56,189,248,0.10),rgba(2,6,23,0))]">
+    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
       <RefreshControls />
 
       <StickyBar
@@ -57,21 +58,17 @@ export default async function Home() {
         freshnessStatus={data.latestPriceFreshness.status}
       />
 
-      {/* TOP ACCENT BAR */}
-      <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
-
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* HEADER */}
 
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="mb-6 pb-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2.5">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+            <div className="flex items-center gap-2">
+              <span className="relative flex h-2 w-2">
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
               </span>
 
-              <span className="text-xs font-medium uppercase tracking-widest text-emerald-400">
+              <span className="text-xs font-medium uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
                 Live
               </span>
             </div>
@@ -85,7 +82,10 @@ export default async function Home() {
             </p>
           </div>
 
-          <MarketClock />
+          <div className="flex items-start gap-3">
+            <MarketClock />
+            <ThemeToggle />
+          </div>
         </div>
 
         {/* ALERTS */}
@@ -125,65 +125,65 @@ export default async function Home() {
             Sources
           </h2>
 
-          <div className="mt-4 text-sm text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-2">
+          <div className="mt-4 text-sm text-slate-500 dark:text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-2">
             <p>
               FX Market Data:{" "}
-              <span className="text-slate-300">Twelve Data</span>
+              <span className="text-slate-700 dark:text-slate-300">Twelve Data</span>
             </p>
 
             <p>
               AUD/THB Cross:{" "}
-              <span className="text-slate-300">
+              <span className="text-slate-700 dark:text-slate-300">
                 AUD/USD × USD/THB (matched-time)
               </span>
             </p>
 
             <p>
               Relative Asian FX:{" "}
-              <span className="text-slate-300">
+              <span className="text-slate-700 dark:text-slate-300">
                 USD/CNH and USD/SGD via Twelve Data
               </span>
             </p>
 
             <p>
               AU 2Y Yield:{" "}
-              <span className="text-slate-300">RBA via DBnomics</span>
+              <span className="text-slate-700 dark:text-slate-300">RBA via DBnomics</span>
             </p>
 
             <p>
               US 2Y Yield:{" "}
-              <span className="text-slate-300">
+              <span className="text-slate-700 dark:text-slate-300">
                 Federal Reserve via DBnomics
               </span>
             </p>
 
             <p>
               Iron Ore:{" "}
-              <span className="text-slate-300">OilPriceAPI</span>
+              <span className="text-slate-700 dark:text-slate-300">OilPriceAPI</span>
             </p>
 
             <p>
               Brent Live:{" "}
-              <span className="text-slate-300">OilPriceAPI</span>
+              <span className="text-slate-700 dark:text-slate-300">OilPriceAPI</span>
             </p>
 
             <p>
               Brent Historical Reference:{" "}
-              <span className="text-slate-300">EIA</span>
+              <span className="text-slate-700 dark:text-slate-300">EIA</span>
             </p>
 
             <p>
-              Gold: <span className="text-slate-300">Gold-API</span>
+              Gold: <span className="text-slate-700 dark:text-slate-300">Gold-API</span>
             </p>
 
             <p>
               Risk / Volatility:{" "}
-              <span className="text-slate-300">VIXY via Twelve Data</span>
+              <span className="text-slate-700 dark:text-slate-300">VIXY via Twelve Data</span>
             </p>
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-700 mb-6">
+        <p className="text-center text-xs text-slate-400 dark:text-slate-700 mb-6">
           AUD/THB Forecast Dashboard -- for research and monitoring purposes only, not financial advice.
         </p>
       </div>
