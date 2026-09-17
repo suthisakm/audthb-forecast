@@ -1,7 +1,6 @@
 import Hero from "@/components/Hero";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
-import DataHealth from "@/components/DataHealth";
 import Alerts from "@/components/Alerts";
 import DailyRecap from "@/components/DailyRecap";
 import EventCalendar from "@/components/EventCalendar";
@@ -60,7 +59,6 @@ export default async function Home() {
       icon: <OverviewIcon />,
       content: (
         <div className="space-y-6">
-          <DataHealth data={data} />
           <Alerts alerts={alerts} />
           <Hero data={data} />
           <DailyRecap recap={dailyRecap} />

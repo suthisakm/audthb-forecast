@@ -668,6 +668,28 @@ export async function getMacroCompositeData() {
 
       maxFxWeight:
         3,
+
+      countries: {
+        australia:
+          inflation.countries
+            .australia,
+
+        unitedStates:
+          inflation.countries
+            .unitedStates,
+
+        thailand:
+          inflation.countries
+            .thailand,
+      },
+
+      legs: {
+        audUsd:
+          inflation.legs.audUsd,
+
+        usdThb:
+          inflation.legs.usdThb,
+      },
     },
 
     labour: {

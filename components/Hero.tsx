@@ -23,6 +23,21 @@ function scoreColor(score: number | null) {
   return "text-amber-400";
 }
 
+function coreFeeds(data: DashboardData) {
+  return [data.directFreshness.status, data.audUsdFreshness.status, data.usdThbFreshness.status];
+}
+
+function feedHealthCount(data: DashboardData) {
+  return coreFeeds(data).filter((status) => status === "FRESH").length;
+}
+
+function feedHealthDot(data: DashboardData) {
+  const feeds = coreFeeds(data);
+  if (feeds.some((status) => status === "STALE" || status === "MISSING")) return "bg-red-500";
+  if (feeds.every((status) => status === "FRESH")) return "bg-emerald-500";
+  return "bg-amber-500";
+}
+
 export default function Hero({ data }: { data: DashboardData }) {
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 sm:p-8 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
@@ -78,6 +93,14 @@ export default function Hero({ data }: { data: DashboardData }) {
               (Bangkok) via {data.latestPrice.source}
             </p>
           )}
+
+          {/* DATA HEALTH -- kept deliberately understated: a dot and a
+              count, not its own card, since this is a "just so you know"
+              signal, not something that needs to compete for attention. */}
+          <p className="text-[11px] text-slate-600 mt-1.5 flex items-center gap-1.5">
+            <span className={`inline-block h-1.5 w-1.5 rounded-full ${feedHealthDot(data)}`} />
+            {feedHealthCount(data)}/3 core feeds fresh
+          </p>
 
           <div className="mt-5 pt-4 border-t border-slate-800">
             <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">
