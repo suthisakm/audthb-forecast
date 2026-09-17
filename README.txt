@@ -1,44 +1,47 @@
-AUD/THB — Growth data integration (scoring pending)
+AUD/THB — Growth data (IMF GDP) status
 
-วางไฟล์ในโฟลเดอร์ audthb-forecast:
-1. เพิ่ม lib/growth-data.ts
-2. เพิ่ม app/api/growth-status/route.ts
-3. สำรอง lib/macro-composite-data.ts เดิม แล้วแทนด้วยไฟล์ชื่อเดียวกันในชุดนี้
+Growth is no longer "scoring pending". lib/growth-data.ts computes a real
+(EXPERIMENTAL) QoQ spread score from data stored in Supabase, and is
+included in the Macro composite (macro-composite-data.ts) with weight 1
+out of the 10-point Macro / Policy factor.
 
-ไม่ต้องเพิ่มตาราง Supabase ไม่มี database writes
-ใช้ IMF endpoint และ optional IMF_SDMX_SUBSCRIPTION_KEY ตามโค้ดที่ส่งมา
-route ใหม่ใช้ CRON_SECRET เดิม และไม่รับคำขอถ้ายังไม่ได้ตั้ง secret
+Data flow:
+1. app/api/growth/route.ts fetches IMF QNEA (AUS/USA/THA real SA GDP),
+   maps IMF country codes to AU/US/TH and quarter periods ("2026-Q2") to
+   the first day of the quarter ("2026-04-01"), then upserts into the
+   Supabase table growth_observations (unique on country, metric_code,
+   reference_period). Protected by CRON_SECRET, same pattern as the
+   other ingestion routes.
+2. Supabase Cron job "update-growth-daily" calls /api/growth once a day
+   (0 2 * * * UTC, 09:00 Thailand) — see
+   supabase/migrations/20260917_schedule_growth_cron.sql. GDP only
+   updates quarterly, so daily polling is enough to catch a new release
+   without wasting invocations.
+3. getGrowthData() (called by the dashboard on every page load, and by
+   app/api/growth-status/route.ts) reads the latest rows per country
+   from growth_observations instead of calling the IMF API live. This
+   removed the old cache:no-store 30s IMF fetch that used to run on
+   every dashboard refresh.
 
-ทดสอบ:
-เปิด Terminal ในโปรเจค แล้วรัน npm run dev
-เปิด PowerShell อีกหน้าหนึ่ง ใช้คำสั่งต่อไปนี้ (ใส่ CRON_SECRET ของตัวเองเฉพาะในเครื่อง ไม่ต้องส่งในแชต):
+Status and limitations:
+- Score status is EXPERIMENTAL: thresholds are not backtested.
+- QoQ growth is not annualized; this is not a GDP-surprise-vs-consensus
+  signal.
+- Only compares matching quarters between countries; a quarter with no
+  immediately preceding quarter is excluded (INSUFFICIENT_HISTORY /
+  NON_CONSECUTIVE_QUARTERS).
+- Freshness cutoff: a quarter older than 180 days past quarter-end, or a
+  quarter that has not ended yet, is excluded from scoring
+  (getGrowthFreshness in lib/growth-data.ts).
+- Other GDP-adjacent indicators (PMI, retail sales, industrial
+  production) are not connected.
+- A Growth/IMF outage returns UNAVAILABLE with weight 0; it does not
+  take down the other Macro components (Policy/Inflation/Labour).
+- growth_observations currently holds the IMF response as returned,
+  which in practice goes back to 1950/1959/2003 depending on the
+  country (IMF did not honor the startPeriod=2023-Q1 filter on first
+  ingest) — useful for future backtesting, not just the latest quarter.
 
-$growthSecure = Read-Host 'CRON_SECRET' -AsSecureString
-$growthCredential = [System.Net.NetworkCredential]::new('', $growthSecure)
-$growthHeaders = @{ Authorization = 'Bearer ' + $growthCredential.Password }
-Invoke-RestMethod -Uri 'http://localhost:3000/api/growth-status' -Headers $growthHeaders | ConvertTo-Json -Depth 12
-Remove-Variable growthHeaders,growthCredential,growthSecure
-
-ผลที่คาดถ้า IMF ยังส่งข้อมูลชุดเดียวกับไฟล์ทดสอบ:
-status: PENDING_SCORING
-countries.australia.qoqPercent: 0.4195
-countries.unitedStates.qoqPercent: 0.3689
-countries.thailand.qoqPercent: -0.185
-comparisons.audUsd.differencePp: 0.0506
-comparisons.usdThb.differencePp: 0.5539
-Data coverage: 100; score: null; scored coverage: 0; effectiveFxWeight: 0
-
-ตรวจ endpoint macro-composite-status ที่มีอยู่เดิมด้วยวิธีเรียกเดิม
-Growth จะมี countries และ comparisons เพิ่มขึ้น ส่วนคะแนนรวมคงเดิมเมื่อข้อมูลปัจจัยอื่นคงเดิม
-
-สถานะและข้อจำกัด:
-- เป็นขั้นเชื่อมข้อมูล GDP ไม่ใช่ Growth scoring engine ที่เสร็จแล้ว
-- ยังไม่มี thresholds, leg weights หรือ freshness policy ที่ยืนยันจากโค้ดเดิม จึงไม่สร้างคะแนนขึ้นเอง
-- ข้อมูลครบไม่ได้แปลว่าสดใหม่; ดู latest.period ของแต่ละประเทศ
-- เปรียบเทียบเฉพาะไตรมาสเดียวกัน และ QoQ ต้องมีไตรมาสก่อนหน้าต่อเนื่อง
-- ใช้การเติบโต QoQ ไม่ annualize; ไม่ใช่ GDP surprise เทียบ consensus
-- Growth/Activity อื่น เช่น PMI, retail sales และ industrial production ยังไม่ได้เชื่อม
-- แต่ละครั้งที่เรียก macro จะรอ IMF เพิ่ม (timeout 30 วินาที); ยังไม่ได้เพิ่ม cache หรือ scheduled ingestion
-- API ล้มเหลวจะให้ Growth UNAVAILABLE และ weight 0 โดยไม่ทำให้ปัจจัยอื่นล้มตาม
-- ทดสอบคำนวณจากไฟล์แนบและกรณีข้อมูลผิดปกติแล้ว ยังไม่ได้รัน Next.js build ทั้งโปรเจค หรือเรียก IMF สดในรอบนี้
-- ยังไม่ได้ deploy
+Manual test (same shape the cron job calls):
+Invoke-RestMethod -Uri 'https://audthb-forecast.vercel.app/api/growth-status' `
+  -Headers @{ Authorization = 'Bearer <CRON_SECRET>' } | ConvertTo-Json -Depth 12
