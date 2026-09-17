@@ -1,12 +1,19 @@
-import RefreshControls from "@/components/RefreshControls";
 import Hero from "@/components/Hero";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import DataHealth from "@/components/DataHealth";
 import Alerts from "@/components/Alerts";
 import DailyRecap from "@/components/DailyRecap";
-import MarketClock from "@/components/MarketClock";
 import EventCalendar from "@/components/EventCalendar";
+import RefreshControls from "@/components/RefreshControls";
+import DashboardShell, {
+  OverviewIcon,
+  ScoreIcon,
+  RatesIcon,
+  CalendarIcon,
+  SourcesIcon,
+  type Section,
+} from "@/components/DashboardShell";
 
 import {
   getDashboardData,
@@ -46,93 +53,51 @@ export default async function Home() {
   const dailyRecap =
     await getDailyRecap();
 
-  return (
-    <main className="min-h-screen bg-slate-950 text-white bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(56,189,248,0.10),rgba(2,6,23,0))]">
-      <RefreshControls />
-
-      {/* TOP ACCENT BAR */}
-      <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
-
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* HEADER */}
-
-        <div className="mb-6 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2.5">
-              <span className="relative flex h-2.5 w-2.5">
-                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
-                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
-              </span>
-
-              <span className="text-xs font-medium uppercase tracking-widest text-emerald-400">
-                Live
-              </span>
-            </div>
-
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-2">
-              AUD/THB Forecast Dashboard
-            </h1>
-
-            <p className="text-slate-500 mt-1 text-sm sm:text-base">
-              Market monitoring and FX signal model
-            </p>
-          </div>
-
-          <MarketClock />
-        </div>
-
-        {/* DATA HEALTH */}
-
-        <DataHealth
-          data={data}
-        />
-
-        {/* ALERTS */}
-
-        <Alerts
-          alerts={alerts}
-        />
-
-        {/* HERO: RATE + CORE FX SCORE */}
-
-        <div className="mt-6">
+  const sections: Section[] = [
+    {
+      id: "overview",
+      label: "Overview",
+      icon: <OverviewIcon />,
+      content: (
+        <div className="space-y-6">
+          <DataHealth data={data} />
+          <Alerts alerts={alerts} />
           <Hero data={data} />
+          <DailyRecap recap={dailyRecap} />
         </div>
-
-        {/* DAILY RECAP */}
-
-        <DailyRecap
-          recap={dailyRecap}
-        />
-
-        {/* MARKET RATES */}
-
-        <MarketRates
-          data={data}
-        />
-
-        {/* SCORE BREAKDOWN */}
-
-        <ScoreBreakdown
-          data={data}
-        />
-
-        {/* EVENT CALENDAR */}
-
+      ),
+    },
+    {
+      id: "score",
+      label: "Score",
+      icon: <ScoreIcon />,
+      content: <ScoreBreakdown data={data} />,
+    },
+    {
+      id: "rates",
+      label: "Rates",
+      icon: <RatesIcon />,
+      content: <MarketRates data={data} />,
+    },
+    {
+      id: "calendar",
+      label: "Calendar",
+      icon: <CalendarIcon />,
+      content: (
         <EventCalendar
           today={eventCalendar.today}
           thisWeek={eventCalendar.thisWeek}
           coverageNote={eventCalendar.coverageNote}
         />
-
-        {/* SOURCES */}
-
-        <div className={`${CARD} mt-6 mb-8`}>
-          <h2 className="text-xl font-semibold tracking-tight">
-            Sources
-          </h2>
-
-          <div className="mt-4 text-sm text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-2">
+      ),
+    },
+    {
+      id: "sources",
+      label: "Sources",
+      icon: <SourcesIcon />,
+      content: (
+        <div className={CARD}>
+          <div className="text-sm text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-3">
             <p>
               FX Market Data:{" "}
               <span className="text-slate-300">Twelve Data</span>
@@ -189,11 +154,14 @@ export default async function Home() {
             </p>
           </div>
         </div>
+      ),
+    },
+  ];
 
-        <p className="text-center text-xs text-slate-700 mb-6">
-          AUD/THB Forecast Dashboard -- for research and monitoring purposes only, not financial advice.
-        </p>
-      </div>
-    </main>
+  return (
+    <div className="min-h-screen bg-slate-950 text-white bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(56,189,248,0.10),rgba(2,6,23,0))]">
+      <RefreshControls />
+      <DashboardShell sections={sections} />
+    </div>
   );
 }
