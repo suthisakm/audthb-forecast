@@ -1,4 +1,5 @@
 import type { DailyRecap } from "@/lib/daily-recap-data";
+import type { DashboardData } from "@/lib/dashboard-data";
 
 function formatScore(score: number | null) {
   if (score === null) return "--";
@@ -44,7 +45,17 @@ function RangeBar({ min, max, current }: { min: number; max: number; current: nu
   );
 }
 
-export default function DailyRecap({ recap }: { recap: DailyRecap }) {
+// Snapshots only land every few minutes, so "latest" out of
+// fx_score_snapshots can lag the live tick shown in Hero by that much --
+// enough to look like two different prices/scores for the same "now".
+// Folding today's live data (data) in here keeps this card in sync with
+// Hero: the live rate/score win as the headline, and also widen the
+// Open/High/Low range immediately instead of waiting for the next
+// snapshot to catch up.
+export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: DashboardData }) {
+  const liveRate = data.latestPrice ? Number(data.latestPrice.rate) : null;
+  const liveScore = data.coreFxScore;
+
   if (recap.sampleSize === 0) {
     return (
       <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
@@ -56,11 +67,17 @@ export default function DailyRecap({ recap }: { recap: DailyRecap }) {
     );
   }
 
+  const latestRate = liveRate ?? recap.latestRate;
+  const latestScore = liveScore ?? recap.latestScore;
+
+  const minRate = liveRate !== null && recap.minRate !== null ? Math.min(recap.minRate, liveRate) : recap.minRate;
+  const maxRate = liveRate !== null && recap.maxRate !== null ? Math.max(recap.maxRate, liveRate) : recap.maxRate;
+
   const dominantBias = Object.entries(recap.biasCounts).sort((a, b) => b[1] - a[1])[0]?.[0] ?? "--";
 
   const changePct =
-    recap.openRate !== null && recap.latestRate !== null && recap.openRate !== 0
-      ? ((recap.latestRate - recap.openRate) / recap.openRate) * 100
+    recap.openRate !== null && latestRate !== null && recap.openRate !== 0
+      ? ((latestRate - recap.openRate) / recap.openRate) * 100
       : null;
 
   return (
@@ -75,7 +92,7 @@ export default function DailyRecap({ recap }: { recap: DailyRecap }) {
 
         <div className="text-right">
           <p className="text-3xl font-bold font-mono tabular-nums">
-            {recap.latestRate !== null ? recap.latestRate.toFixed(4) : "--"}
+            {latestRate !== null ? latestRate.toFixed(4) : "--"}
           </p>
           <p className={`text-sm font-mono ${changeColor(changePct)}`}>
             {changePct !== null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}% today` : "--"}
@@ -83,8 +100,8 @@ export default function DailyRecap({ recap }: { recap: DailyRecap }) {
         </div>
       </div>
 
-      {recap.minRate !== null && recap.maxRate !== null && recap.latestRate !== null && (
-        <RangeBar min={recap.minRate} max={recap.maxRate} current={recap.latestRate} />
+      {minRate !== null && maxRate !== null && latestRate !== null && (
+        <RangeBar min={minRate} max={maxRate} current={latestRate} />
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
@@ -98,21 +115,21 @@ export default function DailyRecap({ recap }: { recap: DailyRecap }) {
         <div className="rounded-lg bg-slate-950 p-3">
           <p className="text-xs text-slate-500">High</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-emerald-400">
-            {recap.maxRate !== null ? recap.maxRate.toFixed(4) : "--"}
+            {maxRate !== null ? maxRate.toFixed(4) : "--"}
           </p>
         </div>
 
         <div className="rounded-lg bg-slate-950 p-3">
           <p className="text-xs text-slate-500">Low</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-red-400">
-            {recap.minRate !== null ? recap.minRate.toFixed(4) : "--"}
+            {minRate !== null ? minRate.toFixed(4) : "--"}
           </p>
         </div>
 
         <div className="rounded-lg bg-slate-950 p-3">
           <p className="text-xs text-slate-500">Core FX Score</p>
-          <p className={`text-sm font-semibold font-mono mt-0.5 tabular-nums ${scoreColor(recap.latestScore)}`}>
-            {formatScore(recap.latestScore)}
+          <p className={`text-sm font-semibold font-mono mt-0.5 tabular-nums ${scoreColor(latestScore)}`}>
+            {formatScore(latestScore)}
           </p>
         </div>
       </div>

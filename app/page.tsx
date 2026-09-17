@@ -92,7 +92,7 @@ export default async function Home() {
 
         {/* DAILY RECAP (AUD/THB PRICE) */}
 
-        <DailyRecap recap={dailyRecap} />
+        <DailyRecap recap={dailyRecap} data={data} />
 
         {/* MARKET RATES */}
 
