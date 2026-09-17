@@ -1,9 +1,32 @@
 import "server-only";
+import { supabaseAdmin } from "@/lib/supabase-server";
 
 export type GrowthObservation = { country: string; period: string; value: number };
 type CsvRow = Record<string, string>;
 const COUNTRIES = ["AUS", "USA", "THA"];
 const round = (value: number) => Number(value.toFixed(4));
+
+export const GROWTH_METRIC_CODE = "GDP_REAL_SA_XDC";
+
+const DB_COUNTRY_TO_IMF: Record<string, string> = { AU: "AUS", US: "USA", TH: "THA" };
+
+// "2024-Q1" -> "2024-01-01" (first day of the quarter).
+export function quarterToDate(period: string): string | null {
+  const match = period.match(/^(\d{4})-Q([1-4])$/);
+  if (!match) return null;
+  const month = (Number(match[2]) - 1) * 3 + 1;
+  return `${match[1]}-${String(month).padStart(2, "0")}-01`;
+}
+
+// "2024-01-01" -> "2024-Q1"
+function dateToQuarter(referencePeriod: string): string | null {
+  const match = referencePeriod.match(/^(\d{4})-(\d{2})-\d{2}$/);
+  if (!match) return null;
+  const quarter = Math.floor((Number(match[2]) - 1) / 3) + 1;
+  return `${match[1]}-Q${quarter}`;
+}
+
+type DbGrowthRow = { country: string; reference_period: string; value: number | string };
 
 // Supports quoted commas, escaped quotes and embedded newlines.
 export function parseGrowthCsv(text: string): CsvRow[] {
@@ -212,17 +235,26 @@ export function buildGrowthData(
 export async function getGrowthData() {
   const checkedAt = new Date().toISOString();
   try {
-    const headers: Record<string, string> = { Accept: "text/csv" };
-    const key = process.env.IMF_SDMX_SUBSCRIPTION_KEY;
-    if (key) headers["Ocp-Apim-Subscription-Key"] = key;
-    // Keep the exact endpoint that passed the supplied test.
-    const response = await fetch(
-      "https://api.imf.org/external/sdmx/3.0/data/dataflow/IMF.STA/QNEA/7.0.0/AUS+USA+THA.B1GQ.Q.SA.XDC.Q?startPeriod=2023-Q1",
-      { headers, cache: "no-store", signal: AbortSignal.timeout(30000) },
-    );
-    if (!response.ok) throw new Error(`IMF HTTP ${response.status}`);
-    const rows = parseGrowthCsv(await response.text());
-    return { ...buildGrowthData(growthObservations(rows)), checkedAt, provider: "IMF QNEA", error: null };
+    const { data, error } = await supabaseAdmin
+      .from("growth_observations")
+      .select("country,reference_period,value")
+      .eq("metric_code", GROWTH_METRIC_CODE)
+      .in("country", ["AU", "US", "TH"])
+      .order("reference_period", { ascending: false })
+      .limit(60);
+    if (error) throw new Error(`Growth DB error: ${error.message}`);
+
+    const rows = (data ?? []) as DbGrowthRow[];
+    const observations: GrowthObservation[] = [];
+    for (const row of rows) {
+      const country = DB_COUNTRY_TO_IMF[row.country];
+      const period = dateToQuarter(row.reference_period);
+      const value = Number(row.value);
+      if (!country || !period || !Number.isFinite(value)) continue;
+      observations.push({ country, period, value });
+    }
+
+    return { ...buildGrowthData(observations), checkedAt, provider: "IMF QNEA", error: null };
   } catch (error) {
     // A Growth outage must not remove the other macro components.
     return {
