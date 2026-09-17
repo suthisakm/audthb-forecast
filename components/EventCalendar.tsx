@@ -1,0 +1,88 @@
+import type { CalendarEvent } from "@/lib/event-calendar-data";
+
+function importanceColor(importance: string) {
+  if (importance === "HIGH") return "text-red-400";
+  if (importance === "MEDIUM") return "text-yellow-400";
+  return "text-slate-400";
+}
+
+function formatEventTime(eventTime: string) {
+  return new Date(eventTime).toLocaleString("en-US", {
+    timeZone: "Asia/Bangkok",
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
+function EventRow({ event }: { event: CalendarEvent }) {
+  return (
+    <div className="flex items-start justify-between gap-3 py-2 border-b border-slate-800 last:border-b-0">
+      <div>
+        <p className="text-sm">
+          <span className={`font-semibold ${importanceColor(event.importance)}`}>
+            {event.currency}
+          </span>{" "}
+          {event.eventName}
+          {event.referencePeriod ? (
+            <span className="text-slate-500"> ({event.referencePeriod})</span>
+          ) : null}
+        </p>
+
+        <p className="text-xs text-slate-500 mt-0.5">{formatEventTime(event.eventTime)} (Bangkok)</p>
+      </div>
+
+      <span className={`text-xs shrink-0 ${importanceColor(event.importance)}`}>
+        {event.importance}
+      </span>
+    </div>
+  );
+}
+
+export default function EventCalendar({
+  today,
+  thisWeek,
+  coverageNote,
+}: {
+  today: CalendarEvent[];
+  thisWeek: CalendarEvent[];
+  coverageNote: string;
+}) {
+  return (
+    <div className="bg-slate-900 rounded-xl p-6 mt-4">
+      <h2 className="text-xl font-semibold">Event Calendar</h2>
+
+      <p className="text-xs text-slate-600 mt-1">{coverageNote}</p>
+
+      <div className="mt-4">
+        <p className="text-sm text-slate-400 mb-1">Today</p>
+
+        {today.length === 0 ? (
+          <p className="text-sm text-slate-500">No scheduled events today.</p>
+        ) : (
+          <div>
+            {today.map((event) => (
+              <EventRow key={`${event.eventTime}-${event.eventName}`} event={event} />
+            ))}
+          </div>
+        )}
+      </div>
+
+      <div className="mt-4 pt-4 border-t border-slate-800">
+        <p className="text-sm text-slate-400 mb-1">This Week</p>
+
+        {thisWeek.length === 0 ? (
+          <p className="text-sm text-slate-500">No scheduled events in the seeded range.</p>
+        ) : (
+          <div>
+            {thisWeek.map((event) => (
+              <EventRow key={`${event.eventTime}-${event.eventName}-week`} event={event} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}

@@ -4,10 +4,15 @@ import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import DataHealth from "@/components/DataHealth";
 import MarketClock from "@/components/MarketClock";
+import EventCalendar from "@/components/EventCalendar";
 
 import {
   getDashboardData,
 } from "@/lib/dashboard-data";
+
+import {
+  getEventCalendar,
+} from "@/lib/event-calendar-data";
 
 export const dynamic =
   "force-dynamic";
@@ -36,6 +41,9 @@ function scoreColor(
 export default async function Home() {
   const data =
     await getDashboardData();
+
+  const eventCalendar =
+    await getEventCalendar();
 
   return (
     <main className="min-h-screen bg-slate-950 text-white">
@@ -153,6 +161,14 @@ export default async function Home() {
 
         <ScoreBreakdown
           data={data}
+        />
+
+        {/* EVENT CALENDAR */}
+
+        <EventCalendar
+          today={eventCalendar.today}
+          thisWeek={eventCalendar.thisWeek}
+          coverageNote={eventCalendar.coverageNote}
         />
 
         {/* SOURCES */}
