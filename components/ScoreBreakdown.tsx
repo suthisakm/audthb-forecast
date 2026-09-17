@@ -121,10 +121,22 @@ export default async function ScoreBreakdown({
 
   return (
     <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20 transition-colors hover:border-slate-700">
-      <h2 className="text-xl font-semibold tracking-tight">Score Breakdown</h2>
-      <p className="text-xs text-slate-600 mt-1">Tap a factor to see how it's calculated.</p>
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <h2 className="text-xl font-semibold tracking-tight">Score Breakdown</h2>
+          <p className="text-xs text-slate-600 mt-1">Tap a factor to see how it's calculated.</p>
+        </div>
 
-      <div className="mt-2">
+        <div className="text-right shrink-0">
+          <p className="text-xs text-slate-500 uppercase tracking-wide">Core FX Score</p>
+          <p className={`text-3xl font-bold font-mono tabular-nums ${scoreColor(data.coreFxScore)}`}>
+            {formatScore(data.coreFxScore)}
+          </p>
+          <p className="text-xs text-slate-500">{data.coreBias}</p>
+        </div>
+      </div>
+
+      <div className="mt-4 pt-2 border-t border-slate-800">
         {/* PRICE */}
         <Factor name="Price / Momentum" score={data.priceMomentumScore} weightLabel="FX Weight: 35%">
           <p className="text-sm text-slate-500">

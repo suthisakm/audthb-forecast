@@ -20,6 +20,8 @@ export type DailyRecap = {
   maxScore: number | null;
   minRate: number | null;
   maxRate: number | null;
+  openRate: number | null;
+  latestRate: number | null;
   biasCounts: Record<string, number>;
   error: string | null;
 };
@@ -41,6 +43,8 @@ function emptyRecap(error: string | null = null): DailyRecap {
     maxScore: null,
     minRate: null,
     maxRate: null,
+    openRate: null,
+    latestRate: null,
     biasCounts: {},
     error,
   };
@@ -99,6 +103,8 @@ export async function getDailyRecap(): Promise<DailyRecap> {
     maxScore: Math.max(...scores),
     minRate: rates.length > 0 ? Math.min(...rates) : null,
     maxRate: rates.length > 0 ? Math.max(...rates) : null,
+    openRate: rates.at(0) ?? null,
+    latestRate: rates.at(-1) ?? null,
     biasCounts,
     error: null,
   };
