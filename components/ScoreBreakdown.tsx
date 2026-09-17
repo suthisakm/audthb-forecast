@@ -5,6 +5,7 @@ import type {
 import { getMacroCompositeData } from "@/lib/macro-composite-data";
 import { getTradeBalanceData } from "@/lib/trade-balance-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
+import InfoTip from "@/components/InfoTip";
 
 function formatScore(score: number | null) {
   if (score === null) return "--";
@@ -58,12 +59,14 @@ function freshnessTone(status: string): BadgeTone {
 // mobile) into a scannable set of rows you open one at a time.
 function Factor({
   name,
+  tooltip,
   score,
   weightLabel,
   defaultOpen = false,
   children,
 }: {
   name: string;
+  tooltip?: string;
   score: number | null;
   weightLabel: string;
   defaultOpen?: boolean;
@@ -85,6 +88,7 @@ function Factor({
           </svg>
 
           <span className="font-semibold truncate">{name}</span>
+          {tooltip && <InfoTip text={tooltip} />}
         </div>
 
         <div className="flex items-center gap-3 shrink-0">
@@ -130,7 +134,10 @@ export default async function ScoreBreakdown({
         </div>
 
         <div className="text-right shrink-0">
-          <p className="text-xs text-slate-500 uppercase tracking-wide">Core FX Score</p>
+          <p className="text-xs text-slate-500 uppercase tracking-wide inline-flex items-center">
+            Core FX Score
+            <InfoTip text="A weighted composite of 7 market and macro factors, from -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
+          </p>
           <p className={`text-3xl font-bold font-mono tabular-nums ${scoreColor(data.coreFxScore)}`}>
             {formatScore(data.coreFxScore)}
           </p>
@@ -140,7 +147,12 @@ export default async function ScoreBreakdown({
 
       <div className="mt-4 pt-2 border-t border-slate-800">
         {/* PRICE */}
-        <Factor name="Price / Momentum" score={data.priceMomentumScore} weightLabel="FX Weight: 35%">
+        <Factor
+          name="Price / Momentum"
+          tooltip="How much AUD/THB has moved over the last 1 and 4 hours. The single biggest factor in the score."
+          score={data.priceMomentumScore}
+          weightLabel="FX Weight: 35%"
+        >
           <p className="text-sm text-slate-500">
             1H Score: {formatScore(data.priceScore1H)} (raw {formatChange(data.change1H)}) | 4H Score: {formatScore(data.priceScore4H)} (raw {formatChange(data.change4H)})
           </p>
@@ -148,7 +160,12 @@ export default async function ScoreBreakdown({
         </Factor>
 
         {/* CROSS */}
-        <Factor name="Cross Currency" score={data.crossCurrencyScore} weightLabel="FX Weight: 20%">
+        <Factor
+          name="Cross Currency"
+          tooltip="Cross-checks the direct AUD/THB rate against AUD/USD x USD/THB computed independently, to confirm the move is real."
+          score={data.crossCurrencyScore}
+          weightLabel="FX Weight: 20%"
+        >
           <p className="text-sm text-slate-500">1H Cross Change: {formatChange(data.crossCurrencyChange1H)}</p>
           <p className="text-sm text-slate-500">
             Cross rate: {data.crossRate !== null ? data.crossRate.toFixed(4) : "--"} (AUD/USD × USD/THB) vs direct {data.directRate !== null ? data.directRate.toFixed(4) : "--"}
@@ -162,7 +179,12 @@ export default async function ScoreBreakdown({
         </Factor>
 
         {/* RELATIVE MARKET */}
-        <Factor name="Relative Market" score={data.relativeMarketScore} weightLabel={`Weight: ${data.relativeMarketEffectiveWeight.toFixed(1)}/15`}>
+        <Factor
+          name="Relative Market"
+          tooltip="AU-US bond yield spread plus USD/CNH and USD/SGD, as a proxy for regional risk appetite."
+          score={data.relativeMarketScore}
+          weightLabel={`Weight: ${data.relativeMarketEffectiveWeight.toFixed(1)}/15`}
+        >
           <p className="text-sm text-slate-500">Coverage: {data.relativeMarketCoverage.toFixed(1)}/100 (internal split: Yield 50% / CNH 35% / SGD 15%)</p>
 
           <div className="pl-3 border-l border-slate-700 space-y-1.5">
@@ -195,7 +217,12 @@ export default async function ScoreBreakdown({
         </Factor>
 
         {/* COMMODITY */}
-        <Factor name="Commodity" score={data.commodityScore} weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/10`}>
+        <Factor
+          name="Commodity"
+          tooltip="Iron Ore and Brent oil prices -- major Australian exports. Gold is tracked but not yet scored."
+          score={data.commodityScore}
+          weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/10`}
+        >
           <p className="text-sm text-slate-500">Coverage: {data.commodityCoverage.toFixed(1)}/100 (internal split: Iron Ore 50% / Brent 30% / Gold 20%)</p>
 
           <div className="pl-3 border-l border-slate-700 space-y-1.5">
@@ -226,7 +253,12 @@ export default async function ScoreBreakdown({
         </Factor>
 
         {/* MEAN REVERSION */}
-        <Factor name="Mean Reversion" score={data.meanReversionScore} weightLabel="FX Weight: 5%">
+        <Factor
+          name="Mean Reversion"
+          tooltip="Where today's rate sits in its intraday range. Extremes tend to pull back toward the middle."
+          score={data.meanReversionScore}
+          weightLabel="FX Weight: 5%"
+        >
           <p className="text-sm text-slate-500">
             Range Position: {data.rangePosition !== null ? `${data.rangePosition.toFixed(1)}%` : "--"}
           </p>
@@ -237,7 +269,12 @@ export default async function ScoreBreakdown({
         </Factor>
 
         {/* MACRO */}
-        <Factor name="Macro / Policy" score={data.macroScore} weightLabel={`Weight: ${data.macroEffectiveFxWeight.toFixed(1)}/10`}>
+        <Factor
+          name="Macro / Policy"
+          tooltip="Central bank interest rates, inflation, employment and GDP for Australia, the US and Thailand."
+          score={data.macroScore}
+          weightLabel={`Weight: ${data.macroEffectiveFxWeight.toFixed(1)}/10`}
+        >
           <p className="text-sm text-slate-500">Coverage: {data.macroCoverage.toFixed(1)}/100 (Policy 4 / Inflation 3 / Labour 2 / Growth 1)</p>
 
           {data.macroScore === null && (
@@ -315,7 +352,12 @@ export default async function ScoreBreakdown({
         </Factor>
 
         {/* RISK */}
-        <Factor name="Risk / VIXY" score={data.riskScore} weightLabel={`Weight: ${data.riskEffectiveWeight.toFixed(1)}/5`}>
+        <Factor
+          name="Risk / VIXY"
+          tooltip="A volatility index. Rising volatility usually means investors sell risk currencies like AUD."
+          score={data.riskScore}
+          weightLabel={`Weight: ${data.riskEffectiveWeight.toFixed(1)}/5`}
+        >
           <p className="text-sm text-slate-500">Price: {data.riskPrice !== null ? `$${data.riskPrice.toFixed(2)}` : "--"}</p>
           <p className="text-sm text-slate-500">1H Change: {formatChange(data.riskChange1H)}</p>
 

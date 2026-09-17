@@ -1,4 +1,5 @@
 import RefreshControls from "@/components/RefreshControls";
+import StickyBar from "@/components/StickyBar";
 import Hero from "@/components/Hero";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
@@ -48,6 +49,13 @@ export default async function Home() {
   return (
     <main className="min-h-screen bg-slate-950 text-white bg-[radial-gradient(ellipse_80%_50%_at_50%_-10%,rgba(56,189,248,0.10),rgba(2,6,23,0))]">
       <RefreshControls />
+
+      <StickyBar
+        rate={data.latestPrice ? Number(data.latestPrice.rate) : null}
+        score={data.coreFxScore}
+        bias={data.coreBias}
+        freshnessStatus={data.latestPriceFreshness.status}
+      />
 
       {/* TOP ACCENT BAR */}
       <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />

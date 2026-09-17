@@ -2,6 +2,7 @@ import type { DashboardData } from "@/lib/dashboard-data";
 import { getEventRisk } from "@/lib/event-calendar-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import ScoreGauge from "@/components/ScoreGauge";
+import InfoTip from "@/components/InfoTip";
 
 function formatHoursUntil(hours: number) {
   if (hours < 1) return `${Math.round(hours * 60)} min`;
@@ -123,8 +124,9 @@ export default async function Hero({ data }: { data: DashboardData }) {
 
         {/* CORE FX SCORE */}
         <div>
-          <p className="text-xs font-medium text-slate-400 uppercase tracking-widest">
+          <p className="text-xs font-medium text-slate-400 uppercase tracking-widest inline-flex items-center">
             Core FX Score
+            <InfoTip text="A weighted composite of 7 market and macro factors, from -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
 
           <div className="flex items-baseline gap-3 mt-3">
@@ -154,7 +156,10 @@ export default async function Hero({ data }: { data: DashboardData }) {
 
           <div className="mt-5 pt-4 border-t border-slate-800">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-400">Model Coverage</p>
+              <p className="text-sm text-slate-400 inline-flex items-center">
+                Model Coverage
+                <InfoTip text="How much of the model's total weight had usable data this run. Lower coverage means the score rests on fewer signals than usual." />
+              </p>
               <p className="text-lg font-semibold font-mono tabular-nums">
                 {data.availableCoreWeight.toFixed(1)}/100
               </p>
