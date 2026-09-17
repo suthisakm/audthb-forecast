@@ -69,14 +69,14 @@ export default function NewsSentiment({
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight flex items-center">
           AI News Signals
-          <InfoTip text="A scheduled calendar only shows WHAT is releasing and WHEN -- it can't tell you what a Fed chair actually says in a press conference or what Trump posts about tariffs, and words alone move markets. Gemini reads Fed/Trump/RBA/BOT-related coverage as it's published and rates its likely direction on AUD. Monitor only -- not part of the Core FX Score yet." />
+          <InfoTip text="A scheduled calendar only shows WHAT is releasing and WHEN -- it can't tell you what a Fed chair actually says in a press conference, what Trump posts about tariffs, or a sudden swing in dollar/baht coverage. Gemini reads AUD/USD/THB-relevant news daily and rates its likely direction on AUD/THB. Monitor only -- not part of the Core FX Score yet." />
         </h2>
 
         <StatusBadge label="Monitor Only" tone="slate" />
       </div>
 
       <p className="text-xs text-slate-500 mt-1">
-        AI-classified Fed / Trump / RBA / Bank of Thailand coverage -- experimental, verify before acting.
+        AI-classified AUD / USD / THB news, updated daily -- experimental, verify before acting.
       </p>
 
       <div className="mt-3">

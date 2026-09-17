@@ -53,13 +53,18 @@ function toSignal(row: DbRow): NewsSentimentSignal {
   };
 }
 
-// Broad net over Fed/Trump/RBA/BOT-adjacent coverage. Alpha Vantage's own
-// "topics=economy_monetary" tag is too loose to rely on alone (it tags
-// most financial_markets/earnings stories too, see live check during
-// build) -- this regex is the actual relevance filter, applied to
-// title+summary of a ticker-scoped feed (FOREX:USD, FOREX:AUD).
+// Net over AUD/USD/THB-relevant coverage: central-bank/policy figures
+// (still the biggest movers) plus bare currency-name mentions so general
+// dollar/baht/aussie-dollar stories qualify too, not just speeches.
+// Alpha Vantage's own "topics=economy_monetary" tag is too loose to rely
+// on alone (it tags most financial_markets/earnings stories too, see live
+// check during build) -- this regex is the actual relevance filter,
+// applied to title+summary of a ticker-scoped feed (FOREX:USD, FOREX:AUD,
+// FOREX:THB). FOREX:THB in particular is dominated by crypto-scam and
+// tourism-PR noise, so this stays a real filter rather than accepting
+// everything from that feed.
 export const NEWS_RELEVANCE_PATTERN =
-  /\b(fed|federal reserve|fomc|powell|rate hike|rate cut|interest rate|trump|tariff|rba|reserve bank of australia|bank of thailand|thai baht)\b/i;
+  /\b(fed|federal reserve|fomc|powell|rate hike|rate cut|interest rate|trump|tariff|rba|reserve bank of australia|bank of thailand|dollar|baht|aud)\b/i;
 
 export async function getRecentNewsSignals(limit = 8): Promise<{
   signals: NewsSentimentSignal[];
