@@ -219,7 +219,7 @@ export default async function ScoreBreakdown({
         {/* COMMODITY */}
         <Factor
           name="Commodity"
-          tooltip="Australia's economy runs heavily on commodity exports, so commodity prices can move AUD on their own, independent of anything happening with Thailand or the exchange rate itself."
+          tooltip="Commodity prices (iron ore, oil) are a real-world economic factor that can move AUD/THB on their own, independent of anything happening in the currency markets themselves."
           score={data.commodityScore}
           weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/10`}
         >
