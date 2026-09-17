@@ -19,42 +19,28 @@ function changeColor(value: number | null) {
   return "text-slate-400";
 }
 
-// Pure SVG sparkline -- no charting library needed for a single day's
-// worth of AUD/THB price points (fx_score_snapshots, workflow B, which
-// stores the reference rate alongside each Core FX Score run).
-function Sparkline({ points }: { points: DailyRecap["points"] }) {
-  const width = 600;
-  const height = 120;
-  const padding = 8;
-
-  const rates = points.map((p) => p.rate);
-  const min = Math.min(...rates);
-  const max = Math.max(...rates);
+// Where today's latest rate sits between today's low and high -- same
+// visual language as ScoreGauge, just on the day's own Low..High scale
+// instead of -100..+100.
+function RangeBar({ min, max, current }: { min: number; max: number; current: number }) {
   const span = max - min || 1;
-
-  const x = (i: number) =>
-    points.length > 1
-      ? padding + (i / (points.length - 1)) * (width - padding * 2)
-      : width / 2;
-
-  const y = (rate: number) =>
-    height - padding - ((rate - min) / span) * (height - padding * 2);
-
-  const path = points.map((p, i) => `${i === 0 ? "M" : "L"}${x(i).toFixed(1)},${y(p.rate).toFixed(1)}`).join(" ");
-  const last = points.at(-1);
-  const first = points.at(0);
-  const rising = last && first ? last.rate >= first.rate : true;
+  const pct = Math.max(0, Math.min(100, ((current - min) / span) * 100));
 
   return (
-    <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-28" preserveAspectRatio="none">
-      {first && (
-        <line x1={0} y1={y(first.rate)} x2={width} y2={y(first.rate)} stroke="#334155" strokeWidth={1} strokeDasharray="4 4" />
-      )}
-      <path d={path} fill="none" stroke={rising ? "#34d399" : "#f87171"} strokeWidth={2} />
-      {last && (
-        <circle cx={x(points.length - 1)} cy={y(last.rate)} r={3.5} fill={rising ? "#34d399" : "#f87171"} />
-      )}
-    </svg>
+    <div className="mt-4">
+      <div className="relative h-1.5 rounded-full bg-slate-800">
+        <div className="absolute inset-y-0 left-0 rounded-full bg-sky-500/40" style={{ width: `${pct}%` }} />
+        <div
+          className="absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-slate-950 bg-sky-400"
+          style={{ left: `${pct}%` }}
+        />
+      </div>
+
+      <div className="flex justify-between text-[10px] text-slate-600 mt-1 font-mono">
+        <span>{min.toFixed(4)}</span>
+        <span>{max.toFixed(4)}</span>
+      </div>
+    </div>
   );
 }
 
@@ -97,9 +83,9 @@ export default function DailyRecap({ recap }: { recap: DailyRecap }) {
         </div>
       </div>
 
-      <div className="mt-4">
-        <Sparkline points={recap.points} />
-      </div>
+      {recap.minRate !== null && recap.maxRate !== null && recap.latestRate !== null && (
+        <RangeBar min={recap.minRate} max={recap.maxRate} current={recap.latestRate} />
+      )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
         <div className="rounded-lg bg-slate-950 p-3">
