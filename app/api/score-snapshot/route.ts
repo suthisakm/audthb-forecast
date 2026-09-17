@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
 import { getDashboardData, MODEL_VERSION } from "@/lib/dashboard-data";
+import { buildForecast, FORECAST_VERSION, HORIZON_HOURS } from "@/lib/forecast-data";
 
 // =========================================================
 // RUN SLOT
@@ -33,7 +34,11 @@ function sleep(ms: number) {
 // SAVE (INSERT-ONLY -- NEVER OVERWRITE A PAST SNAPSHOT)
 // =========================================================
 
-async function saveSnapshot(row: Record<string, unknown>) {
+async function upsertImmutable(
+  table: string,
+  row: Record<string, unknown>,
+  onConflict: string,
+) {
   const delays = [0, 500, 1500];
   let lastError: string | null = null;
 
@@ -42,11 +47,8 @@ async function saveSnapshot(row: Record<string, unknown>) {
 
     try {
       const { error } = await supabaseAdmin
-        .from("fx_score_snapshots")
-        .upsert(row, {
-          onConflict: "run_slot,model_version",
-          ignoreDuplicates: true,
-        });
+        .from(table)
+        .upsert(row, { onConflict, ignoreDuplicates: true });
 
       if (!error) return { success: true, attempts: attempt + 1, error: null };
       lastError = error.message;
@@ -145,7 +147,69 @@ export async function GET(request: Request) {
       components,
     };
 
-    const database = await saveSnapshot(row);
+    const database = await upsertImmutable(
+      "fx_score_snapshots",
+      row,
+      "run_slot,model_version",
+    );
+
+    // Forecast is derived from this same run -- same run_slot, same
+    // reference rate and score. No score means nothing to forecast.
+    let forecastResult: {
+      forecast: ReturnType<typeof buildForecast> | null;
+      database: { status: string; attempts: number; error: string | null };
+    } = {
+      forecast: null,
+      database: { status: "SKIPPED", attempts: 0, error: null },
+    };
+
+    if (dashboard.coreFxScore !== null) {
+      const referenceRate = dashboard.latestPrice
+        ? Number(dashboard.latestPrice.rate)
+        : null;
+
+      const forecast = buildForecast(dashboard.coreFxScore, referenceRate);
+
+      const targetTime = new Date(
+        new Date(runSlot).getTime() + HORIZON_HOURS * 60 * 60 * 1000,
+      ).toISOString();
+
+      const forecastRow = {
+        run_slot: runSlot,
+        model_version: MODEL_VERSION,
+        forecast_version: FORECAST_VERSION,
+
+        horizon: "DAILY",
+        horizon_hours: HORIZON_HOURS,
+        target_time: targetTime,
+
+        reference_rate: referenceRate,
+        core_fx_score: dashboard.coreFxScore,
+
+        predicted_direction: forecast.predictedDirection,
+        predicted_move_pct: forecast.predictedMovePct,
+        predicted_range_low_pct: forecast.predictedRangeLowPct,
+        predicted_range_high_pct: forecast.predictedRangeHighPct,
+
+        status: "UNCALIBRATED",
+        methodology: forecast.methodology,
+      };
+
+      const forecastDatabase = await upsertImmutable(
+        "forecast_runs",
+        forecastRow,
+        "run_slot,model_version,forecast_version",
+      );
+
+      forecastResult = {
+        forecast,
+        database: {
+          status: forecastDatabase.success ? "OK" : "FAILED",
+          attempts: forecastDatabase.attempts,
+          error: forecastDatabase.error,
+        },
+      };
+    }
 
     return NextResponse.json({
       updated: database.success,
@@ -158,6 +222,7 @@ export async function GET(request: Request) {
         attempts: database.attempts,
         error: database.error,
       },
+      forecast: forecastResult,
     });
   } catch (error) {
     console.error("Score snapshot error:", error);
