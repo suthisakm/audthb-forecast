@@ -3,6 +3,7 @@ import CurrentRateCard from "@/components/CurrentRateCard";
 import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import DataHealth from "@/components/DataHealth";
+import Alerts from "@/components/Alerts";
 import MarketClock from "@/components/MarketClock";
 import EventCalendar from "@/components/EventCalendar";
 
@@ -13,6 +14,10 @@ import {
 import {
   getEventCalendar,
 } from "@/lib/event-calendar-data";
+
+import {
+  getAlerts,
+} from "@/lib/alerts-data";
 
 export const dynamic =
   "force-dynamic";
@@ -45,6 +50,9 @@ export default async function Home() {
   const eventCalendar =
     await getEventCalendar();
 
+  const alerts =
+    await getAlerts(data);
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <RefreshControls />
@@ -68,6 +76,12 @@ export default async function Home() {
 
         <DataHealth
           data={data}
+        />
+
+        {/* ALERTS */}
+
+        <Alerts
+          alerts={alerts}
         />
 
         {/* TOP CARDS */}
