@@ -62,8 +62,8 @@ export default function MarketRates({
   data: DashboardData;
 }) {
   return (
-    <div className="bg-slate-900 rounded-xl p-6 mt-4">
-      <h2 className="text-xl font-semibold">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 mt-6 shadow-lg shadow-black/20">
+      <h2 className="text-xl font-semibold tracking-tight">
         Market Rates
       </h2>
 

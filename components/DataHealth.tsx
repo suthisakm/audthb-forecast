@@ -40,7 +40,7 @@ export default function DataHealth({
 
   if (marketClosed) {
     return (
-      <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4">
+      <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
         <p className="font-semibold text-slate-300">
           Market Closed
         </p>
@@ -53,7 +53,7 @@ export default function DataHealth({
   }
 
   return (
-    <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4">
+    <div className="mt-6 rounded-xl border border-slate-800 bg-slate-900 p-4 shadow-lg shadow-black/20">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <p className="font-semibold">
@@ -66,12 +66,12 @@ export default function DataHealth({
         </div>
 
         <div className="flex gap-4 text-sm">
-          <span className="text-green-400">
+          <span className="text-emerald-400">
             {healthyCount}/3 Fresh
           </span>
 
           {delayedCount > 0 && (
-            <span className="text-yellow-400">
+            <span className="text-amber-400">
               {delayedCount} Delayed
             </span>
           )}
@@ -97,9 +97,9 @@ export default function DataHealth({
             <p
               className={`text-sm font-semibold mt-1 ${
                 feed.status === "FRESH"
-                  ? "text-green-400"
+                  ? "text-emerald-400"
                   : feed.status === "DELAYED"
-                    ? "text-yellow-400"
+                    ? "text-amber-400"
                     : feed.status === "MARKET_CLOSED"
                       ? "text-slate-400"
                       : "text-red-400"

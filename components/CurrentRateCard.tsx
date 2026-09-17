@@ -6,12 +6,12 @@ export default function CurrentRateCard({
   data: DashboardData;
 }) {
   return (
-    <div className="bg-slate-900 rounded-xl p-6">
-      <p className="text-slate-400">
+    <div className="rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/20">
+      <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">
         Current Rate
       </p>
 
-      <p className="text-4xl font-bold mt-2">
+      <p className="text-4xl font-bold mt-2 tabular-nums">
         {data.latestPrice
           ? Number(data.latestPrice.rate).toFixed(4)
           : "--"}
@@ -43,9 +43,9 @@ export default function CurrentRateCard({
             <span
               className={
                 data.latestPriceFreshness.status === "FRESH"
-                  ? "text-green-400"
+                  ? "text-emerald-400"
                   : data.latestPriceFreshness.status === "DELAYED"
-                    ? "text-yellow-400"
+                    ? "text-amber-400"
                     : data.latestPriceFreshness.status === "MARKET_CLOSED"
                       ? "text-slate-400"
                       : "text-red-400"

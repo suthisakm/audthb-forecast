@@ -4,6 +4,7 @@ import MarketRates from "@/components/MarketRates";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import DataHealth from "@/components/DataHealth";
 import Alerts from "@/components/Alerts";
+import DailyRecap from "@/components/DailyRecap";
 import MarketClock from "@/components/MarketClock";
 import EventCalendar from "@/components/EventCalendar";
 
@@ -19,6 +20,10 @@ import {
   getAlerts,
 } from "@/lib/alerts-data";
 
+import {
+  getDailyRecap,
+} from "@/lib/daily-recap-data";
+
 export const dynamic =
   "force-dynamic";
 
@@ -33,15 +38,18 @@ function scoreColor(
   }
 
   if (score >= 15) {
-    return "text-green-400";
+    return "text-emerald-400";
   }
 
   if (score <= -15) {
     return "text-red-400";
   }
 
-  return "text-yellow-400";
+  return "text-amber-400";
 }
+
+const CARD =
+  "rounded-xl border border-slate-800 bg-slate-900 p-6 shadow-lg shadow-black/20";
 
 export default async function Home() {
   const data =
@@ -53,21 +61,40 @@ export default async function Home() {
   const alerts =
     await getAlerts(data);
 
+  const dailyRecap =
+    await getDailyRecap();
+
   return (
     <main className="min-h-screen bg-slate-950 text-white">
       <RefreshControls />
 
+      {/* TOP ACCENT BAR */}
+      <div className="h-1 bg-gradient-to-r from-sky-500 via-emerald-500 to-amber-500" />
+
       <div className="max-w-7xl mx-auto px-4 py-8">
         {/* HEADER */}
 
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold">
-            AUD/THB Forecast Dashboard
-          </h1>
+        <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
+          <div>
+            <div className="flex items-center gap-2.5">
+              <span className="relative flex h-2.5 w-2.5">
+                <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />
+                <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500" />
+              </span>
 
-          <p className="text-slate-500 mt-1">
-            Market monitoring and FX signal model
-          </p>
+              <span className="text-xs font-medium uppercase tracking-widest text-emerald-400">
+                Live
+              </span>
+            </div>
+
+            <h1 className="text-3xl font-bold tracking-tight mt-2">
+              AUD/THB Forecast Dashboard
+            </h1>
+
+            <p className="text-slate-500 mt-1">
+              Market monitoring and FX signal model
+            </p>
+          </div>
 
           <MarketClock />
         </div>
@@ -86,23 +113,23 @@ export default async function Home() {
 
         {/* TOP CARDS */}
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-6">
           <CurrentRateCard
             data={data}
           />
 
           {/* FORECAST */}
 
-          <div className="bg-slate-900 rounded-xl p-6">
-            <p className="text-sm text-slate-400">
+          <div className={CARD}>
+            <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">
               Forecast
             </p>
 
-            <p className="text-2xl font-bold mt-2">
+            <p className="text-2xl font-bold mt-2 text-slate-300">
               ยังไม่เปิดใช้
             </p>
 
-            <p className="text-sm text-slate-500 mt-3">
+            <p className="text-sm text-slate-500 mt-3 leading-relaxed">
               Forecast 1H / 4H จะเปิดหลังพัฒนาและทดสอบโมเดล
               เทียบกับราคาจริง พร้อมปรับเกณฑ์และประเมินความแม่นยำ
             </p>
@@ -110,13 +137,13 @@ export default async function Home() {
 
           {/* CORE FX SCORE */}
 
-          <div className="bg-slate-900 rounded-xl p-6">
-            <p className="text-sm text-slate-400">
+          <div className={CARD}>
+            <p className="text-sm font-medium text-slate-400 uppercase tracking-wide">
               Core FX Score
             </p>
 
             <p
-              className={`text-4xl font-bold mt-2 ${scoreColor(
+              className={`text-4xl font-bold mt-2 tabular-nums ${scoreColor(
                 data.coreFxScore
               )}`}
             >
@@ -140,7 +167,7 @@ export default async function Home() {
                 Model Coverage
               </p>
 
-              <p className="text-lg font-semibold">
+              <p className="text-lg font-semibold tabular-nums">
                 {data.availableCoreWeight.toFixed(
                   1
                 )}
@@ -165,6 +192,12 @@ export default async function Home() {
           </div>
         </div>
 
+        {/* DAILY RECAP */}
+
+        <DailyRecap
+          recap={dailyRecap}
+        />
+
         {/* MARKET RATES */}
 
         <MarketRates
@@ -187,66 +220,72 @@ export default async function Home() {
 
         {/* SOURCES */}
 
-        <div className="bg-slate-900 rounded-xl p-6 mt-4 mb-8">
-          <h2 className="text-xl font-semibold">
+        <div className={`${CARD} mt-6 mb-8`}>
+          <h2 className="text-xl font-semibold tracking-tight">
             Sources
           </h2>
 
-          <div className="mt-4 text-sm text-slate-400 space-y-2">
+          <div className="mt-4 text-sm text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-2">
             <p>
-              FX Market Data:
-              Twelve Data
+              FX Market Data:{" "}
+              <span className="text-slate-300">Twelve Data</span>
             </p>
 
             <p>
-              AUD/THB Cross:
-              AUD/USD × USD/THB
-              using matched-time data
+              AUD/THB Cross:{" "}
+              <span className="text-slate-300">
+                AUD/USD × USD/THB (matched-time)
+              </span>
             </p>
 
             <p>
-              Relative Asian FX:
-              USD/CNH and USD/SGD
-              via Twelve Data
+              Relative Asian FX:{" "}
+              <span className="text-slate-300">
+                USD/CNH and USD/SGD via Twelve Data
+              </span>
             </p>
 
             <p>
-              AU 2Y Yield:
-              RBA via DBnomics
+              AU 2Y Yield:{" "}
+              <span className="text-slate-300">RBA via DBnomics</span>
             </p>
 
             <p>
-              US 2Y Yield:
-              Federal Reserve via
-              DBnomics
+              US 2Y Yield:{" "}
+              <span className="text-slate-300">
+                Federal Reserve via DBnomics
+              </span>
             </p>
 
             <p>
-              Iron Ore:
-              OilPriceAPI
+              Iron Ore:{" "}
+              <span className="text-slate-300">OilPriceAPI</span>
             </p>
 
             <p>
-              Brent Live:
-              OilPriceAPI
+              Brent Live:{" "}
+              <span className="text-slate-300">OilPriceAPI</span>
             </p>
 
             <p>
-              Brent Historical Reference:
-              EIA
+              Brent Historical Reference:{" "}
+              <span className="text-slate-300">EIA</span>
             </p>
 
             <p>
-              Gold:
-              Gold-API
+              Gold: <span className="text-slate-300">Gold-API</span>
             </p>
 
             <p>
-              Risk / Volatility:
-              VIXY via Twelve Data
+              Risk / Volatility:{" "}
+              <span className="text-slate-300">VIXY via Twelve Data</span>
             </p>
           </div>
         </div>
+
+        <p className="text-center text-xs text-slate-700 mb-6">
+          AUD/THB Forecast Dashboard -- for research and monitoring purposes only, not financial advice.
+        </p>
       </div>
     </main>
   );
