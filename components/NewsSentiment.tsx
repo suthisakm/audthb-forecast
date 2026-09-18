@@ -32,7 +32,7 @@ function SignalRow({ signal }: { signal: NewsSentimentSignal }) {
           href={signal.articleUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium hover:underline underline-offset-2"
+          className="text-sm font-medium text-indigo-700 dark:text-indigo-400 hover:underline underline-offset-2"
         >
           {signal.title}
         </a>
@@ -65,7 +65,7 @@ export default function NewsSentiment({
   error: string | null;
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight flex items-center">
           AI News Signals

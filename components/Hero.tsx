@@ -49,7 +49,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
   const eventRisk = await getEventRisk();
 
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-indigo-600 dark:border-t-indigo-400 bg-stone-50 dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="grid md:grid-cols-2 gap-8">
         {/* RATE */}
         <div className="md:border-r border-stone-200 dark:border-slate-800 md:pr-8">

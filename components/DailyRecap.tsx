@@ -29,10 +29,10 @@ function RangeBar({ min, max, current }: { min: number; max: number; current: nu
 
   return (
     <div className="mt-4">
-      <div className="relative h-1.5 rounded-full bg-slate-200 dark:bg-slate-800">
-        <div className="absolute inset-y-0 left-0 rounded-full bg-sky-500/40" style={{ width: `${pct}%` }} />
+      <div className="relative h-1.5 rounded-full bg-stone-200 dark:bg-slate-800">
+        <div className="absolute inset-y-0 left-0 rounded-full bg-indigo-600/40 dark:bg-indigo-400/40" style={{ width: `${pct}%` }} />
         <div
-          className="absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-white dark:border-slate-900 bg-sky-500 dark:bg-sky-400"
+          className="absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-stone-50 dark:border-slate-900 bg-indigo-600 dark:bg-indigo-400"
           style={{ left: `${pct}%` }}
         />
       </div>
@@ -58,7 +58,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
 
   if (recap.sampleSize === 0) {
     return (
-      <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+      <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
         <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
           No price snapshots yet today -- check back after the score-snapshot cron has run.
@@ -81,7 +81,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       : null;
 
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>

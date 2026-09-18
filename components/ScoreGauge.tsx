@@ -18,8 +18,8 @@ export default function ScoreGauge({ score }: { score: number | null }) {
 
   return (
     <div className="mt-3">
-      <div className="relative h-1.5 rounded-full bg-slate-200 dark:bg-slate-800">
-        <div className="absolute inset-y-0 left-1/2 w-px bg-slate-400 dark:bg-slate-600" />
+      <div className="relative h-1.5 rounded-full bg-stone-200 dark:bg-slate-800">
+        <div className="absolute inset-y-0 left-1/2 w-px bg-stone-400 dark:bg-slate-600" />
 
         <div
           className={`absolute inset-y-0 rounded-full ${color}`}
@@ -28,7 +28,7 @@ export default function ScoreGauge({ score }: { score: number | null }) {
 
         {score !== null && (
           <div
-            className={`absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-white dark:border-slate-900 ${color}`}
+            className={`absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-stone-50 dark:border-slate-900 ${color}`}
             style={{ left: `${pct}%` }}
           />
         )}

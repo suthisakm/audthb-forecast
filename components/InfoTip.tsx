@@ -18,7 +18,7 @@ export default function InfoTip({ text }: { text: string }) {
         }}
         onBlur={() => setOpen(false)}
         aria-label="More info"
-        className="ml-1 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-slate-400 dark:border-slate-600 text-[9px] leading-none text-slate-600 dark:text-slate-400 hover:border-slate-600 dark:hover:border-slate-400 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none"
+        className="ml-1 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-slate-400 dark:border-slate-600 text-[9px] leading-none text-slate-600 dark:text-slate-400 hover:border-slate-600 dark:hover:border-slate-400 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 focus-visible:ring-offset-stone-50 dark:focus-visible:ring-offset-slate-800"
       >
         i
       </button>

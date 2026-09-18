@@ -58,7 +58,7 @@ export default function EventCalendar({
   coverageNote: string;
 }) {
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">Event Calendar</h2>
 
       <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{coverageNote}</p>

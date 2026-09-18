@@ -42,7 +42,8 @@ export const revalidate =
 // cards reads as three topics, not one undifferentiated scroll.
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-3">
+    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-3">
+      <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
       {children}
     </p>
   );
@@ -75,7 +76,7 @@ export default async function Home() {
         freshnessStatus={data.latestPriceFreshness.status}
       />
 
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* HEADER */}
 
         <div className="mb-6 pb-6 border-b border-stone-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
@@ -114,11 +115,12 @@ export default async function Home() {
         <div className="mt-10">
           <SectionLabel>Market</SectionLabel>
           <Hero data={data} />
+
+          <div className="grid lg:grid-cols-2 gap-6 mt-6 items-stretch">
+            <DailyRecap recap={dailyRecap} data={data} />
+            <MarketRates data={data} />
+          </div>
         </div>
-
-        <DailyRecap recap={dailyRecap} data={data} />
-
-        <MarketRates data={data} />
 
         {/* SIGNAL MODEL */}
 
@@ -131,14 +133,16 @@ export default async function Home() {
 
         <div className="mt-10">
           <SectionLabel>Context &amp; News</SectionLabel>
-          <EventCalendar
-            today={eventCalendar.today}
-            thisWeek={eventCalendar.thisWeek}
-            coverageNote={eventCalendar.coverageNote}
-          />
-        </div>
 
-        <NewsSentiment signals={newsSentiment.signals} error={newsSentiment.error} />
+          <div className="grid lg:grid-cols-2 gap-6 items-stretch">
+            <EventCalendar
+              today={eventCalendar.today}
+              thisWeek={eventCalendar.thisWeek}
+              coverageNote={eventCalendar.coverageNote}
+            />
+            <NewsSentiment signals={newsSentiment.signals} error={newsSentiment.error} />
+          </div>
+        </div>
 
         {/* SOURCES -- reference material, not a live signal, so this is
         deliberately quieter than the cards above it: no hover highlight,
