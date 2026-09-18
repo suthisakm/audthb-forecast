@@ -42,7 +42,7 @@ export default function ThemeToggle() {
       type="button"
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-slate-300 dark:hover:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
+      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-stone-300 dark:hover:border-slate-700 hover:text-slate-700 dark:hover:text-slate-200 transition-colors"
     >
       {isDark === null ? null : isDark ? <SunIcon /> : <MoonIcon />}
     </button>

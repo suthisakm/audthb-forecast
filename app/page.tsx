@@ -36,9 +36,6 @@ export const dynamic =
 export const revalidate =
   0;
 
-const CARD =
-  "rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700";
-
 // Groups the page's growing card list under a quiet label instead of
 // adding real navigation (a sidebar/tabs structure was tried and
 // explicitly rejected earlier) -- just enough hierarchy that 9 stacked
@@ -68,7 +65,7 @@ export default async function Home() {
     await getRecentNewsSignals();
 
   return (
-    <main className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white">
+    <main className="min-h-screen bg-stone-100 dark:bg-slate-950 text-stone-900 dark:text-white">
       <RefreshControls />
 
       <StickyBar
@@ -81,7 +78,7 @@ export default async function Home() {
       <div className="max-w-5xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* HEADER */}
 
-        <div className="mb-6 pb-6 border-b border-slate-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+        <div className="mb-6 pb-6 border-b border-stone-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
@@ -150,7 +147,7 @@ export default async function Home() {
         <div className="mt-10">
           <SectionLabel>Reference</SectionLabel>
 
-          <div className="rounded-xl border border-slate-200/70 dark:border-slate-800/70 p-6 mb-8">
+          <div className="rounded-xl border border-stone-200/70 dark:border-slate-800/70 p-6 mb-8">
             <h2 className="text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-400">
               Sources
             </h2>

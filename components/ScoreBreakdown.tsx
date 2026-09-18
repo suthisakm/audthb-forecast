@@ -74,7 +74,7 @@ function Factor({
 }) {
   return (
     <details
-      className="group border-b border-slate-200 dark:border-slate-800 last:border-b-0"
+      className="group border-b border-stone-200 dark:border-slate-800 last:border-b-0"
       open={defaultOpen}
     >
       <summary className="flex items-center justify-between gap-3 py-4 cursor-pointer list-none marker:content-none">
@@ -126,7 +126,7 @@ export default async function ScoreBreakdown({
   const tradeBalance = await getTradeBalanceData();
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Score Breakdown</h2>
@@ -145,7 +145,7 @@ export default async function ScoreBreakdown({
         </div>
       </div>
 
-      <div className="mt-4 pt-2 border-t border-slate-200 dark:border-slate-800">
+      <div className="mt-4 pt-2 border-t border-stone-200 dark:border-slate-800">
         {/* PRICE */}
         <Factor
           name="Price / Momentum"
@@ -187,7 +187,7 @@ export default async function ScoreBreakdown({
         >
           <p className="text-sm text-slate-500">Coverage: {data.relativeMarketCoverage.toFixed(1)}/100 (internal split: Yield 50% / CNH 35% / SGD 15%)</p>
 
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">AU-US 2Y Yield: <span className={`font-mono font-semibold ${scoreColor(data.yieldScore)}`}>{formatScore(data.yieldScore)}</span></p>
             {data.latestYieldSnapshot && (
               <p className="text-xs text-slate-500">
@@ -203,12 +203,12 @@ export default async function ScoreBreakdown({
             </p>
           </div>
 
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1">
             <p className="text-sm">USD/CNH: <span className={`font-mono font-semibold ${scoreColor(data.usdCnhScore)}`}>{formatScore(data.usdCnhScore)}</span></p>
             <p className="text-xs text-slate-500">1H: {formatChange(data.usdCnhChange1H)} | Relative Weight: 35%</p>
           </div>
 
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1">
             <p className="text-sm">USD/SGD: <span className={`font-mono font-semibold ${scoreColor(data.usdSgdScore)}`}>{formatScore(data.usdSgdScore)}</span></p>
             <p className="text-xs text-slate-500">1H: {formatChange(data.usdSgdChange1H)} | Relative Weight: 15%</p>
           </div>
@@ -221,11 +221,11 @@ export default async function ScoreBreakdown({
           name="Commodity"
           tooltip="Commodity prices (iron ore, oil) are a real-world economic factor that can move AUD/THB on their own, independent of anything happening in the currency markets themselves."
           score={data.commodityScore}
-          weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/10`}
+          weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/8`}
         >
           <p className="text-sm text-slate-500">Coverage: {data.commodityCoverage.toFixed(1)}/100 (internal split: Brent 55% / Iron Ore 45% -- Gold excluded, monitor only)</p>
 
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Iron Ore: <span className={`font-mono font-semibold ${scoreColor(data.ironOreScore)}`}>{formatScore(data.ironOreScore)}</span></p>
             <p className="text-xs text-slate-500">Price: {data.ironOrePrice !== null ? `$${data.ironOrePrice.toFixed(2)}` : "--"}</p>
             <p className="text-xs text-slate-500">24H Change: {formatChange(data.ironOreChange24H)} | Weight: {data.ironOreEffectiveWeight.toFixed(1)}/45</p>
@@ -233,14 +233,14 @@ export default async function ScoreBreakdown({
             <Note>Australia's largest export -- higher iron ore prices historically support AUD.</Note>
           </div>
 
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Brent Live: <span className={`font-mono font-semibold ${scoreColor(data.brentLiveScore)}`}>{formatScore(data.brentLiveScore)}</span></p>
             <p className="text-xs text-slate-500">Price: {data.brentLivePrice !== null ? `$${data.brentLivePrice.toFixed(2)}` : "--"}</p>
             <p className="text-xs text-slate-500">1H Change: {formatChange(data.brentLiveChange1H)} | Weight: 55/55</p>
             <StatusBadge label={data.brentLiveFreshness} tone={freshnessTone(data.brentLiveFreshness)} />
           </div>
 
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Gold</p>
             <p className="text-xs text-slate-500">Price: {data.goldPrice !== null ? `$${data.goldPrice.toFixed(2)}` : "--"}</p>
             <p className="text-xs text-slate-500">1H Change: {formatChange(data.goldChange1H)} | Weight: 0/20</p>
@@ -282,7 +282,7 @@ export default async function ScoreBreakdown({
           )}
 
           {/* POLICY */}
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Policy: <span className={`font-mono font-semibold ${scoreColor(macro.policy.score)}`}>{formatScore(macro.policy.score)}</span></p>
             <p className="text-xs text-slate-500">
               RBA {macro.policy.rates.rba !== null ? `${macro.policy.rates.rba.toFixed(2)}%` : "--"} | Fed {macro.policy.rates.fed !== null ? `${macro.policy.rates.fed.toFixed(2)}%` : "--"} | BOT {macro.policy.rates.bot !== null ? `${macro.policy.rates.bot.toFixed(2)}%` : "--"}
@@ -293,7 +293,7 @@ export default async function ScoreBreakdown({
           </div>
 
           {/* INFLATION */}
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Inflation: <span className={`font-mono font-semibold ${scoreColor(macro.inflation.score)}`}>{formatScore(macro.inflation.score)}</span></p>
             <p className="text-xs text-slate-500">Coverage: {macro.inflation.coverage.toFixed(1)}/100</p>
             {(["australia", "unitedStates", "thailand"] as const).map((key) => {
@@ -308,7 +308,7 @@ export default async function ScoreBreakdown({
           </div>
 
           {/* LABOUR */}
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Labour: <span className={`font-mono font-semibold ${scoreColor(macro.labour.score)}`}>{formatScore(macro.labour.score)}</span></p>
             <p className="text-xs text-slate-500">Coverage: {macro.labour.coverage.toFixed(1)}/100</p>
             <div className="flex flex-wrap gap-1.5">
@@ -319,7 +319,7 @@ export default async function ScoreBreakdown({
           </div>
 
           {/* GROWTH */}
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Growth (GDP): <span className={`font-mono font-semibold ${scoreColor(macro.growth.score)}`}>{formatScore(macro.growth.score)}</span></p>
             <p className="text-xs text-slate-500">Coverage: {macro.growth.coverage.toFixed(1)}/100</p>
             {(["australia", "unitedStates", "thailand"] as const).map((key) => {
@@ -334,7 +334,7 @@ export default async function ScoreBreakdown({
           </div>
 
           {/* TRADE BALANCE -- monitor only, not part of the score yet */}
-          <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
+          <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Trade Balance (Current Account)</p>
             {(["australia", "thailand"] as const).map((key) => {
               const country = tradeBalance.countries[key];
@@ -356,7 +356,7 @@ export default async function ScoreBreakdown({
           name="Risk / VIXY"
           tooltip="AUD is a 'risk' currency -- when market volatility spikes, investors often sell it for safety even though nothing has actually changed in Australia or Thailand."
           score={data.riskScore}
-          weightLabel={`Weight: ${data.riskEffectiveWeight.toFixed(1)}/5`}
+          weightLabel={`Weight: ${data.riskEffectiveWeight.toFixed(1)}/7`}
         >
           <p className="text-sm text-slate-500">Price: {data.riskPrice !== null ? `$${data.riskPrice.toFixed(2)}` : "--"}</p>
           <p className="text-sm text-slate-500">1H Change: {formatChange(data.riskChange1H)}</p>

@@ -3,7 +3,7 @@ import type { Alert } from "@/lib/alerts-data";
 export default function Alerts({ alerts }: { alerts: Alert[] }) {
   if (alerts.length === 0) {
     return (
-      <div className="mt-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+      <div className="mt-4 rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-4 shadow-sm">
         <p className="text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
           No active alerts
         </p>
@@ -18,7 +18,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
   const warningCount = alerts.filter((a) => a.severity === "warning").length;
 
   return (
-    <div className="mt-4 rounded-xl border border-red-300 dark:border-red-900/50 bg-white dark:bg-slate-900 p-4 shadow-sm">
+    <div className="mt-4 rounded-xl border border-red-300 dark:border-red-900/50 bg-stone-50 dark:bg-slate-900 p-4 shadow-sm">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="font-semibold">Alerts</p>
 
@@ -36,7 +36,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
         {alerts.map((alert) => (
           <div
             key={alert.label}
-            className={`rounded-lg bg-slate-50 dark:bg-slate-950 p-3 border-l-4 ${
+            className={`rounded-lg bg-stone-100 dark:bg-slate-950 p-3 border-l-4 ${
               alert.severity === "critical" ? "border-red-500" : "border-amber-500"
             }`}
           >

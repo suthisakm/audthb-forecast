@@ -58,7 +58,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
 
   if (recap.sampleSize === 0) {
     return (
-      <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+      <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
         <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
         <p className="text-sm text-slate-500 mt-2">
           No price snapshots yet today -- check back after the score-snapshot cron has run.
@@ -81,7 +81,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       : null;
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
@@ -105,28 +105,28 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-        <div className="rounded-lg bg-slate-50 dark:bg-slate-950 p-3">
+        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3">
           <p className="text-xs text-slate-500">Open</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums">
             {recap.openRate !== null ? recap.openRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className="rounded-lg bg-slate-50 dark:bg-slate-950 p-3">
+        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3">
           <p className="text-xs text-slate-500">High</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-emerald-700 dark:text-emerald-400">
             {maxRate !== null ? maxRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className="rounded-lg bg-slate-50 dark:bg-slate-950 p-3">
+        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3">
           <p className="text-xs text-slate-500">Low</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-red-700 dark:text-red-400">
             {minRate !== null ? minRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className="rounded-lg bg-slate-50 dark:bg-slate-950 p-3">
+        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3">
           <p className="text-xs text-slate-500">Core FX Score</p>
           <p className={`text-sm font-semibold font-mono mt-0.5 tabular-nums ${scoreColor(latestScore)}`}>
             {formatScore(latestScore)}

@@ -24,7 +24,7 @@ export default function InfoTip({ text }: { text: string }) {
       </button>
 
       <span
-        className={`pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-xs font-normal normal-case tracking-normal leading-relaxed text-slate-700 dark:text-slate-300 shadow-xl transition-opacity ${
+        className={`pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-lg border border-stone-200 dark:border-slate-700 bg-stone-50 dark:bg-slate-800 p-2.5 text-xs font-normal normal-case tracking-normal leading-relaxed text-slate-700 dark:text-slate-300 shadow-xl transition-opacity ${
           open ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         }`}
       >

@@ -26,7 +26,7 @@ function formatEventTime(eventTime: string) {
 
 function EventRow({ event }: { event: CalendarEvent }) {
   return (
-    <div className="flex items-start justify-between gap-3 py-2 border-b border-slate-200 dark:border-slate-800 last:border-b-0">
+    <div className="flex items-start justify-between gap-3 py-2 border-b border-stone-200 dark:border-slate-800 last:border-b-0">
       <div>
         <p className="text-sm">
           <span className={`font-semibold ${importanceColor(event.importance)}`}>
@@ -58,7 +58,7 @@ export default function EventCalendar({
   coverageNote: string;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">Event Calendar</h2>
 
       <p className="text-xs text-slate-500 mt-1">{coverageNote}</p>
@@ -77,7 +77,7 @@ export default function EventCalendar({
         )}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
+      <div className="mt-4 pt-4 border-t border-stone-200 dark:border-slate-800">
         <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">This Week</p>
 
         {thisWeek.length === 0 ? (

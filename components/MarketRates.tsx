@@ -60,7 +60,7 @@ export default function MarketRates({
   data: DashboardData;
 }) {
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">
         Market Rates
       </h2>
@@ -188,7 +188,7 @@ export default function MarketRates({
       </div>
 
       {/* MATCHED-TIME CROSS GAP */}
-      <div className="border-t border-slate-200 dark:border-slate-800 mt-5 pt-4">
+      <div className="border-t border-stone-200 dark:border-slate-800 mt-5 pt-4">
         <p className="text-sm text-slate-500 dark:text-slate-400">
           Matched-Time Cross Gap
         </p>
