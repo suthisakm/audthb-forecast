@@ -73,7 +73,7 @@ function Sparkline({
           y2={zeroY}
           strokeWidth={1}
           strokeDasharray="4 3"
-          className="stroke-stone-300 dark:stroke-slate-700"
+          className="stroke-slate-300 dark:stroke-slate-700"
         />
       )}
 
@@ -106,7 +106,7 @@ export default async function TrendChart() {
   );
 
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-indigo-500 dark:border-t-indigo-400 bg-stone-50 dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-sky-500 dark:border-t-sky-400 bg-slate-50 dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight">7-Day Trend</h2>
         {scored.length >= 2 && (
@@ -132,7 +132,7 @@ export default async function TrendChart() {
             </div>
             <Sparkline
               values={scored.map((p) => p.coreFxScore)}
-              colorClassName="text-indigo-600 dark:text-indigo-400"
+              colorClassName="text-sky-600 dark:text-sky-400"
               zeroLine
               ariaLabel={
                 scored.length >= 2
@@ -151,7 +151,7 @@ export default async function TrendChart() {
             </div>
             <Sparkline
               values={rated.map((p) => p.rate)}
-              colorClassName="text-sky-600 dark:text-sky-400"
+              colorClassName="text-slate-500 dark:text-slate-400"
               ariaLabel={
                 rated.length >= 2
                   ? `AUD/THB Rate trend over the last 7 days, from ${rated[0].rate.toFixed(4)} to ${rated.at(-1)!.rate.toFixed(4)}`

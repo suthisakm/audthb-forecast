@@ -57,10 +57,10 @@ export default async function Hero({ data }: { data: DashboardData }) {
   const confidence = await getConfidence(data);
 
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-indigo-600 dark:border-t-indigo-400 bg-stone-50 dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-sky-600 dark:border-t-sky-400 bg-slate-50 dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="grid md:grid-cols-2 gap-8">
         {/* RATE */}
-        <div className="md:border-r border-stone-200 dark:border-slate-800 md:pr-8">
+        <div className="md:border-r border-slate-200 dark:border-slate-800 md:pr-8">
           <div className="flex items-center justify-between">
             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
               AUD/THB Spot
@@ -119,7 +119,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
             {feedHealthCount(data)}/3 core feeds fresh
           </p>
 
-          <div className="mt-5 pt-4 border-t border-stone-200 dark:border-slate-800">
+          <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
               Daily Forecast
             </p>
@@ -167,7 +167,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
             </div>
           )}
 
-          <div className="mt-5 pt-4 border-t border-stone-200 dark:border-slate-800">
+          <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-600 dark:text-slate-400 inline-flex items-center">
                 Model Coverage

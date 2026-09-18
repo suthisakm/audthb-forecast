@@ -33,7 +33,7 @@ export default function MarketClock({
     return () => clearInterval(timer);
   }, []);
 
-  const base = variant === "inverted" ? "text-indigo-100" : "text-slate-600 dark:text-slate-400";
+  const base = variant === "inverted" ? "text-slate-300" : "text-slate-600 dark:text-slate-400";
   const label = variant === "inverted" ? "text-white" : "text-slate-600 dark:text-slate-300";
   const divider = variant === "inverted" ? "text-white/30" : "text-slate-300 dark:text-slate-700";
 

@@ -19,7 +19,7 @@ export default async function Evaluation() {
   const summary = await getEvaluationSummary();
 
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-emerald-500 dark:border-t-emerald-400 bg-stone-50 dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-emerald-500 dark:border-t-emerald-400 bg-slate-50 dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
         Track Record
         <InfoTip text="Checks the forecast against what actually happened, and against a plain 'no change' guess. Needs 20+ resolved forecasts before showing real numbers." />
@@ -34,7 +34,7 @@ export default async function Evaluation() {
       ) : (
         <div className="mt-4 space-y-4">
           {summary.groups.map((g) => (
-            <div key={`${g.horizon}-${g.forecastVersion}`} className="rounded-lg bg-stone-100 dark:bg-slate-950 p-4">
+            <div key={`${g.horizon}-${g.forecastVersion}`} className="rounded-lg bg-slate-100 dark:bg-slate-950 p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">
                   {g.horizon}{" "}

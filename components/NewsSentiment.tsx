@@ -27,13 +27,13 @@ function formatPublished(publishedAt: string) {
 
 function SignalRow({ signal }: { signal: NewsSentimentSignal }) {
   return (
-    <div className="py-3 border-b border-stone-200 dark:border-slate-800 last:border-b-0">
+    <div className="py-3 border-b border-slate-200 dark:border-slate-800 last:border-b-0">
       <div className="flex items-start justify-between gap-3">
         <a
           href={signal.articleUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-indigo-700 dark:text-indigo-400 hover:underline underline-offset-2"
+          className="text-sm font-medium text-sky-700 dark:text-sky-400 hover:underline underline-offset-2"
         >
           {signal.title}
         </a>
@@ -68,7 +68,7 @@ export default async function NewsSentiment({
   const apiUsage = await getApiUsageToday("alpha_vantage");
 
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-amber-500 dark:border-t-amber-400 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-amber-500 dark:border-t-amber-400 bg-slate-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight flex items-center">
           News Signals
@@ -93,7 +93,7 @@ export default async function NewsSentiment({
       </div>
 
       {apiUsage.limit > 0 && (
-        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-3 pt-3 border-t border-stone-200 dark:border-slate-800">
+        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-3 pt-3 border-t border-slate-200 dark:border-slate-800">
           Alpha Vantage: {apiUsage.used}/{apiUsage.limit} requests used today -- if this hits the limit, News Signals
           skips updates until it resets.
         </p>

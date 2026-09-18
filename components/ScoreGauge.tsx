@@ -22,7 +22,7 @@ export default function ScoreGauge({ score }: { score: number | null }) {
 
         {score !== null && (
           <div
-            className={`absolute -top-1 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-stone-50 dark:border-slate-900 shadow-sm ${markerColor}`}
+            className={`absolute -top-1 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-slate-50 dark:border-slate-900 shadow-sm ${markerColor}`}
             style={{ left: `${pct}%` }}
           />
         )}

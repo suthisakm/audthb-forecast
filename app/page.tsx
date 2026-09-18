@@ -47,11 +47,10 @@ export const revalidate =
 // section gets its own accent color and icon, echoed in the top border
 // of the cards inside it, so the color itself groups related cards
 // instead of every card looking identical regardless of topic.
-type SectionColor = "indigo" | "violet" | "amber" | "emerald" | "slate";
+type SectionColor = "sky" | "amber" | "emerald" | "slate";
 
 const SECTION_COLOR_CLASSES: Record<SectionColor, string> = {
-  indigo: "text-indigo-600 dark:text-indigo-400",
-  violet: "text-violet-600 dark:text-violet-400",
+  sky: "text-sky-700 dark:text-sky-400",
   amber: "text-amber-600 dark:text-amber-400",
   emerald: "text-emerald-600 dark:text-emerald-400",
   slate: "text-slate-500 dark:text-slate-500",
@@ -135,7 +134,7 @@ export default async function Home() {
     await getRecentNewsSignals();
 
   return (
-    <main className="min-h-screen bg-stone-100 dark:bg-slate-950 text-stone-900 dark:text-white">
+    <main className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white">
       <RefreshControls />
 
       <StickyBar
@@ -145,20 +144,20 @@ export default async function Home() {
         freshnessStatus={data.latestPriceFreshness.status}
       />
 
-      {/* HEADER -- a full-width colored band, not another card on the
-      same stone/slate background as everything below it, so the page
-      reads as "app with a header" rather than "stack of identical cards". */}
+      {/* HEADER -- a fixed dark masthead, independent of the light/dark
+      page theme (like a bank or exchange's app bar), rather than a
+      decorative gradient that just flips color with the toggle. Formal
+      register: solid navy, no gradient, single hairline rule under it. */}
 
-      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-950 dark:via-slate-950 dark:to-slate-950 dark:border-b dark:border-slate-800">
+      <div className="bg-slate-900 border-b border-sky-900/40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75 animate-ping" />
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-300" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-400" />
               </span>
 
-              <span className="text-xs font-medium uppercase tracking-widest text-emerald-100 dark:text-emerald-400">
+              <span className="text-xs font-medium uppercase tracking-widest text-emerald-400">
                 Live
               </span>
             </div>
@@ -167,7 +166,7 @@ export default async function Home() {
               AUD/THB Forecast Dashboard
             </h1>
 
-            <p className="text-indigo-100 dark:text-slate-400 mt-1 text-sm sm:text-base">
+            <p className="text-slate-400 mt-1 text-sm sm:text-base">
               Market monitoring and FX signal model
             </p>
           </div>
@@ -187,7 +186,7 @@ export default async function Home() {
         {/* MARKET: RATE, CORE FX SCORE, RECAP, LIVE RATES */}
 
         <div className="mt-10">
-          <SectionLabel color="indigo" icon={<TrendIcon />}>Market</SectionLabel>
+          <SectionLabel color="sky" icon={<TrendIcon />}>Market</SectionLabel>
           <Hero data={data} />
           <ActionSummary data={data} />
 
@@ -204,7 +203,7 @@ export default async function Home() {
         {/* SIGNAL MODEL */}
 
         <div className="mt-10">
-          <SectionLabel color="violet" icon={<PulseIcon />}>Signal Model</SectionLabel>
+          <SectionLabel color="sky" icon={<PulseIcon />}>Signal Model</SectionLabel>
           <ScoreBreakdown data={data} />
         </div>
 
@@ -237,7 +236,7 @@ export default async function Home() {
         <div className="mt-10">
           <SectionLabel color="slate" icon={<BookIcon />}>Reference</SectionLabel>
 
-          <div className="rounded-xl border border-stone-200/70 dark:border-slate-800/70 p-6 mb-8">
+          <div className="rounded-lg border border-slate-200/70 dark:border-slate-800/70 p-6 mb-8">
             <h2 className="text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-400">
               Sources
             </h2>
