@@ -1,5 +1,6 @@
 import type { DailyRecap } from "@/lib/daily-recap-data";
 import type { DashboardData } from "@/lib/dashboard-data";
+import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 
 function formatScore(score: number | null) {
   if (score === null) return "--";
@@ -11,6 +12,19 @@ function scoreColor(score: number | null) {
   if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
   if (score <= -15) return "text-red-700 dark:text-red-400";
   return "text-amber-700 dark:text-amber-400";
+}
+
+function scoreBorder(score: number | null) {
+  if (score === null) return "border-l-stone-300 dark:border-l-slate-700";
+  if (score >= 15) return "border-l-emerald-500";
+  if (score <= -15) return "border-l-red-500";
+  return "border-l-amber-500";
+}
+
+function biasTone(bias: string): BadgeTone {
+  if (bias.includes("Bullish")) return "emerald";
+  if (bias.includes("Bearish")) return "red";
+  return "slate";
 }
 
 function changeColor(value: number | null) {
@@ -105,28 +119,28 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3">
+        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3 border-l-2 border-l-stone-300 dark:border-l-slate-700">
           <p className="text-xs text-slate-600 dark:text-slate-400">Open</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums">
             {recap.openRate !== null ? recap.openRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3">
+        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3 border-l-2 border-l-emerald-500">
           <p className="text-xs text-slate-600 dark:text-slate-400">High</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-emerald-700 dark:text-emerald-400">
             {maxRate !== null ? maxRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3">
+        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3 border-l-2 border-l-red-500">
           <p className="text-xs text-slate-600 dark:text-slate-400">Low</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-red-700 dark:text-red-400">
             {minRate !== null ? minRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className="rounded-lg bg-stone-100 dark:bg-slate-950 p-3">
+        <div className={`rounded-lg bg-stone-100 dark:bg-slate-950 p-3 border-l-2 ${scoreBorder(latestScore)}`}>
           <p className="text-xs text-slate-600 dark:text-slate-400">Core FX Score</p>
           <p className={`text-sm font-semibold font-mono mt-0.5 tabular-nums ${scoreColor(latestScore)}`}>
             {formatScore(latestScore)}
@@ -134,9 +148,10 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
         </div>
       </div>
 
-      <p className="text-xs text-slate-600 dark:text-slate-400 mt-3">
-        Dominant bias today: {dominantBias}
-      </p>
+      <div className="mt-3 pt-3 border-t border-stone-200 dark:border-slate-800 flex items-center justify-between gap-3">
+        <p className="text-xs text-slate-600 dark:text-slate-400">Dominant bias today</p>
+        <StatusBadge label={dominantBias} tone={biasTone(dominantBias)} />
+      </div>
     </div>
   );
 }
