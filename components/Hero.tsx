@@ -121,11 +121,11 @@ export default async function Hero({ data }: { data: DashboardData }) {
 
           <div className="mt-5 pt-4 border-t border-stone-200 dark:border-slate-800">
             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
-              Forecast 1H / 4H
+              Daily Forecast
             </p>
             <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
-              ยังไม่เปิดใช้ -- จะเปิดหลังพัฒนาและทดสอบโมเดลเทียบกับราคาจริง
-              พร้อมปรับเกณฑ์และประเมินความแม่นยำ
+              โมเดลคำนวณคาดการณ์ล่วงหน้า 24 ชม. อยู่เบื้องหลังทุกชั่วโมงอยู่แล้ว
+              แต่ยังไม่โชว์ตัวเลขจนกว่า Track Record ด้านล่างจะมีข้อมูลพอยืนยันว่าแม่นกว่าเดา
             </p>
           </div>
         </div>
