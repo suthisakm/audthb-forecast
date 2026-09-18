@@ -106,7 +106,7 @@ export default async function TrendChart() {
   );
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-sky-500 dark:border-t-sky-400 bg-slate-50 dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight">7-Day Trend</h2>
         {scored.length >= 2 && (
@@ -132,7 +132,7 @@ export default async function TrendChart() {
             </div>
             <Sparkline
               values={scored.map((p) => p.coreFxScore)}
-              colorClassName="text-sky-600 dark:text-sky-400"
+              colorClassName="text-teal-600 dark:text-teal-400"
               zeroLine
               ariaLabel={
                 scored.length >= 2

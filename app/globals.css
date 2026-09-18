@@ -2,6 +2,42 @@
 
 @custom-variant dark (&:where(.dark, .dark *));
 
+/*
+ * Design tokens -- "financial data terminal" register (institutional
+ * research desk, not a generic SaaS dashboard). Built from scratch this
+ * pass using the design-system + ui-ux-pro-max skills' real palette/type
+ * data (Personal Finance Tracker dark palette, Banking/Traditional
+ * Finance light palette, Financial Dashboard status colors, Financial
+ * Trust + Terminal Mono typography), not by tweaking the prior version.
+ *
+ * Primitive -> semantic role (applied consistently via Tailwind's own
+ * scale, since every component already speaks in Tailwind classes):
+ *   slate-50/900     app background
+ *   slate-100/950    inset/nested surface (recap tiles, stat boxes)
+ *   white/slate-900  card surface
+ *   slate-200/800    hairline border
+ *   slate-900/50     primary text
+ *   slate-600/400    secondary / muted text
+ *   teal-600/400     brand accent -- the ONE signature hue: links,
+ *                    section labels, active state, top-border highlight.
+ *                    Deliberately not blue/indigo/sky (too close to the
+ *                    generic AI-Tailwind default) and not gold/amber
+ *                    (reserved below for warning, would collide).
+ *   emerald          positive / bullish / healthy / fresh
+ *   red              negative / bearish / stale / error
+ *   amber            warning / attention / experimental / monitor-only
+ *   slate (mid)      neutral / inactive
+ *
+ * Typography: IBM Plex Sans for headings and UI copy (reads as
+ * trustworthy/institutional per the design-system's typography data).
+ * JetBrains Mono for every numeric value -- rate, score, percentages,
+ * clock -- so figures read like a trading terminal's tape, not prose.
+ *
+ * Radius skews sharp, not bubbly: rounded-md (6px) for panels, rounded
+ * (4px) for controls, rounded-sm (2px) for status tags. Cards carry no
+ * drop shadow -- depth comes from a 1px border and surface-color steps,
+ * the way a report or ledger sits flush rather than floating on a card.
+ */
 :root {
   --background: #f8fafc;
   --foreground: #0f172a;

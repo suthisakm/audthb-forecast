@@ -57,7 +57,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
   const confidence = await getConfidence(data);
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-sky-600 dark:border-t-sky-400 bg-slate-50 dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-600 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 sm:p-8 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="grid md:grid-cols-2 gap-8">
         {/* RATE */}
         <div className="md:border-r border-slate-200 dark:border-slate-800 md:pr-8">
@@ -156,7 +156,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
 
           {eventRisk.level !== "NONE" && eventRisk.event && eventRisk.hoursUntil !== null && (
             <div
-              className={`mt-4 rounded-lg px-3 py-2 text-xs leading-relaxed ${
+              className={`mt-4 rounded-md px-3 py-2 text-xs leading-relaxed ${
                 eventRisk.level === "HIGH"
                   ? "bg-red-500/10 text-red-700 dark:text-red-400"
                   : "bg-amber-500/10 text-amber-700 dark:text-amber-400"

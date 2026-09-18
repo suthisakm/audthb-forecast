@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, IBM_Plex_Mono } from "next/font/google";
+import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 
-// IBM Plex: formal/institutional register (financial, banking, enterprise)
-// -- deliberately not the generic Inter/system-sans look that reads as a
-// default AI-scaffolded Tailwind site.
+// IBM Plex Sans: formal/institutional register for headings and UI copy
+// (financial, banking, enterprise) -- deliberately not the generic
+// Inter/system-sans look that reads as a default AI-scaffolded Tailwind
+// site. JetBrains Mono is reserved for every NUMBER on the page (rate,
+// score, percentages, the clock) -- a real terminal/monospace-data font
+// rather than a mono variant of the UI font, so figures read like a
+// trading tape, not prose that happens to be monospaced.
 const plexSans = IBM_Plex_Sans({
   variable: "--font-geist-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
-const plexMono = IBM_Plex_Mono({
+const jetbrainsMono = JetBrains_Mono({
   variable: "--font-geist-mono",
   subsets: ["latin"],
   weight: ["400", "500", "600"],
@@ -40,7 +44,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${plexSans.variable} ${plexMono.variable} h-full antialiased`}
+      className={`${plexSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

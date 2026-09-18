@@ -60,7 +60,7 @@ export default function MarketRates({
   data: DashboardData;
 }) {
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-sky-500 dark:border-t-sky-400 bg-slate-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">
         Market Rates
       </h2>
@@ -220,7 +220,7 @@ export default function MarketRates({
         data.usdThbFreshness.status !== "FRESH") &&
         data.audUsdFreshness.status !==
           "MARKET_CLOSED" && (
-          <div className="mt-4 rounded-lg bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-3">
+          <div className="mt-4 rounded-md bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-3">
             <p className="text-sm text-amber-700 dark:text-amber-400">
               ⚠ Cross Currency Score only uses
               matched-time data when source data

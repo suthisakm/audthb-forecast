@@ -44,9 +44,9 @@ function RangeBar({ min, max, current }: { min: number; max: number; current: nu
   return (
     <div className="mt-4">
       <div className="relative h-1.5 rounded-full bg-slate-200 dark:bg-slate-800">
-        <div className="absolute inset-y-0 left-0 rounded-full bg-sky-600/40 dark:bg-sky-400/40" style={{ width: `${pct}%` }} />
+        <div className="absolute inset-y-0 left-0 rounded-full bg-teal-600/40 dark:bg-teal-400/40" style={{ width: `${pct}%` }} />
         <div
-          className="absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-slate-50 dark:border-slate-900 bg-sky-600 dark:bg-sky-400"
+          className="absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-slate-50 dark:border-slate-900 bg-teal-600 dark:bg-teal-400"
           style={{ left: `${pct}%` }}
         />
       </div>
@@ -72,7 +72,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
 
   if (recap.sampleSize === 0) {
     return (
-      <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-sky-500 dark:border-t-sky-400 bg-slate-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+      <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
         <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
           No price snapshots yet today -- check back after the score-snapshot cron has run.
@@ -95,7 +95,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       : null;
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-sky-500 dark:border-t-sky-400 bg-slate-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
@@ -119,28 +119,28 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       )}
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
-        <div className="rounded-lg bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-slate-300 dark:border-l-slate-700">
+        <div className="rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-slate-300 dark:border-l-slate-700">
           <p className="text-xs text-slate-600 dark:text-slate-400">Open</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums">
             {recap.openRate !== null ? recap.openRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className="rounded-lg bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-emerald-500">
+        <div className="rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-emerald-500">
           <p className="text-xs text-slate-600 dark:text-slate-400">High</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-emerald-700 dark:text-emerald-400">
             {maxRate !== null ? maxRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className="rounded-lg bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-red-500">
+        <div className="rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-red-500">
           <p className="text-xs text-slate-600 dark:text-slate-400">Low</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-red-700 dark:text-red-400">
             {minRate !== null ? minRate.toFixed(4) : "--"}
           </p>
         </div>
 
-        <div className={`rounded-lg bg-slate-100 dark:bg-slate-950 p-3 border-l-2 ${scoreBorder(latestScore)}`}>
+        <div className={`rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 ${scoreBorder(latestScore)}`}>
           <p className="text-xs text-slate-600 dark:text-slate-400">Core FX Score</p>
           <p className={`text-sm font-semibold font-mono mt-0.5 tabular-nums ${scoreColor(latestScore)}`}>
             {formatScore(latestScore)}

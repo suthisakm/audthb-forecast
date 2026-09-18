@@ -33,7 +33,7 @@ function SignalRow({ signal }: { signal: NewsSentimentSignal }) {
           href={signal.articleUrl}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-sm font-medium text-sky-700 dark:text-sky-400 hover:underline underline-offset-2"
+          className="text-sm font-medium text-teal-700 dark:text-teal-400 hover:underline underline-offset-2"
         >
           {signal.title}
         </a>
@@ -68,7 +68,7 @@ export default async function NewsSentiment({
   const apiUsage = await getApiUsageToday("alpha_vantage");
 
   return (
-    <div className="rounded-lg border border-slate-200 dark:border-slate-800 border-t-4 border-t-amber-500 dark:border-t-amber-400 bg-slate-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-amber-500 dark:border-t-amber-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight flex items-center">
           News Signals

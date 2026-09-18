@@ -47,10 +47,10 @@ export const revalidate =
 // section gets its own accent color and icon, echoed in the top border
 // of the cards inside it, so the color itself groups related cards
 // instead of every card looking identical regardless of topic.
-type SectionColor = "sky" | "amber" | "emerald" | "slate";
+type SectionColor = "teal" | "amber" | "emerald" | "slate";
 
 const SECTION_COLOR_CLASSES: Record<SectionColor, string> = {
-  sky: "text-sky-700 dark:text-sky-400",
+  teal: "text-teal-700 dark:text-teal-400",
   amber: "text-amber-600 dark:text-amber-400",
   emerald: "text-emerald-600 dark:text-emerald-400",
   slate: "text-slate-500 dark:text-slate-500",
@@ -149,7 +149,7 @@ export default async function Home() {
       decorative gradient that just flips color with the toggle. Formal
       register: solid navy, no gradient, single hairline rule under it. */}
 
-      <div className="bg-slate-900 border-b border-sky-900/40">
+      <div className="bg-slate-900 border-b border-teal-900/40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
@@ -186,7 +186,7 @@ export default async function Home() {
         {/* MARKET: RATE, CORE FX SCORE, RECAP, LIVE RATES */}
 
         <div className="mt-10">
-          <SectionLabel color="sky" icon={<TrendIcon />}>Market</SectionLabel>
+          <SectionLabel color="teal" icon={<TrendIcon />}>Market</SectionLabel>
           <Hero data={data} />
           <ActionSummary data={data} />
 
@@ -203,7 +203,7 @@ export default async function Home() {
         {/* SIGNAL MODEL */}
 
         <div className="mt-10">
-          <SectionLabel color="sky" icon={<PulseIcon />}>Signal Model</SectionLabel>
+          <SectionLabel color="teal" icon={<PulseIcon />}>Signal Model</SectionLabel>
           <ScoreBreakdown data={data} />
         </div>
 
@@ -236,7 +236,7 @@ export default async function Home() {
         <div className="mt-10">
           <SectionLabel color="slate" icon={<BookIcon />}>Reference</SectionLabel>
 
-          <div className="rounded-lg border border-slate-200/70 dark:border-slate-800/70 p-6 mb-8">
+          <div className="rounded-md border border-slate-200/70 dark:border-slate-800/70 p-6 mb-8">
             <h2 className="text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-400">
               Sources
             </h2>

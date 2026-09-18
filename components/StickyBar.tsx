@@ -49,7 +49,7 @@ export default function StickyBar({
       }`}
     >
       <div className="border-b border-slate-200 dark:border-slate-800 bg-slate-50/90 dark:bg-slate-950/90 backdrop-blur">
-        <div className="h-0.5 bg-sky-700 dark:bg-sky-400" />
+        <div className="h-0.5 bg-teal-700 dark:bg-teal-400" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 min-w-0">
             <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide hidden sm:inline">

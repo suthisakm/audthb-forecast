@@ -1,10 +1,14 @@
 export type BadgeTone = "emerald" | "amber" | "red" | "slate";
 
+// Flat outlined tag, not a soft-filled glassy pill -- reads as a data
+// classification label (like a ledger's status column) rather than a
+// marketing/SaaS chip. No background fill, no inset ring: just a hairline
+// border in the tone's color and matching text.
 const TONE_CLASSES: Record<BadgeTone, string> = {
-  emerald: "bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 ring-emerald-600/30 dark:ring-emerald-500/30",
-  amber: "bg-amber-500/10 text-amber-700 dark:text-amber-400 ring-amber-600/30 dark:ring-amber-500/30",
-  red: "bg-red-500/10 text-red-700 dark:text-red-400 ring-red-600/30 dark:ring-red-500/30",
-  slate: "bg-slate-500/10 text-slate-600 dark:text-slate-400 ring-slate-500/30",
+  emerald: "border-emerald-600/50 text-emerald-700 dark:border-emerald-500/50 dark:text-emerald-400",
+  amber: "border-amber-600/50 text-amber-700 dark:border-amber-500/50 dark:text-amber-400",
+  red: "border-red-600/50 text-red-700 dark:border-red-500/50 dark:text-red-400",
+  slate: "border-slate-400/60 text-slate-600 dark:border-slate-600/60 dark:text-slate-400",
 };
 
 export default function StatusBadge({
@@ -16,7 +20,7 @@ export default function StatusBadge({
 }) {
   return (
     <span
-      className={`inline-flex items-center rounded px-2 py-0.5 text-[11px] font-semibold uppercase tracking-wide ring-1 ring-inset ${TONE_CLASSES[tone]}`}
+      className={`inline-flex items-center rounded-sm border px-1.5 py-0.5 text-[11px] font-semibold uppercase tracking-wide ${TONE_CLASSES[tone]}`}
     >
       {label}
     </span>

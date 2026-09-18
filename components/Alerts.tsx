@@ -69,7 +69,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
   return (
     <div className="fixed inset-x-4 top-4 z-40 sm:left-1/2 sm:inset-x-auto sm:w-full sm:max-w-2xl sm:-translate-x-1/2">
       <div
-        className={`relative rounded-lg border border-red-300 dark:border-red-900/50 bg-red-50/95 dark:bg-slate-900/95 backdrop-blur p-4 shadow-xl transition-all duration-200 ${
+        className={`relative rounded-md border border-red-300 dark:border-red-900/50 bg-red-50/95 dark:bg-slate-900/95 backdrop-blur p-4 shadow-xl transition-all duration-200 ${
           entered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
         }`}
       >
@@ -77,7 +77,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss alerts"
-          className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-400"
+          className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
         >
           <CloseIcon />
         </button>
@@ -99,7 +99,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
           {alerts.map((alert) => (
             <div
               key={alert.label}
-              className={`rounded-lg bg-white/70 dark:bg-slate-950/60 p-3 border-l-4 ${
+              className={`rounded-md bg-white/70 dark:bg-slate-950/60 p-3 border-l-4 ${
                 alert.severity === "critical" ? "border-red-500" : "border-amber-500"
               }`}
             >
