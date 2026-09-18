@@ -21,7 +21,11 @@ function MoonIcon() {
 
 // Reads the class the layout's no-flash script already set, so this
 // never has to guess at first render -- it just reflects and toggles it.
-export default function ThemeToggle() {
+export default function ThemeToggle({
+  variant = "default",
+}: {
+  variant?: "default" | "inverted";
+}) {
   const [isDark, setIsDark] = useState<boolean | null>(null);
 
   useEffect(() => {
@@ -37,12 +41,17 @@ export default function ThemeToggle() {
     setIsDark(next);
   };
 
+  const style =
+    variant === "inverted"
+      ? "border-white/30 text-white hover:border-white hover:text-white focus-visible:ring-offset-indigo-600"
+      : "border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-400 focus-visible:ring-offset-stone-100 dark:focus-visible:ring-offset-slate-950";
+
   return (
     <button
       type="button"
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-stone-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-indigo-400 dark:hover:border-indigo-500 hover:text-indigo-700 dark:hover:text-indigo-400 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-500 focus-visible:ring-offset-1 focus-visible:ring-offset-stone-100 dark:focus-visible:ring-offset-slate-950 transition-colors"
+      className={`inline-flex h-8 w-8 items-center justify-center rounded-lg border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400 focus-visible:ring-offset-1 transition-colors ${style}`}
     >
       {isDark === null ? null : isDark ? <SunIcon /> : <MoonIcon />}
     </button>

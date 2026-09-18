@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import RefreshControls from "@/components/RefreshControls";
 import StickyBar from "@/components/StickyBar";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -39,11 +40,65 @@ export const revalidate =
 // Groups the page's growing card list under a quiet label instead of
 // adding real navigation (a sidebar/tabs structure was tried and
 // explicitly rejected earlier) -- just enough hierarchy that 9 stacked
-// cards reads as three topics, not one undifferentiated scroll.
-function SectionLabel({ children }: { children: string }) {
+// cards reads as three topics, not one undifferentiated scroll. Each
+// section gets its own accent color and icon, echoed in the top border
+// of the cards inside it, so the color itself groups related cards
+// instead of every card looking identical regardless of topic.
+type SectionColor = "indigo" | "violet" | "amber" | "slate";
+
+const SECTION_COLOR_CLASSES: Record<SectionColor, string> = {
+  indigo: "text-indigo-600 dark:text-indigo-400",
+  violet: "text-violet-600 dark:text-violet-400",
+  amber: "text-amber-600 dark:text-amber-400",
+  slate: "text-slate-500 dark:text-slate-500",
+};
+
+function TrendIcon() {
   return (
-    <p className="flex items-center gap-2 text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-3">
-      <span className="h-1.5 w-1.5 rounded-full bg-indigo-600 dark:bg-indigo-400" />
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+      <path d="M3 17l6-6 4 4 8-8M15 7h6v6" />
+    </svg>
+  );
+}
+
+function PulseIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+      <path d="M3 12h4l3 8 4-16 3 8h4" />
+    </svg>
+  );
+}
+
+function CalendarIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+      <rect x="3" y="5" width="18" height="16" rx="2" />
+      <path d="M16 3v4M8 3v4M3 10h18" />
+    </svg>
+  );
+}
+
+function BookIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13Z" />
+      <path d="M4 19.5V6.5" />
+    </svg>
+  );
+}
+
+function SectionLabel({
+  children,
+  color,
+  icon,
+}: {
+  children: string;
+  color: SectionColor;
+  icon: ReactNode;
+}) {
+  return (
+    <p className="flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-3">
+      <span className={SECTION_COLOR_CLASSES[color]}>{icon}</span>
       {children}
     </p>
   );
@@ -76,36 +131,41 @@ export default async function Home() {
         freshnessStatus={data.latestPriceFreshness.status}
       />
 
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
-        {/* HEADER */}
+      {/* HEADER -- a full-width colored band, not another card on the
+      same stone/slate background as everything below it, so the page
+      reads as "app with a header" rather than "stack of identical cards". */}
 
-        <div className="mb-6 pb-6 border-b border-stone-200 dark:border-slate-800 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
+      <div className="bg-gradient-to-r from-indigo-600 to-violet-600 dark:from-indigo-950 dark:via-slate-950 dark:to-slate-950 dark:border-b dark:border-slate-800">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">
               <span className="relative flex h-2 w-2">
-                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
+                <span className="absolute inline-flex h-full w-full rounded-full bg-emerald-300 opacity-75 animate-ping" />
+                <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-300" />
               </span>
 
-              <span className="text-xs font-medium uppercase tracking-widest text-emerald-700 dark:text-emerald-400">
+              <span className="text-xs font-medium uppercase tracking-widest text-emerald-100 dark:text-emerald-400">
                 Live
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-2">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight mt-2 text-white">
               AUD/THB Forecast Dashboard
             </h1>
 
-            <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm sm:text-base">
+            <p className="text-indigo-100 dark:text-slate-400 mt-1 text-sm sm:text-base">
               Market monitoring and FX signal model
             </p>
           </div>
 
           <div className="flex items-center gap-4">
-            <MarketClock />
-            <ThemeToggle />
+            <MarketClock variant="inverted" />
+            <ThemeToggle variant="inverted" />
           </div>
         </div>
+      </div>
 
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8">
         {/* ALERTS */}
 
         <Alerts alerts={alerts} />
@@ -113,7 +173,7 @@ export default async function Home() {
         {/* MARKET: RATE, CORE FX SCORE, RECAP, LIVE RATES */}
 
         <div className="mt-10">
-          <SectionLabel>Market</SectionLabel>
+          <SectionLabel color="indigo" icon={<TrendIcon />}>Market</SectionLabel>
           <Hero data={data} />
 
           <div className="grid lg:grid-cols-2 gap-6 mt-6 items-stretch">
@@ -125,14 +185,14 @@ export default async function Home() {
         {/* SIGNAL MODEL */}
 
         <div className="mt-10">
-          <SectionLabel>Signal Model</SectionLabel>
+          <SectionLabel color="violet" icon={<PulseIcon />}>Signal Model</SectionLabel>
           <ScoreBreakdown data={data} />
         </div>
 
         {/* CONTEXT & NEWS */}
 
         <div className="mt-10">
-          <SectionLabel>Context &amp; News</SectionLabel>
+          <SectionLabel color="amber" icon={<CalendarIcon />}>Context &amp; News</SectionLabel>
 
           <div className="grid lg:grid-cols-2 gap-6 items-stretch">
             <EventCalendar
@@ -149,7 +209,7 @@ export default async function Home() {
         smaller heading, muted border. */}
 
         <div className="mt-10">
-          <SectionLabel>Reference</SectionLabel>
+          <SectionLabel color="slate" icon={<BookIcon />}>Reference</SectionLabel>
 
           <div className="rounded-xl border border-stone-200/70 dark:border-slate-800/70 p-6 mb-8">
             <h2 className="text-sm font-semibold tracking-tight text-slate-600 dark:text-slate-400">

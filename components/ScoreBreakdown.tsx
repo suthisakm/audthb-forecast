@@ -126,7 +126,7 @@ export default async function ScoreBreakdown({
   const tradeBalance = await getTradeBalanceData();
 
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-violet-500 dark:border-t-violet-400 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="flex items-start justify-between gap-4">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Score Breakdown</h2>

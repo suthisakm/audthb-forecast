@@ -58,7 +58,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
 
   if (recap.sampleSize === 0) {
     return (
-      <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+      <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-indigo-500 dark:border-t-indigo-400 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
         <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
           No price snapshots yet today -- check back after the score-snapshot cron has run.
@@ -81,7 +81,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       : null;
 
   return (
-    <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-indigo-500 dark:border-t-indigo-400 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>

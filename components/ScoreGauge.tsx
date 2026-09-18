@@ -1,40 +1,34 @@
-// Horizontal -100..+100 position gauge, filled from the zero mark
-// toward the current score. Pure CSS/SVG -- no charting library.
+// Horizontal -100..+100 position gauge. The track always shows the full
+// bearish-to-bullish spectrum (not just the filled portion) so the
+// current score reads as "where on the spectrum", not just "how much
+// fill" -- a marker dot pinpoints the live value against that backdrop.
 export default function ScoreGauge({ score }: { score: number | null }) {
   const clamped = score === null ? 0 : Math.max(-100, Math.min(100, score));
   const pct = ((clamped + 100) / 200) * 100;
 
-  const color =
+  const markerColor =
     score === null
-      ? "bg-slate-600"
+      ? "bg-slate-500 border-slate-500"
       : score >= 15
-        ? "bg-emerald-400"
+        ? "bg-emerald-500 border-emerald-500"
         : score <= -15
-          ? "bg-red-400"
-          : "bg-amber-400";
-
-  const fillLeft = clamped >= 0 ? 50 : pct;
-  const fillWidth = Math.abs(pct - 50);
+          ? "bg-red-500 border-red-500"
+          : "bg-amber-500 border-amber-500";
 
   return (
     <div className="mt-3">
-      <div className="relative h-1.5 rounded-full bg-stone-200 dark:bg-slate-800">
-        <div className="absolute inset-y-0 left-1/2 w-px bg-stone-400 dark:bg-slate-600" />
-
-        <div
-          className={`absolute inset-y-0 rounded-full ${color}`}
-          style={{ left: `${fillLeft}%`, width: `${fillWidth}%` }}
-        />
+      <div className="relative h-2 rounded-full bg-gradient-to-r from-red-400 via-amber-300 to-emerald-400 dark:from-red-500/80 dark:via-amber-500/80 dark:to-emerald-500/80">
+        <div className="absolute inset-y-0 left-1/2 w-px bg-white/70 dark:bg-slate-950/60" />
 
         {score !== null && (
           <div
-            className={`absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-stone-50 dark:border-slate-900 ${color}`}
+            className={`absolute -top-1 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-stone-50 dark:border-slate-900 shadow-sm ${markerColor}`}
             style={{ left: `${pct}%` }}
           />
         )}
       </div>
 
-      <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-400 mt-1 tabular-nums">
+      <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-400 mt-1.5 tabular-nums">
         <span>-100</span>
         <span>0</span>
         <span>+100</span>
