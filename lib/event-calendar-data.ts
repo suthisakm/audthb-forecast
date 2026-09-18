@@ -87,8 +87,8 @@ export async function getEventCalendar() {
     thisWeek: rows,
     error: null,
     coverageNote:
-      "Hand-maintained calendar (RBA/Fed/BOT meetings, AU/US CPI & employment) -- not a live feed. " +
-      "A quiet week here may mean not yet seeded, not that nothing is scheduled.",
+      "Hand-updated, not a live feed -- covers RBA/Fed/BOT/BOE/BOJ meetings plus AU/US data releases. " +
+      "A quiet week just means nothing's been added yet, not that nothing's scheduled.",
   };
 }
 

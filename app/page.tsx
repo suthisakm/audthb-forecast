@@ -213,7 +213,7 @@ export default async function Home() {
             </p>
 
             <p>
-              AI News Signals:{" "}
+              News Signals:{" "}
               <span className="text-slate-700 dark:text-slate-300">
                 Alpha Vantage News + Google Gemini
               </span>

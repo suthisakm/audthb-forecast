@@ -68,22 +68,22 @@ export default function NewsSentiment({
     <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight flex items-center">
-          AI News Signals
-          <InfoTip text="A scheduled calendar only shows WHAT is releasing and WHEN -- it can't tell you what a Fed chair actually says in a press conference, what Trump posts about tariffs, or a sudden swing in dollar/baht coverage. Gemini reads AUD/USD/THB-relevant news daily and rates its likely direction on AUD/THB. Monitor only -- not part of the Core FX Score yet." />
+          News Signals
+          <InfoTip text="News that could move AUD/THB, read and scored automatically every day. Context only -- not part of the Core FX Score." />
         </h2>
 
         <StatusBadge label="Monitor Only" tone="slate" />
       </div>
 
       <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-        AI-classified AUD / USD / THB news, updated daily -- experimental, verify before acting.
+        AUD / USD / THB news, updated daily. Experimental -- verify before acting.
       </p>
 
       <div className="mt-3">
         {error ? (
           <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
         ) : signals.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-400">No qualifying speech/policy news classified yet.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">No relevant news yet today.</p>
         ) : (
           signals.map((signal) => <SignalRow key={signal.articleUrl} signal={signal} />)
         )}

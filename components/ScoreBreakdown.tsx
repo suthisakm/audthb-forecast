@@ -136,7 +136,7 @@ export default async function ScoreBreakdown({
         <div className="text-right shrink-0">
           <p className="text-xs text-slate-600 dark:text-slate-400 uppercase tracking-wide inline-flex items-center">
             Core FX Score
-            <InfoTip text="A weighted composite of 7 market and macro factors, from -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
+            <InfoTip text="One score combining 7 market and economic signals: -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
           <p className={`text-3xl font-bold font-mono tabular-nums ${scoreColor(data.coreFxScore)}`}>
             {formatScore(data.coreFxScore)}
@@ -149,7 +149,7 @@ export default async function ScoreBreakdown({
         {/* PRICE */}
         <Factor
           name="Price / Momentum"
-          tooltip="Recent price action is the most direct read on what the market is doing right now -- it reflects new information before macro data or news has a chance to catch up."
+          tooltip="Shows what the market is doing right now, before slower news or data can catch up."
           score={data.priceMomentumScore}
           weightLabel="FX Weight: 35%"
         >
@@ -162,7 +162,7 @@ export default async function ScoreBreakdown({
         {/* CROSS */}
         <Factor
           name="Cross Currency"
-          tooltip="AUD/THB trades thinly compared to major pairs, so a single feed can glitch or lag. Confirming the move independently is what separates a real market move from noise in one data source."
+          tooltip="Double-checks the price a second way, so one glitchy data feed can't fool the model."
           score={data.crossCurrencyScore}
           weightLabel="FX Weight: 20%"
         >
@@ -181,7 +181,7 @@ export default async function ScoreBreakdown({
         {/* RELATIVE MARKET */}
         <Factor
           name="Relative Market"
-          tooltip="AUD/THB doesn't move in isolation -- capital flows chase yield and regional risk appetite, shifting the pair even when nothing has changed in Australia or Thailand specifically."
+          tooltip="Money flows and regional risk appetite can move AUD/THB even when nothing changes locally."
           score={data.relativeMarketScore}
           weightLabel={`Weight: ${data.relativeMarketEffectiveWeight.toFixed(1)}/15`}
         >
@@ -219,7 +219,7 @@ export default async function ScoreBreakdown({
         {/* COMMODITY */}
         <Factor
           name="Commodity"
-          tooltip="Commodity prices (iron ore, oil) are a real-world economic factor that can move AUD/THB on their own, independent of anything happening in the currency markets themselves."
+          tooltip="Iron ore and oil prices move AUD/THB on their own, separate from currency markets."
           score={data.commodityScore}
           weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/8`}
         >
@@ -255,7 +255,7 @@ export default async function ScoreBreakdown({
         {/* MEAN REVERSION */}
         <Factor
           name="Mean Reversion"
-          tooltip="A rate that has moved too far too fast within the day tends to partially snap back. Without this, the model would keep leaning into an already-stretched move instead of allowing for a pullback."
+          tooltip="A price that moved too far too fast today tends to snap back a little."
           score={data.meanReversionScore}
           weightLabel="FX Weight: 5%"
         >
@@ -271,7 +271,7 @@ export default async function ScoreBreakdown({
         {/* MACRO */}
         <Factor
           name="Macro / Policy"
-          tooltip="Interest rates, inflation, jobs and growth set the medium-term direction underneath the day's price swings -- without them the score would only ever react to short-term noise, never the underlying economic trend."
+          tooltip="Rates, inflation, jobs and growth set the bigger trend under the day's price swings."
           score={data.macroScore}
           weightLabel={`Weight: ${data.macroEffectiveFxWeight.toFixed(1)}/10`}
         >
@@ -354,7 +354,7 @@ export default async function ScoreBreakdown({
         {/* RISK */}
         <Factor
           name="Risk / VIXY"
-          tooltip="AUD is a 'risk' currency -- when market volatility spikes, investors often sell it for safety even though nothing has actually changed in Australia or Thailand."
+          tooltip="AUD is a 'risk' currency -- investors sell it for safety when markets get volatile."
           score={data.riskScore}
           weightLabel={`Weight: ${data.riskEffectiveWeight.toFixed(1)}/7`}
         >

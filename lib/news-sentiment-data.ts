@@ -1,7 +1,7 @@
 import "server-only";
 import { supabaseAdmin } from "@/lib/supabase-server";
 
-// AI News Signals -- monitor only, same precedent as Trade Balance/Gold
+// News Signals -- monitor only, same precedent as Trade Balance/Gold
 // (see lib/trade-balance-data.ts). Scheduled releases (Event Calendar,
 // workflow G) tell you WHAT happened; a Fed chair's press-conference
 // wording or an unscheduled Trump tariff post moves markets on the words
@@ -55,16 +55,20 @@ function toSignal(row: DbRow): NewsSentimentSignal {
 
 // Net over AUD/USD/THB-relevant coverage: central-bank/policy figures
 // (still the biggest movers) plus bare currency-name mentions so general
-// dollar/baht/aussie-dollar stories qualify too, not just speeches.
-// Alpha Vantage's own "topics=economy_monetary" tag is too loose to rely
-// on alone (it tags most financial_markets/earnings stories too, see live
+// dollar/baht/aussie-dollar stories qualify too, not just speeches. Also
+// covers other top-tier central banks (BOE/GBP, BOJ/JPY) -- neither GBP
+// nor JPY moves AUD/THB directly, but a BOJ hike or a BOE surprise shifts
+// global risk sentiment and carry-trade flows broadly, which does reach
+// a risk currency like AUD and a regionally-linked one like THB. Alpha
+// Vantage's own "topics=economy_monetary" tag is too loose to rely on
+// alone (it tags most financial_markets/earnings stories too, see live
 // check during build) -- this regex is the actual relevance filter,
 // applied to title+summary of a ticker-scoped feed (FOREX:USD, FOREX:AUD,
-// FOREX:THB). FOREX:THB in particular is dominated by crypto-scam and
-// tourism-PR noise, so this stays a real filter rather than accepting
-// everything from that feed.
+// FOREX:THB, FOREX:GBP, FOREX:JPY). FOREX:THB in particular is dominated
+// by crypto-scam and tourism-PR noise, so this stays a real filter
+// rather than accepting everything from that feed.
 export const NEWS_RELEVANCE_PATTERN =
-  /\b(fed|federal reserve|fomc|powell|rate hike|rate cut|interest rate|trump|tariff|rba|reserve bank of australia|bank of thailand|dollar|baht|aud)\b/i;
+  /\b(fed|federal reserve|fomc|powell|rate hike|rate cut|interest rate|trump|tariff|rba|reserve bank of australia|bank of thailand|boe|bank of england|boj|bank of japan|dollar|baht|aud|gbp|pound|jpy|yen)\b/i;
 
 export async function getRecentNewsSignals(limit = 8): Promise<{
   signals: NewsSentimentSignal[];

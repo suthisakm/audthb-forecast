@@ -35,10 +35,10 @@ type AiClassification = {
 };
 
 // Cap Gemini calls per run -- daily cadence with a broader keyword net
-// (bare "dollar"/"baht"/"aud", not just speeches) can surface more
-// candidates per run than the old 2-hourly/speech-only version, so this
-// is higher than a pure "handful of Fed headlines" cap would need.
-const MAX_ARTICLES_PER_RUN = 15;
+// (bare "dollar"/"baht"/"aud"/"gbp"/"jpy", not just speeches) across 5
+// ticker feeds can surface more candidates per run than a pure "handful
+// of Fed headlines" cap would need.
+const MAX_ARTICLES_PER_RUN = 18;
 
 // Cron runs once/day; look back far enough to cover a full day plus
 // slack for the cron firing a bit late, without re-scanning days of
@@ -123,7 +123,7 @@ const GEMINI_RESPONSE_SCHEMA = {
 };
 
 function buildPrompt(article: CandidateArticle): string {
-  return `You classify news/speech coverage for an AUD/THB exchange-rate monitoring dashboard. "direction" means the AUD/THB rate itself, i.e. AUD_UP also covers a THB-negative story (e.g. Thai political instability, capital flight, Bank of Thailand easing) even if it says nothing about Australia -- AUD/THB rises either from AUD strengthening or THB weakening. Most global coverage is US/AUD-side (Fed, RBA, Trump, USD), so that will usually be the driver, but don't ignore genuine THB-side stories.
+  return `You classify news/speech coverage for an AUD/THB exchange-rate monitoring dashboard. "direction" means the AUD/THB rate itself, i.e. AUD_UP also covers a THB-negative story (e.g. Thai political instability, capital flight, Bank of Thailand easing) even if it says nothing about Australia -- AUD/THB rises either from AUD strengthening or THB weakening. Most global coverage is US/AUD-side (Fed, RBA, Trump, USD), so that will usually be the driver, but don't ignore genuine THB-side stories. A BOJ or BOE decision rarely touches AUD/THB directly -- read it for its indirect effect through global risk sentiment and carry-trade flows (e.g. a BOJ hike often triggers yen-carry-trade unwinding, which is typically risk-off and AUD-negative); if an article is purely about UK/Japan domestic matters with no plausible read-through, call it NEUTRAL rather than forcing a direction.
 
 Article:
 Source: ${article.source}
@@ -134,7 +134,7 @@ Summary: ${article.summary}
 Return:
 - direction: AUD_UP if this plausibly pushes AUD/THB up (hawkish RBA/Fed-driven risk-on, commodity-positive, or THB-negative news), AUD_DOWN if it plausibly pushes AUD/THB down (dovish RBA, hawkish Fed pulling USD up broadly, tariff/trade-war escalation hurting risk sentiment or Australian exports, or THB-positive news), NEUTRAL if there's no clear directional read (e.g. unrelated crypto/tourism stories that merely mention Thailand or a dollar amount).
 - magnitude: HIGH/MEDIUM/LOW expected size of impact, not your confidence.
-- tags: short controlled tags from this set where applicable: FED, RBA, BOT, TRUMP, TARIFF, RATE_HIKE, RATE_CUT, RISK_ON, RISK_OFF, TRADE_POLICY, THAI_POLITICS, OTHER.
+- tags: short controlled tags from this set where applicable: FED, RBA, BOT, BOJ, BOE, TRUMP, TARIFF, RATE_HIKE, RATE_CUT, RISK_ON, RISK_OFF, TRADE_POLICY, THAI_POLITICS, CARRY_TRADE, OTHER.
 - rationale: one plain sentence (under 200 characters) explaining the read.
 - confidence: 0 to 1, how confident you are in this classification given the article alone.`;
 }
@@ -204,12 +204,14 @@ export async function GET(request: Request) {
   }
 
   try {
-    const [usdFeed, audFeed, thbFeed] = await Promise.all([
+    const [usdFeed, audFeed, thbFeed, gbpFeed, jpyFeed] = await Promise.all([
       fetchAvNews("FOREX:USD"),
       fetchAvNews("FOREX:AUD"),
       fetchAvNews("FOREX:THB"),
+      fetchAvNews("FOREX:GBP"),
+      fetchAvNews("FOREX:JPY"),
     ]);
-    const candidates = dedupeAndFilter([usdFeed, audFeed, thbFeed]);
+    const candidates = dedupeAndFilter([usdFeed, audFeed, thbFeed, gbpFeed, jpyFeed]);
 
     if (candidates.length === 0) {
       return NextResponse.json({ updated: true, candidates: 0, classified: 0, skipped: 0 });

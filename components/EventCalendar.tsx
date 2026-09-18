@@ -81,7 +81,7 @@ export default function EventCalendar({
         <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">This Week</p>
 
         {thisWeek.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-400">No scheduled events in the seeded range.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">No events scheduled this week.</p>
         ) : (
           <div>
             {thisWeek.map((event) => (

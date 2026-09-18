@@ -106,7 +106,7 @@ export async function getAlerts(data: DashboardData): Promise<Alert[]> {
     });
   }
 
-  // AI News Signals: an unscheduled AUD/USD/THB headline the AI rated
+  // News Signals: an unscheduled AUD/USD/THB headline the model rated
   // HIGH-magnitude and reasonably confident in is exactly the kind of
   // thing Event Risk above can't see, since it never appears on any
   // calendar. The news-sentiment cron runs once/day, so "recent" here is
@@ -122,7 +122,7 @@ export async function getAlerts(data: DashboardData): Promise<Alert[]> {
   if (recentHighImpact) {
     candidates.push({
       severity: "warning",
-      label: `AI News Signal: ${recentHighImpact.title}`,
+      label: `News Signal: ${recentHighImpact.title}`,
       detail: `${recentHighImpact.aiDirection.replace("_", " ")} -- ${recentHighImpact.aiRationale}`,
     });
   }

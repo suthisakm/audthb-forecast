@@ -126,7 +126,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
         <div>
           <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest inline-flex items-center">
             Core FX Score
-            <InfoTip text="A weighted composite of 7 market and macro factors, from -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
+            <InfoTip text="One score combining 7 market and economic signals: -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
 
           <div className="flex items-baseline gap-3 mt-3">
@@ -158,7 +158,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
             <div className="flex items-center justify-between">
               <p className="text-sm text-slate-600 dark:text-slate-400 inline-flex items-center">
                 Model Coverage
-                <InfoTip text="How much of the model's total weight had usable data this run. Lower coverage means the score rests on fewer signals than usual." />
+                <InfoTip text="How much of the model actually had data this run. Lower means fewer signals than usual." />
               </p>
               <p className="text-lg font-semibold font-mono tabular-nums">
                 {data.availableCoreWeight.toFixed(1)}/100
@@ -170,11 +170,11 @@ export default async function Hero({ data }: { data: DashboardData }) {
             </p>
 
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Coverage แสดงน้ำหนักปัจจัยที่ใช้ได้ ไม่ใช่ความแม่นยำ คะแนนรวมใช้น้ำหนักตามข้อมูลที่พร้อมในขณะนั้น
+              Coverage คือสัดส่วนข้อมูลที่มีใช้จริงตอนนี้ ไม่ใช่ความแม่นยำของคะแนน
             </p>
 
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-              Gold ยังเป็น Monitor Only แต่ไม่กันน้ำหนักไว้ในสูตรแล้ว (ตั้งแต่ MODEL_VERSION 1.1.0) จึงเต็ม 100/100 ได้เมื่อข้อมูลครบ และจะลดลงเมื่อข้อมูลไม่พร้อมหรือตลาด VIXY ปิด
+              Gold ยังไม่รวมในคะแนน แต่ตอนนี้เต็ม 100/100 ได้เมื่อข้อมูลอื่นครบ และจะลดลงถ้าข้อมูลขาดหรือตลาดปิด
             </p>
           </div>
         </div>
