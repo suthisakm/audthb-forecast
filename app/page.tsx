@@ -11,6 +11,8 @@ import MarketClock from "@/components/MarketClock";
 import EventCalendar from "@/components/EventCalendar";
 import NewsSentiment from "@/components/NewsSentiment";
 import Evaluation from "@/components/Evaluation";
+import TrendChart from "@/components/TrendChart";
+import ActionSummary from "@/components/ActionSummary";
 
 import {
   getDashboardData,
@@ -187,10 +189,15 @@ export default async function Home() {
         <div className="mt-10">
           <SectionLabel color="indigo" icon={<TrendIcon />}>Market</SectionLabel>
           <Hero data={data} />
+          <ActionSummary data={data} />
 
           <div className="grid lg:grid-cols-2 gap-6 mt-6 items-stretch">
             <DailyRecap recap={dailyRecap} data={data} />
             <MarketRates data={data} />
+          </div>
+
+          <div className="mt-6">
+            <TrendChart />
           </div>
         </div>
 
