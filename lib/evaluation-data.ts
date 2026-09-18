@@ -6,9 +6,18 @@ import { supabaseAdmin } from "@/lib/supabase-server";
 // ahead of having real data -- with zero or few outcomes this returns
 // insufficientData: true rather than a misleading stat, and starts
 // producing real numbers automatically as the outcome-matching cron
-// (workflow D) fills the table in. No new columns needed: the outcome
-// job already computes direction_correct / absolute_error_pct /
-// within_range per forecast (see forecast-outcome route).
+// (workflow D) fills the table in.
+//
+// direction_correct and within_range are computed HERE, not read from
+// forecast_outcomes -- the outcome job (see forecast-outcome route)
+// deliberately leaves those two columns null, since the dead-zone
+// policy they need belongs to this Evaluation phase. An earlier version
+// of this file assumed the columns were already populated and read them
+// directly, which meant every row silently evaluated as "incorrect"
+// (null is falsy) -- direction accuracy would report 0% forever
+// regardless of how good the model actually is. Fixed by deriving both
+// from actual_move_pct / predicted_direction / predicted_range_*_pct,
+// which this query already has (or now fetches) from forecast_runs.
 
 // Below this sample size, any accuracy/MAE number is dominated by noise
 // -- match the project's own rule (AUDTHB-project-status.md workflow F):
@@ -27,10 +36,10 @@ type MatchedOutcomeRow = {
   horizon_hours: number;
   forecast_version: string;
   predicted_direction: string;
+  predicted_range_low_pct: number | string;
+  predicted_range_high_pct: number | string;
   actual_move_pct: number | string;
-  direction_correct: boolean;
   absolute_error_pct: number | string;
-  within_range: boolean;
 };
 
 export type HorizonEvaluation = {
@@ -69,14 +78,30 @@ function average(values: number[]): number | null {
   return values.reduce((sum, v) => sum + v, 0) / values.length;
 }
 
+// Same dead-zone the baseline uses to call its own "no real move" --
+// a real move must clear this band before it counts as a direction,
+// otherwise noise-sized moves would flip direction_correct at random.
+function actualDirection(actualMovePct: number): "BULLISH" | "BEARISH" | "NEUTRAL" {
+  if (actualMovePct > BASELINE_NEUTRAL_BAND_PCT) return "BULLISH";
+  if (actualMovePct < -BASELINE_NEUTRAL_BAND_PCT) return "BEARISH";
+  return "NEUTRAL";
+}
+
 function evaluateGroup(rows: MatchedOutcomeRow[]): HorizonEvaluation {
   const first = rows[0];
   const sampleSize = rows.length;
   const insufficientData = sampleSize < MIN_SAMPLE_SIZE;
 
-  const directionCorrectFlags = rows.map((r) => (r.direction_correct ? 1 : 0));
+  const directionCorrectFlags = rows.map((r) =>
+    actualDirection(toNumber(r.actual_move_pct)) === r.predicted_direction ? 1 : 0,
+  );
   const absErrors = rows.map((r) => toNumber(r.absolute_error_pct));
-  const withinRangeFlags = rows.map((r) => (r.within_range ? 1 : 0));
+  const withinRangeFlags = rows.map((r) => {
+    const actualMove = toNumber(r.actual_move_pct);
+    const low = toNumber(r.predicted_range_low_pct);
+    const high = toNumber(r.predicted_range_high_pct);
+    return actualMove >= low && actualMove <= high ? 1 : 0;
+  });
 
   const baselineCorrectFlags = rows.map((r) => {
     const actualMove = toNumber(r.actual_move_pct);
@@ -130,8 +155,9 @@ export async function getEvaluationSummary(): Promise<{
   const { data, error } = await supabaseAdmin
     .from("forecast_outcomes")
     .select(
-      "status, actual_move_pct, direction_correct, absolute_error_pct, within_range, " +
-        "forecast_runs!inner(horizon, horizon_hours, forecast_version, predicted_direction)",
+      "status, actual_move_pct, absolute_error_pct, " +
+        "forecast_runs!inner(horizon, horizon_hours, forecast_version, predicted_direction, " +
+        "predicted_range_low_pct, predicted_range_high_pct)",
     )
     .eq("status", "MATCHED");
 
@@ -150,14 +176,14 @@ export async function getEvaluationSummary(): Promise<{
   type JoinedRow = {
     status: string;
     actual_move_pct: number | string;
-    direction_correct: boolean;
     absolute_error_pct: number | string;
-    within_range: boolean;
     forecast_runs: {
       horizon: string;
       horizon_hours: number;
       forecast_version: string;
       predicted_direction: string;
+      predicted_range_low_pct: number | string;
+      predicted_range_high_pct: number | string;
     };
   };
 
@@ -166,10 +192,10 @@ export async function getEvaluationSummary(): Promise<{
     horizon_hours: row.forecast_runs.horizon_hours,
     forecast_version: row.forecast_runs.forecast_version,
     predicted_direction: row.forecast_runs.predicted_direction,
+    predicted_range_low_pct: row.forecast_runs.predicted_range_low_pct,
+    predicted_range_high_pct: row.forecast_runs.predicted_range_high_pct,
     actual_move_pct: row.actual_move_pct,
-    direction_correct: row.direction_correct,
     absolute_error_pct: row.absolute_error_pct,
-    within_range: row.within_range,
   }));
 
   const groupKey = (r: MatchedOutcomeRow) => `${r.horizon}::${r.forecast_version}`;

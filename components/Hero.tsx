@@ -1,8 +1,15 @@
 import type { DashboardData } from "@/lib/dashboard-data";
 import { getEventRisk } from "@/lib/event-calendar-data";
+import { getConfidence, type ConfidenceLevel } from "@/lib/confidence-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import ScoreGauge from "@/components/ScoreGauge";
 import InfoTip from "@/components/InfoTip";
+
+function confidenceTone(level: ConfidenceLevel): BadgeTone {
+  if (level === "HIGH") return "emerald";
+  if (level === "MEDIUM") return "amber";
+  return "red";
+}
 
 function formatHoursUntil(hours: number) {
   if (hours < 1) return `${Math.round(hours * 60)} min`;
@@ -47,6 +54,7 @@ function feedHealthDot(data: DashboardData) {
 
 export default async function Hero({ data }: { data: DashboardData }) {
   const eventRisk = await getEventRisk();
+  const confidence = await getConfidence(data);
 
   return (
     <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-indigo-600 dark:border-t-indigo-400 bg-stone-50 dark:bg-slate-900 p-6 sm:p-8 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
@@ -137,6 +145,11 @@ export default async function Hero({ data }: { data: DashboardData }) {
             </p>
 
             <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{data.coreBias}</p>
+          </div>
+
+          <div className="mt-2 inline-flex items-center">
+            <StatusBadge label={`Confidence: ${confidence.level}`} tone={confidenceTone(confidence.level)} />
+            <InfoTip text={confidence.reasons.join(". ") + "."} />
           </div>
 
           <ScoreGauge score={data.coreFxScore} />

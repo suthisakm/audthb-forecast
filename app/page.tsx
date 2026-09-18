@@ -10,6 +10,7 @@ import DailyRecap from "@/components/DailyRecap";
 import MarketClock from "@/components/MarketClock";
 import EventCalendar from "@/components/EventCalendar";
 import NewsSentiment from "@/components/NewsSentiment";
+import Evaluation from "@/components/Evaluation";
 
 import {
   getDashboardData,
@@ -44,12 +45,13 @@ export const revalidate =
 // section gets its own accent color and icon, echoed in the top border
 // of the cards inside it, so the color itself groups related cards
 // instead of every card looking identical regardless of topic.
-type SectionColor = "indigo" | "violet" | "amber" | "slate";
+type SectionColor = "indigo" | "violet" | "amber" | "emerald" | "slate";
 
 const SECTION_COLOR_CLASSES: Record<SectionColor, string> = {
   indigo: "text-indigo-600 dark:text-indigo-400",
   violet: "text-violet-600 dark:text-violet-400",
   amber: "text-amber-600 dark:text-amber-400",
+  emerald: "text-emerald-600 dark:text-emerald-400",
   slate: "text-slate-500 dark:text-slate-500",
 };
 
@@ -83,6 +85,16 @@ function BookIcon() {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13Z" />
       <path d="M4 19.5V6.5" />
+    </svg>
+  );
+}
+
+function TargetIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="h-3.5 w-3.5">
+      <circle cx="12" cy="12" r="8" />
+      <circle cx="12" cy="12" r="4" />
+      <circle cx="12" cy="12" r="0.5" fill="currentColor" />
     </svg>
   );
 }
@@ -187,6 +199,13 @@ export default async function Home() {
         <div className="mt-10">
           <SectionLabel color="violet" icon={<PulseIcon />}>Signal Model</SectionLabel>
           <ScoreBreakdown data={data} />
+        </div>
+
+        {/* TRACK RECORD */}
+
+        <div className="mt-10">
+          <SectionLabel color="emerald" icon={<TargetIcon />}>Track Record</SectionLabel>
+          <Evaluation />
         </div>
 
         {/* CONTEXT & NEWS */}

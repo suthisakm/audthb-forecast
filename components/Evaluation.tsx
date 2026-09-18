@@ -1,0 +1,96 @@
+import { getEvaluationSummary } from "@/lib/evaluation-data";
+import InfoTip from "@/components/InfoTip";
+
+function formatPct(value: number | null) {
+  if (value === null) return "--";
+  return `${Math.round(value * 100)}%`;
+}
+
+function formatMae(value: number | null) {
+  if (value === null) return "--";
+  return `${value.toFixed(3)}%`;
+}
+
+// Workflow E: once the outcome-matching cron (workflow D) has resolved
+// enough forecasts, this shows whether the Forecast engine actually
+// beats a naive "predict no change" guess -- the only honest way to
+// answer "is this model any good" instead of asserting it.
+export default async function Evaluation() {
+  const summary = await getEvaluationSummary();
+
+  return (
+    <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-emerald-500 dark:border-t-emerald-400 bg-stone-50 dark:bg-slate-900 p-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
+      <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+        Track Record
+        <InfoTip text="Checks the forecast against what actually happened, and against a plain 'no change' guess. Needs 20+ resolved forecasts before showing real numbers." />
+      </h2>
+
+      {summary.error ? (
+        <p className="text-sm text-red-700 dark:text-red-400 mt-2">{summary.error}</p>
+      ) : summary.groups.length === 0 ? (
+        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+          No forecasts have resolved yet -- the first ones are 24 hours out, check back tomorrow.
+        </p>
+      ) : (
+        <div className="mt-4 space-y-4">
+          {summary.groups.map((g) => (
+            <div key={`${g.horizon}-${g.forecastVersion}`} className="rounded-lg bg-stone-100 dark:bg-slate-950 p-4">
+              <div className="flex items-center justify-between">
+                <p className="text-sm font-semibold">
+                  {g.horizon}{" "}
+                  <span className="text-xs font-normal text-slate-600 dark:text-slate-400">v{g.forecastVersion}</span>
+                </p>
+                <p className="text-xs text-slate-600 dark:text-slate-400">
+                  {g.sampleSize}/{g.minSampleSize} resolved
+                </p>
+              </div>
+
+              {g.insufficientData ? (
+                <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+                  {g.minSampleSize - g.sampleSize} more resolved forecast{g.minSampleSize - g.sampleSize === 1 ? "" : "s"}{" "}
+                  needed before this is meaningful.
+                </p>
+              ) : (
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-3">
+                  <div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Direction Accuracy</p>
+                    <p className="text-lg font-semibold font-mono">{formatPct(g.model.directionalAccuracy)}</p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                      vs {formatPct(g.baselineNoChange.directionalAccuracy)} baseline
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Avg Error</p>
+                    <p className="text-lg font-semibold font-mono">{formatMae(g.model.mae)}</p>
+                    <p className="text-[11px] text-slate-600 dark:text-slate-400">
+                      vs {formatMae(g.baselineNoChange.mae)} baseline
+                    </p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">In Predicted Range</p>
+                    <p className="text-lg font-semibold font-mono">{formatPct(g.model.intervalCoverage)}</p>
+                  </div>
+
+                  <div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">Beats Baseline</p>
+                    <p
+                      className={`text-lg font-semibold ${
+                        g.beatsBaseline.directionally
+                          ? "text-emerald-700 dark:text-emerald-400"
+                          : "text-red-700 dark:text-red-400"
+                      }`}
+                    >
+                      {g.beatsBaseline.directionally === null ? "--" : g.beatsBaseline.directionally ? "Yes" : "No"}
+                    </p>
+                  </div>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
