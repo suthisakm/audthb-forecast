@@ -28,7 +28,7 @@ function formatPct(value: number | null, decimals = 2) {
 }
 
 function scoreColor(score: number | null) {
-  if (score === null) return "text-slate-500 dark:text-slate-400";
+  if (score === null) return "text-slate-600 dark:text-slate-400";
   if (score > 0) return "text-emerald-700 dark:text-emerald-400";
   if (score < 0) return "text-red-700 dark:text-red-400";
   return "text-slate-700 dark:text-slate-300";
@@ -82,7 +82,7 @@ function Factor({
           <svg
             viewBox="0 0 20 20"
             fill="none"
-            className="h-4 w-4 shrink-0 text-slate-500 transition-transform group-open:rotate-90"
+            className="h-4 w-4 shrink-0 text-slate-600 dark:text-slate-400 transition-transform group-open:rotate-90"
           >
             <path d="M7 4l6 6-6 6" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" />
           </svg>
@@ -134,14 +134,14 @@ export default async function ScoreBreakdown({
         </div>
 
         <div className="text-right shrink-0">
-          <p className="text-xs text-slate-500 uppercase tracking-wide inline-flex items-center">
+          <p className="text-xs text-slate-600 dark:text-slate-400 uppercase tracking-wide inline-flex items-center">
             Core FX Score
             <InfoTip text="A weighted composite of 7 market and macro factors, from -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
           <p className={`text-3xl font-bold font-mono tabular-nums ${scoreColor(data.coreFxScore)}`}>
             {formatScore(data.coreFxScore)}
           </p>
-          <p className="text-xs text-slate-500">{data.coreBias}</p>
+          <p className="text-xs text-slate-600 dark:text-slate-400">{data.coreBias}</p>
         </div>
       </div>
 
@@ -153,7 +153,7 @@ export default async function ScoreBreakdown({
           score={data.priceMomentumScore}
           weightLabel="FX Weight: 35%"
         >
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             1H Score: {formatScore(data.priceScore1H)} (raw {formatChange(data.change1H)}) | 4H Score: {formatScore(data.priceScore4H)} (raw {formatChange(data.change4H)})
           </p>
           <Note>Momentum blends the 1H and 4H AUD/THB direct-rate change into a single score, then carries 35% of the Core FX Score -- the single heaviest factor.</Note>
@@ -166,8 +166,8 @@ export default async function ScoreBreakdown({
           score={data.crossCurrencyScore}
           weightLabel="FX Weight: 20%"
         >
-          <p className="text-sm text-slate-500">1H Cross Change: {formatChange(data.crossCurrencyChange1H)}</p>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600 dark:text-slate-400">1H Cross Change: {formatChange(data.crossCurrencyChange1H)}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Cross rate: {data.crossRate !== null ? data.crossRate.toFixed(4) : "--"} (AUD/USD × USD/THB) vs direct {data.directRate !== null ? data.directRate.toFixed(4) : "--"}
           </p>
 
@@ -185,32 +185,32 @@ export default async function ScoreBreakdown({
           score={data.relativeMarketScore}
           weightLabel={`Weight: ${data.relativeMarketEffectiveWeight.toFixed(1)}/15`}
         >
-          <p className="text-sm text-slate-500">Coverage: {data.relativeMarketCoverage.toFixed(1)}/100 (internal split: Yield 50% / CNH 35% / SGD 15%)</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Coverage: {data.relativeMarketCoverage.toFixed(1)}/100 (internal split: Yield 50% / CNH 35% / SGD 15%)</p>
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">AU-US 2Y Yield: <span className={`font-mono font-semibold ${scoreColor(data.yieldScore)}`}>{formatScore(data.yieldScore)}</span></p>
             {data.latestYieldSnapshot && (
-              <p className="text-xs text-slate-500">
+              <p className="text-xs text-slate-600 dark:text-slate-400">
                 AU 2Y: {Number(data.latestYieldSnapshot.au_2y).toFixed(3)}% ({data.latestYieldSnapshot.au_reference_date}) | US 2Y: {Number(data.latestYieldSnapshot.us_2y).toFixed(3)}% ({data.latestYieldSnapshot.us_reference_date})
               </p>
             )}
-            <p className="text-xs text-slate-500">Spread: {data.yieldSpread !== null ? `${data.yieldSpread > 0 ? "+" : ""}${data.yieldSpread.toFixed(3)}%` : "--"}</p>
-            <p className="text-xs text-slate-500">1W Change: {formatBps(data.yieldSpreadChange1WBps)}</p>
-            <p className="text-xs text-slate-500">Relative Weight: {data.yieldEffectiveWeight.toFixed(1)}/50</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Spread: {data.yieldSpread !== null ? `${data.yieldSpread > 0 ? "+" : ""}${data.yieldSpread.toFixed(3)}%` : "--"}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">1W Change: {formatBps(data.yieldSpreadChange1WBps)}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Relative Weight: {data.yieldEffectiveWeight.toFixed(1)}/50</p>
             <StatusBadge label={`Confidence: ${data.yieldConfidence}`} tone={confidenceTone(data.yieldConfidence)} />
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               Oldest data: {data.yieldDataAgeDays !== null ? `${data.yieldDataAgeDays} days` : "--"} | Date gap: {data.yieldDataGapDays !== null ? `${data.yieldDataGapDays} days` : "--"}
             </p>
           </div>
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1">
             <p className="text-sm">USD/CNH: <span className={`font-mono font-semibold ${scoreColor(data.usdCnhScore)}`}>{formatScore(data.usdCnhScore)}</span></p>
-            <p className="text-xs text-slate-500">1H: {formatChange(data.usdCnhChange1H)} | Relative Weight: 35%</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">1H: {formatChange(data.usdCnhChange1H)} | Relative Weight: 35%</p>
           </div>
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1">
             <p className="text-sm">USD/SGD: <span className={`font-mono font-semibold ${scoreColor(data.usdSgdScore)}`}>{formatScore(data.usdSgdScore)}</span></p>
-            <p className="text-xs text-slate-500">1H: {formatChange(data.usdSgdChange1H)} | Relative Weight: 15%</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">1H: {formatChange(data.usdSgdChange1H)} | Relative Weight: 15%</p>
           </div>
 
           <Note>USD/CNH and USD/SGD proxy broader Asian-FX risk appetite -- a rising dollar against them tends to pressure AUD/THB the same direction.</Note>
@@ -223,27 +223,27 @@ export default async function ScoreBreakdown({
           score={data.commodityScore}
           weightLabel={`Weight: ${data.commodityEffectiveFxWeight.toFixed(1)}/8`}
         >
-          <p className="text-sm text-slate-500">Coverage: {data.commodityCoverage.toFixed(1)}/100 (internal split: Brent 55% / Iron Ore 45% -- Gold excluded, monitor only)</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Coverage: {data.commodityCoverage.toFixed(1)}/100 (internal split: Brent 55% / Iron Ore 45% -- Gold excluded, monitor only)</p>
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Iron Ore: <span className={`font-mono font-semibold ${scoreColor(data.ironOreScore)}`}>{formatScore(data.ironOreScore)}</span></p>
-            <p className="text-xs text-slate-500">Price: {data.ironOrePrice !== null ? `$${data.ironOrePrice.toFixed(2)}` : "--"}</p>
-            <p className="text-xs text-slate-500">24H Change: {formatChange(data.ironOreChange24H)} | Weight: {data.ironOreEffectiveWeight.toFixed(1)}/45</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Price: {data.ironOrePrice !== null ? `$${data.ironOrePrice.toFixed(2)}` : "--"}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">24H Change: {formatChange(data.ironOreChange24H)} | Weight: {data.ironOreEffectiveWeight.toFixed(1)}/45</p>
             <StatusBadge label={data.ironOreFreshness} tone={freshnessTone(data.ironOreFreshness)} />
             <Note>Australia's largest export -- higher iron ore prices historically support AUD.</Note>
           </div>
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Brent Live: <span className={`font-mono font-semibold ${scoreColor(data.brentLiveScore)}`}>{formatScore(data.brentLiveScore)}</span></p>
-            <p className="text-xs text-slate-500">Price: {data.brentLivePrice !== null ? `$${data.brentLivePrice.toFixed(2)}` : "--"}</p>
-            <p className="text-xs text-slate-500">1H Change: {formatChange(data.brentLiveChange1H)} | Weight: 55/55</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Price: {data.brentLivePrice !== null ? `$${data.brentLivePrice.toFixed(2)}` : "--"}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">1H Change: {formatChange(data.brentLiveChange1H)} | Weight: 55/55</p>
             <StatusBadge label={data.brentLiveFreshness} tone={freshnessTone(data.brentLiveFreshness)} />
           </div>
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Gold</p>
-            <p className="text-xs text-slate-500">Price: {data.goldPrice !== null ? `$${data.goldPrice.toFixed(2)}` : "--"}</p>
-            <p className="text-xs text-slate-500">1H Change: {formatChange(data.goldChange1H)} | Weight: 0/20</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Price: {data.goldPrice !== null ? `$${data.goldPrice.toFixed(2)}` : "--"}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">1H Change: {formatChange(data.goldChange1H)} | Weight: 0/20</p>
             <div className="flex flex-wrap gap-1.5">
               <StatusBadge label={data.goldFreshness} tone={freshnessTone(data.goldFreshness)} />
               <StatusBadge label="Monitor Only" tone="amber" />
@@ -259,10 +259,10 @@ export default async function ScoreBreakdown({
           score={data.meanReversionScore}
           weightLabel="FX Weight: 5%"
         >
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Range Position: {data.rangePosition !== null ? `${data.rangePosition.toFixed(1)}%` : "--"}
           </p>
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Today's range: {data.intradayLow !== null && data.intradayHigh !== null ? `${data.intradayLow.toFixed(4)} - ${data.intradayHigh.toFixed(4)}` : "--"}
           </p>
           <Note>0% = sitting at today's low, 100% = at today's high. A low range position scores bullish (room to revert up); a high one scores bearish.</Note>
@@ -275,7 +275,7 @@ export default async function ScoreBreakdown({
           score={data.macroScore}
           weightLabel={`Weight: ${data.macroEffectiveFxWeight.toFixed(1)}/10`}
         >
-          <p className="text-sm text-slate-500">Coverage: {data.macroCoverage.toFixed(1)}/100 (Policy 4 / Inflation 3 / Labour 2 / Growth 1)</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Coverage: {data.macroCoverage.toFixed(1)}/100 (Policy 4 / Inflation 3 / Labour 2 / Growth 1)</p>
 
           {data.macroScore === null && (
             <p className="text-xs text-amber-700 dark:text-amber-400">Macro unavailable — excluded from FX Score</p>
@@ -284,10 +284,10 @@ export default async function ScoreBreakdown({
           {/* POLICY */}
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Policy: <span className={`font-mono font-semibold ${scoreColor(macro.policy.score)}`}>{formatScore(macro.policy.score)}</span></p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               RBA {macro.policy.rates.rba !== null ? `${macro.policy.rates.rba.toFixed(2)}%` : "--"} | Fed {macro.policy.rates.fed !== null ? `${macro.policy.rates.fed.toFixed(2)}%` : "--"} | BOT {macro.policy.rates.bot !== null ? `${macro.policy.rates.bot.toFixed(2)}%` : "--"}
             </p>
-            <p className="text-xs text-slate-500">
+            <p className="text-xs text-slate-600 dark:text-slate-400">
               RBA-Fed 90D: {formatBps(macro.policy.rbaFed.change90DBps)} (score {formatScore(macro.policy.rbaFed.score)}) | Fed-BOT 90D: {formatBps(macro.policy.fedBot.change90DBps)} (score {formatScore(macro.policy.fedBot.score)})
             </p>
           </div>
@@ -295,11 +295,11 @@ export default async function ScoreBreakdown({
           {/* INFLATION */}
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Inflation: <span className={`font-mono font-semibold ${scoreColor(macro.inflation.score)}`}>{formatScore(macro.inflation.score)}</span></p>
-            <p className="text-xs text-slate-500">Coverage: {macro.inflation.coverage.toFixed(1)}/100</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Coverage: {macro.inflation.coverage.toFixed(1)}/100</p>
             {(["australia", "unitedStates", "thailand"] as const).map((key) => {
               const country = macro.inflation.countries[key];
               return (
-                <p key={key} className="text-xs text-slate-500">
+                <p key={key} className="text-xs text-slate-600 dark:text-slate-400">
                   {COUNTRY_LABEL[country.country] ?? country.country}: composite {formatPct(country.compositeInflation)} vs {country.targetMidpoint.toFixed(1)}% target
                   {country.policyPressure !== null ? ` (pressure ${formatPct(country.policyPressure)})` : ""}
                 </p>
@@ -310,7 +310,7 @@ export default async function ScoreBreakdown({
           {/* LABOUR */}
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Labour: <span className={`font-mono font-semibold ${scoreColor(macro.labour.score)}`}>{formatScore(macro.labour.score)}</span></p>
-            <p className="text-xs text-slate-500">Coverage: {macro.labour.coverage.toFixed(1)}/100</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Coverage: {macro.labour.coverage.toFixed(1)}/100</p>
             <div className="flex flex-wrap gap-1.5">
               <StatusBadge label={`AU: ${macro.labour.countries.australia.confidence}`} tone={confidenceTone(macro.labour.countries.australia.confidence)} />
               <StatusBadge label={`US: ${macro.labour.countries.unitedStates.confidence}`} tone={confidenceTone(macro.labour.countries.unitedStates.confidence)} />
@@ -321,11 +321,11 @@ export default async function ScoreBreakdown({
           {/* GROWTH */}
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">Growth (GDP): <span className={`font-mono font-semibold ${scoreColor(macro.growth.score)}`}>{formatScore(macro.growth.score)}</span></p>
-            <p className="text-xs text-slate-500">Coverage: {macro.growth.coverage.toFixed(1)}/100</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Coverage: {macro.growth.coverage.toFixed(1)}/100</p>
             {(["australia", "unitedStates", "thailand"] as const).map((key) => {
               const country = macro.growth.countries[key];
               return (
-                <p key={key} className="text-xs text-slate-500">
+                <p key={key} className="text-xs text-slate-600 dark:text-slate-400">
                   {COUNTRY_LABEL[country.country] ?? country.country}: QoQ GDP {country.qoqPercent !== null ? formatPct(country.qoqPercent) : `unavailable (${country.reason})`}
                 </p>
               );
@@ -339,7 +339,7 @@ export default async function ScoreBreakdown({
             {(["australia", "thailand"] as const).map((key) => {
               const country = tradeBalance.countries[key];
               return (
-                <p key={key} className="text-xs text-slate-500">
+                <p key={key} className="text-xs text-slate-600 dark:text-slate-400">
                   {country.label}: {country.valueUsdBillions !== null ? `$${country.valueUsdBillions.toFixed(2)}B` : "--"}
                   {country.latestPeriod ? ` (${country.latestPeriod})` : ""}
                 </p>
@@ -358,17 +358,17 @@ export default async function ScoreBreakdown({
           score={data.riskScore}
           weightLabel={`Weight: ${data.riskEffectiveWeight.toFixed(1)}/7`}
         >
-          <p className="text-sm text-slate-500">Price: {data.riskPrice !== null ? `$${data.riskPrice.toFixed(2)}` : "--"}</p>
-          <p className="text-sm text-slate-500">1H Change: {formatChange(data.riskChange1H)}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Price: {data.riskPrice !== null ? `$${data.riskPrice.toFixed(2)}` : "--"}</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">1H Change: {formatChange(data.riskChange1H)}</p>
 
           <StatusBadge label={data.riskFreshness} tone={freshnessTone(data.riskFreshness)} />
 
-          <p className="text-sm text-slate-500">
+          <p className="text-sm text-slate-600 dark:text-slate-400">
             Session: {data.riskSessionOpen ? "OPEN" : "CLOSED"} | Age: {data.riskAgeMinutes !== null ? `${data.riskAgeMinutes.toFixed(1)} min` : "--"}
           </p>
 
           {data.riskFreshness === "MARKET_CLOSED" && (
-            <p className="text-xs text-slate-500">Market closed — excluded from current FX Score</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Market closed — excluded from current FX Score</p>
           )}
 
           <Note>VIXY (volatility ETF) is scored inversely: rising volatility usually means risk-off flows out of AUD, so a VIXY spike pushes this score bearish.</Note>

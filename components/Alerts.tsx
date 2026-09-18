@@ -7,7 +7,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
         <p className="text-sm text-emerald-700 dark:text-emerald-400 font-semibold">
           No active alerts
         </p>
-        <p className="text-xs text-slate-500 mt-1">
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
           All tracked feeds and Macro components are fresh or within normal cadence.
         </p>
       </div>
@@ -47,7 +47,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
             >
               {alert.label}
             </p>
-            <p className="text-xs text-slate-500 mt-1">{alert.detail}</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{alert.detail}</p>
           </div>
         ))}
       </div>

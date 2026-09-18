@@ -34,7 +34,7 @@ export default function ScoreGauge({ score }: { score: number | null }) {
         )}
       </div>
 
-      <div className="flex justify-between text-[10px] text-slate-500 mt-1 tabular-nums">
+      <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-400 mt-1 tabular-nums">
         <span>-100</span>
         <span>0</span>
         <span>+100</span>

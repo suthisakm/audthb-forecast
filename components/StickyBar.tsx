@@ -11,7 +11,7 @@ function freshnessTone(status: string): BadgeTone {
 }
 
 function scoreColor(score: number | null) {
-  if (score === null) return "text-slate-500 dark:text-slate-400";
+  if (score === null) return "text-slate-600 dark:text-slate-400";
   if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
   if (score <= -15) return "text-red-700 dark:text-red-400";
   return "text-amber-700 dark:text-amber-400";
@@ -51,7 +51,7 @@ export default function StickyBar({
       <div className="border-b border-stone-200 dark:border-slate-800 bg-stone-50/90 dark:bg-slate-950/90 backdrop-blur">
         <div className="max-w-5xl mx-auto px-4 sm:px-6 py-2 flex items-center justify-between gap-4">
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide hidden sm:inline">
+            <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide hidden sm:inline">
               AUD/THB
             </span>
             <span className="font-mono font-bold tabular-nums text-sm sm:text-base">
@@ -61,13 +61,13 @@ export default function StickyBar({
           </div>
 
           <div className="flex items-center gap-2 min-w-0">
-            <span className="text-[10px] font-medium text-slate-500 uppercase tracking-wide hidden sm:inline">
+            <span className="text-[10px] font-medium text-slate-600 dark:text-slate-400 uppercase tracking-wide hidden sm:inline">
               Score
             </span>
             <span className={`font-mono font-bold tabular-nums text-sm sm:text-base ${scoreColor(score)}`}>
               {score !== null ? `${score > 0 ? "+" : ""}${score}` : "--"}
             </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400 hidden sm:inline">{bias}</span>
+            <span className="text-xs text-slate-600 dark:text-slate-400 hidden sm:inline">{bias}</span>
           </div>
         </div>
       </div>

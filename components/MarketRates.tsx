@@ -46,7 +46,7 @@ function FreshnessBadge({
 
       {freshness.ageMinutes !== null &&
         freshness.status !== "MARKET_CLOSED" && (
-          <p className="text-xs text-slate-500">
+          <p className="text-xs text-slate-600 dark:text-slate-400">
             {freshness.ageMinutes.toFixed(0)} min ago
           </p>
         )}
@@ -69,7 +69,7 @@ export default function MarketRates({
 
         {/* AUD/THB DIRECT */}
         <div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             AUD/THB Direct
           </p>
 
@@ -80,7 +80,7 @@ export default function MarketRates({
           </p>
 
           {data.latestDirect && (
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
               {formatTime(
                 data.latestDirect.market_timestamp
               )}
@@ -94,7 +94,7 @@ export default function MarketRates({
 
         {/* AUD/THB CROSS */}
         <div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             AUD/THB Cross
           </p>
 
@@ -105,7 +105,7 @@ export default function MarketRates({
           </p>
 
           {data.crossTimestamp && (
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
               Matched:{" "}
               {formatTime(data.crossTimestamp)}
             </p>
@@ -125,7 +125,7 @@ export default function MarketRates({
           </div>
 
           {data.crossTimeGapMinutes !== null && (
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               Source gap:{" "}
               {data.crossTimeGapMinutes.toFixed(1)} min
             </p>
@@ -134,7 +134,7 @@ export default function MarketRates({
 
         {/* AUD/USD */}
         <div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             AUD/USD
           </p>
 
@@ -147,7 +147,7 @@ export default function MarketRates({
           </p>
 
           {data.latestAudUsd && (
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
               {formatTime(
                 data.latestAudUsd.market_timestamp
               )}
@@ -161,7 +161,7 @@ export default function MarketRates({
 
         {/* USD/THB */}
         <div>
-          <p className="text-slate-500 dark:text-slate-400 text-sm">
+          <p className="text-slate-600 dark:text-slate-400 text-sm">
             USD/THB
           </p>
 
@@ -174,7 +174,7 @@ export default function MarketRates({
           </p>
 
           {data.latestUsdThb && (
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
               {formatTime(
                 data.latestUsdThb.market_timestamp
               )}
@@ -189,7 +189,7 @@ export default function MarketRates({
 
       {/* MATCHED-TIME CROSS GAP */}
       <div className="border-t border-stone-200 dark:border-slate-800 mt-5 pt-4">
-        <p className="text-sm text-slate-500 dark:text-slate-400">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Matched-Time Cross Gap
         </p>
 
@@ -206,7 +206,7 @@ export default function MarketRates({
 
         {data.crossDirectReferenceRate !== null &&
           data.crossTimestamp && (
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               Direct reference:{" "}
               {data.crossDirectReferenceRate.toFixed(4)}
               {" @ "}

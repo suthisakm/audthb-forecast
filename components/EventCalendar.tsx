@@ -4,7 +4,7 @@ import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 function importanceColor(importance: string) {
   if (importance === "HIGH") return "text-red-700 dark:text-red-400";
   if (importance === "MEDIUM") return "text-amber-700 dark:text-amber-400";
-  return "text-slate-500 dark:text-slate-400";
+  return "text-slate-600 dark:text-slate-400";
 }
 
 function importanceTone(importance: string): BadgeTone {
@@ -34,11 +34,11 @@ function EventRow({ event }: { event: CalendarEvent }) {
           </span>{" "}
           {event.eventName}
           {event.referencePeriod ? (
-            <span className="text-slate-500"> ({event.referencePeriod})</span>
+            <span className="text-slate-600 dark:text-slate-400"> ({event.referencePeriod})</span>
           ) : null}
         </p>
 
-        <p className="text-xs text-slate-500 mt-0.5">{formatEventTime(event.eventTime)} (Bangkok)</p>
+        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{formatEventTime(event.eventTime)} (Bangkok)</p>
       </div>
 
       <div className="shrink-0">
@@ -61,13 +61,13 @@ export default function EventCalendar({
     <div className="rounded-xl border border-stone-200 dark:border-slate-800 bg-stone-50 dark:bg-slate-900 p-6 mt-6 shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">Event Calendar</h2>
 
-      <p className="text-xs text-slate-500 mt-1">{coverageNote}</p>
+      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{coverageNote}</p>
 
       <div className="mt-4">
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">Today</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Today</p>
 
         {today.length === 0 ? (
-          <p className="text-sm text-slate-500">No scheduled events today.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">No scheduled events today.</p>
         ) : (
           <div>
             {today.map((event) => (
@@ -78,10 +78,10 @@ export default function EventCalendar({
       </div>
 
       <div className="mt-4 pt-4 border-t border-stone-200 dark:border-slate-800">
-        <p className="text-sm text-slate-500 dark:text-slate-400 mb-1">This Week</p>
+        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">This Week</p>
 
         {thisWeek.length === 0 ? (
-          <p className="text-sm text-slate-500">No scheduled events in the seeded range.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">No scheduled events in the seeded range.</p>
         ) : (
           <div>
             {thisWeek.map((event) => (

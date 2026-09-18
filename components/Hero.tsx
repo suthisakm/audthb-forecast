@@ -17,14 +17,14 @@ function freshnessTone(status: string): BadgeTone {
 }
 
 function changeColor(value: number | null) {
-  if (value === null) return "text-slate-500 dark:text-slate-400";
+  if (value === null) return "text-slate-600 dark:text-slate-400";
   if (value > 0) return "text-emerald-700 dark:text-emerald-400";
   if (value < 0) return "text-red-700 dark:text-red-400";
-  return "text-slate-500 dark:text-slate-400";
+  return "text-slate-600 dark:text-slate-400";
 }
 
 function scoreColor(score: number | null) {
-  if (score === null) return "text-slate-500 dark:text-slate-400";
+  if (score === null) return "text-slate-600 dark:text-slate-400";
   if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
   if (score <= -15) return "text-red-700 dark:text-red-400";
   return "text-amber-700 dark:text-amber-400";
@@ -54,7 +54,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
         {/* RATE */}
         <div className="md:border-r border-stone-200 dark:border-slate-800 md:pr-8">
           <div className="flex items-center justify-between">
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest">
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
               AUD/THB Spot
             </p>
 
@@ -81,7 +81,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
               4H {data.change4H !== null ? `${data.change4H >= 0 ? "+" : ""}${data.change4H.toFixed(2)}%` : "--"}
             </span>
 
-            <span className="text-slate-500">
+            <span className="text-slate-600 dark:text-slate-400">
               Range {data.intradayLow !== null && data.intradayHigh !== null
                 ? `${data.intradayLow.toFixed(4)} - ${data.intradayHigh.toFixed(4)}`
                 : "--"}
@@ -89,7 +89,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
           </div>
 
           {data.latestPrice && (
-            <p className="text-xs text-slate-500 mt-3">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-3">
               Updated{" "}
               {new Date(data.latestPrice.market_timestamp).toLocaleString("en-GB", {
                 timeZone: "Asia/Bangkok",
@@ -106,16 +106,16 @@ export default async function Hero({ data }: { data: DashboardData }) {
           {/* DATA HEALTH -- kept deliberately understated: a dot and a
               count, not its own card, since this is a "just so you know"
               signal, not something that needs to compete for attention. */}
-          <p className="text-[11px] text-slate-500 mt-1.5 flex items-center gap-1.5">
+          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 flex items-center gap-1.5">
             <span className={`inline-block h-1.5 w-1.5 rounded-full ${feedHealthDot(data)}`} />
             {feedHealthCount(data)}/3 core feeds fresh
           </p>
 
           <div className="mt-5 pt-4 border-t border-stone-200 dark:border-slate-800">
-            <p className="text-xs font-medium text-slate-500 uppercase tracking-widest">
+            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
               Forecast 1H / 4H
             </p>
-            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
               ยังไม่เปิดใช้ -- จะเปิดหลังพัฒนาและทดสอบโมเดลเทียบกับราคาจริง
               พร้อมปรับเกณฑ์และประเมินความแม่นยำ
             </p>
@@ -124,7 +124,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
 
         {/* CORE FX SCORE */}
         <div>
-          <p className="text-xs font-medium text-slate-500 dark:text-slate-400 uppercase tracking-widest inline-flex items-center">
+          <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest inline-flex items-center">
             Core FX Score
             <InfoTip text="A weighted composite of 7 market and macro factors, from -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
@@ -156,7 +156,7 @@ export default async function Hero({ data }: { data: DashboardData }) {
 
           <div className="mt-5 pt-4 border-t border-stone-200 dark:border-slate-800">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-500 dark:text-slate-400 inline-flex items-center">
+              <p className="text-sm text-slate-600 dark:text-slate-400 inline-flex items-center">
                 Model Coverage
                 <InfoTip text="How much of the model's total weight had usable data this run. Lower coverage means the score rests on fewer signals than usual." />
               </p>
@@ -165,15 +165,15 @@ export default async function Hero({ data }: { data: DashboardData }) {
               </p>
             </div>
 
-            <p className="text-xs text-slate-500 mt-2">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
               Model factors: Price, Cross, Relative Market, Commodity, Macro / Policy, Risk and Mean Reversion.
             </p>
 
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               Coverage แสดงน้ำหนักปัจจัยที่ใช้ได้ ไม่ใช่ความแม่นยำ คะแนนรวมใช้น้ำหนักตามข้อมูลที่พร้อมในขณะนั้น
             </p>
 
-            <p className="text-xs text-slate-500 mt-1">
+            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
               Gold ยังเป็น Monitor Only แต่ไม่กันน้ำหนักไว้ในสูตรแล้ว (ตั้งแต่ MODEL_VERSION 1.1.0) จึงเต็ม 100/100 ได้เมื่อข้อมูลครบ และจะลดลงเมื่อข้อมูลไม่พร้อมหรือตลาด VIXY ปิด
             </p>
           </div>

@@ -30,7 +30,7 @@ export default function MarketClock() {
   }, []);
 
   return (
-    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-500 dark:text-slate-400 tabular-nums">
+    <div className="flex items-center gap-3 sm:gap-4 text-xs sm:text-sm text-slate-600 dark:text-slate-400 tabular-nums">
       <span className="flex items-baseline gap-1.5">
         <span className="text-slate-600 dark:text-slate-300 font-medium">Bangkok</span>
         <span className="font-mono">{now ? getTime(now, "Asia/Bangkok") : "--:--:--"}</span>

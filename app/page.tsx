@@ -42,7 +42,7 @@ export const revalidate =
 // cards reads as three topics, not one undifferentiated scroll.
 function SectionLabel({ children }: { children: string }) {
   return (
-    <p className="text-xs font-semibold uppercase tracking-widest text-slate-400 dark:text-slate-600 mb-3">
+    <p className="text-xs font-semibold uppercase tracking-widest text-slate-600 dark:text-slate-400 mb-3">
       {children}
     </p>
   );
@@ -94,7 +94,7 @@ export default async function Home() {
               AUD/THB Forecast Dashboard
             </h1>
 
-            <p className="text-slate-500 mt-1 text-sm sm:text-base">
+            <p className="text-slate-600 dark:text-slate-400 mt-1 text-sm sm:text-base">
               Market monitoring and FX signal model
             </p>
           </div>
@@ -152,7 +152,7 @@ export default async function Home() {
               Sources
             </h2>
 
-            <div className="mt-4 text-sm text-slate-500 dark:text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-2">
+            <div className="mt-4 text-sm text-slate-600 dark:text-slate-400 grid sm:grid-cols-2 gap-x-8 gap-y-2">
             <p>
               FX Market Data:{" "}
               <span className="text-slate-700 dark:text-slate-300">Twelve Data</span>
@@ -218,7 +218,7 @@ export default async function Home() {
           </div>
         </div>
 
-        <p className="text-center text-xs text-slate-400 dark:text-slate-700 mb-6">
+        <p className="text-center text-xs text-slate-600 dark:text-slate-400 mb-6">
           AUD/THB Forecast Dashboard -- for research and monitoring purposes only, not financial advice.
         </p>
       </div>

@@ -45,7 +45,7 @@ function SignalRow({ signal }: { signal: NewsSentimentSignal }) {
 
       <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{signal.aiRationale}</p>
 
-      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[11px] text-slate-500">
+      <div className="flex flex-wrap items-center gap-x-3 gap-y-1 mt-1.5 text-[11px] text-slate-600 dark:text-slate-400">
         <span>{signal.source}</span>
         <span>{formatPublished(signal.publishedAt)} (Bangkok)</span>
         <span>Confidence {Math.round(signal.aiConfidence * 100)}%</span>
@@ -75,7 +75,7 @@ export default function NewsSentiment({
         <StatusBadge label="Monitor Only" tone="slate" />
       </div>
 
-      <p className="text-xs text-slate-500 mt-1">
+      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
         AI-classified AUD / USD / THB news, updated daily -- experimental, verify before acting.
       </p>
 
@@ -83,7 +83,7 @@ export default function NewsSentiment({
         {error ? (
           <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
         ) : signals.length === 0 ? (
-          <p className="text-sm text-slate-500">No qualifying speech/policy news classified yet.</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">No qualifying speech/policy news classified yet.</p>
         ) : (
           signals.map((signal) => <SignalRow key={signal.articleUrl} signal={signal} />)
         )}
