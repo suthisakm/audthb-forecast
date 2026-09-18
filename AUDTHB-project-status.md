@@ -67,9 +67,15 @@ follow-up section):
   50/35/15 split had the strongest and weakest signals nearly reversed).
 
 Macro's internal split (Policy 4 / Inflation 3 / Labour 2 / Growth 1, out of
-its 10-point max) was not touched this session and has not been re-verified
-against live code in this pass -- treat it as inherited from the prior status
-doc, not re-confirmed.
+its 10-point max) was not changed this session. It was tested against real
+data in a third correlation-study round, using proxies that approximate but
+don't exactly match the app's own definitions -- none of the four
+sub-factors cleared the significance bar at the resolutions tested (Policy
+r=0.01, Inflation AU-US r=-0.11, Inflation US-TH r=0.07, Labour AU-US-only
+r=-0.08, Growth r=0.31 but on only 14 annual data points). Deliberately not
+acted on given the proxy-fidelity gap and Growth's tiny sample -- see
+`AUDTHB-historical-analysis-2026-09.md`'s "รอบสาม" section before touching
+these weights.
 
 ## Data sources and known constraints
 
@@ -90,14 +96,18 @@ doc, not re-confirmed.
 
 ## Known open items
 
-- Mobile: `document.scrollWidth` was observed wider than the viewport at
-  375px, traced to `components/StickyBar.tsx`'s fixed-position wrapper. Being
-  investigated/fixed in the same session that wrote this status update --
-  check `git log -- components/StickyBar.tsx` for the outcome if this note
-  wasn't updated afterward.
 - Track Record (workflow E) needs 20 matched outcomes per horizon/version
   group before it reports real accuracy numbers instead of "insufficient
   data" -- this fills in automatically over the following days, no code
   change needed.
-- Macro's internal sub-weights (see above) are the one part of the scoring
-  model not re-verified in this pass.
+- Macro's internal split was tested (see above) but not acted on -- the
+  proxies used don't exactly match the app's own Labour/Inflation/Growth
+  definitions, and Growth's test sample was too small (14 annual points) to
+  trust. Worth re-testing with better-matched data sources before touching
+  these weights, unlike Commodity/Relative Market where the test data was
+  the same series the app actually uses.
+- Mobile horizontal-scroll bug (StickyBar's `position: fixed` wrapper
+  computing a wider-than-viewport width at 375px) was found and fixed with
+  `overflow-x: hidden` on `html`/`body` in `app/globals.css` -- resolved,
+  kept here only as a note in case it resurfaces on a real device this
+  session's tooling couldn't test against.

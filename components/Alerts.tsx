@@ -77,7 +77,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss alerts"
-          className="absolute top-3 right-3 inline-flex h-6 w-6 items-center justify-center rounded-full text-slate-500 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
+          className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-indigo-400"
         >
           <CloseIcon />
         </button>

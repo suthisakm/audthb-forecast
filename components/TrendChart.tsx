@@ -32,10 +32,12 @@ function Sparkline({
   values,
   colorClassName,
   zeroLine = false,
+  ariaLabel,
 }: {
   values: number[];
   colorClassName: string;
   zeroLine?: boolean;
+  ariaLabel: string;
 }) {
   if (values.length < 2) {
     return (
@@ -61,7 +63,7 @@ function Sparkline({
       preserveAspectRatio="none"
       className="w-full h-[72px]"
       role="img"
-      aria-label="Trend over the last 7 days"
+      aria-label={ariaLabel}
     >
       {zeroY !== null && (
         <line
@@ -132,6 +134,11 @@ export default async function TrendChart() {
               values={scored.map((p) => p.coreFxScore)}
               colorClassName="text-indigo-600 dark:text-indigo-400"
               zeroLine
+              ariaLabel={
+                scored.length >= 2
+                  ? `Core FX Score trend over the last 7 days, from ${scored[0].coreFxScore} to ${scored.at(-1)!.coreFxScore}`
+                  : "Core FX Score trend over the last 7 days"
+              }
             />
           </div>
 
@@ -142,7 +149,15 @@ export default async function TrendChart() {
                 <p className="text-sm font-mono font-semibold">{rated.at(-1)!.rate.toFixed(4)}</p>
               )}
             </div>
-            <Sparkline values={rated.map((p) => p.rate)} colorClassName="text-sky-600 dark:text-sky-400" />
+            <Sparkline
+              values={rated.map((p) => p.rate)}
+              colorClassName="text-sky-600 dark:text-sky-400"
+              ariaLabel={
+                rated.length >= 2
+                  ? `AUD/THB Rate trend over the last 7 days, from ${rated[0].rate.toFixed(4)} to ${rated.at(-1)!.rate.toFixed(4)}`
+                  : "AUD/THB Rate trend over the last 7 days"
+              }
+            />
           </div>
         </div>
       )}
