@@ -72,14 +72,14 @@ export default async function NewsSentiment({
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight flex items-center">
           News Signals
-          <InfoTip text="News that could move AUD/THB, read and scored automatically every day. Context only -- not part of the Core FX Score." />
+          <InfoTip text="News that could move AUD/THB, read and scored automatically twice a day. Context only -- not part of the Core FX Score." />
         </h2>
 
         <StatusBadge label="Monitor Only" tone="slate" />
       </div>
 
       <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-        AUD / USD / THB news, updated daily. Experimental -- verify before acting.
+        AUD / USD / THB news, updated twice a day (09:00 and 18:00 Bangkok). Experimental -- verify before acting.
       </p>
 
       <div className="mt-3">

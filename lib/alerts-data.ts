@@ -109,14 +109,15 @@ export async function getAlerts(data: DashboardData): Promise<Alert[]> {
   // News Signals: an unscheduled AUD/USD/THB headline the model rated
   // HIGH-magnitude and reasonably confident in is exactly the kind of
   // thing Event Risk above can't see, since it never appears on any
-  // calendar. The news-sentiment cron runs once/day, so "recent" here is
-  // 20h (just under a full cycle), not a couple hours -- otherwise a
-  // signal from this morning's run would stop counting as an alert hours
-  // before tomorrow's run replaces it.
+  // calendar. The news-sentiment cron runs twice/day (09:00 and 18:00
+  // Bangkok, 15h apart at the widest gap), so "recent" here is 13h --
+  // just under that gap, not a couple hours -- otherwise a signal from
+  // one run would stop counting as an alert well before the next run
+  // replaces it.
   const news = await getRecentNewsSignals(5);
   const recentHighImpact = news.signals.find((signal) => {
     const ageHours = (Date.now() - new Date(signal.publishedAt).getTime()) / (60 * 60 * 1000);
-    return signal.aiMagnitude === "HIGH" && signal.aiConfidence >= 0.6 && ageHours <= 20;
+    return signal.aiMagnitude === "HIGH" && signal.aiConfidence >= 0.6 && ageHours <= 13;
   });
 
   if (recentHighImpact) {

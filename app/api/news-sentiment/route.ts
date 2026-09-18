@@ -41,10 +41,12 @@ type AiClassification = {
 // of Fed headlines" cap would need.
 const MAX_ARTICLES_PER_RUN = 18;
 
-// Cron runs once/day; look back far enough to cover a full day plus
-// slack for the cron firing a bit late, without re-scanning days of
-// history every run.
-const LOOKBACK_HOURS = 30;
+// Cron runs twice/day (09:00 and 18:00 Bangkok, 15h apart at the widest
+// gap -- overnight); look back far enough to cover that gap plus slack
+// for the cron firing a bit late, without re-scanning a full day+ every
+// run. Safe even with overlap: already-seen articles are deduped by URL
+// below, so a wider-than-needed window just re-scans, it doesn't re-save.
+const LOOKBACK_HOURS = 20;
 
 // =========================================================
 // ALPHA VANTAGE
