@@ -185,7 +185,7 @@ export default async function ScoreBreakdown({
           score={data.relativeMarketScore}
           weightLabel={`Weight: ${data.relativeMarketEffectiveWeight.toFixed(1)}/15`}
         >
-          <p className="text-sm text-slate-600 dark:text-slate-400">Coverage: {data.relativeMarketCoverage.toFixed(1)}/100 (internal split: Yield 50% / CNH 35% / SGD 15%)</p>
+          <p className="text-sm text-slate-600 dark:text-slate-400">Coverage: {data.relativeMarketCoverage.toFixed(1)}/100 (internal split: Yield 26% / CNH 15% / SGD 59%)</p>
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1.5">
             <p className="text-sm">AU-US 2Y Yield: <span className={`font-mono font-semibold ${scoreColor(data.yieldScore)}`}>{formatScore(data.yieldScore)}</span></p>
@@ -196,7 +196,7 @@ export default async function ScoreBreakdown({
             )}
             <p className="text-xs text-slate-600 dark:text-slate-400">Spread: {data.yieldSpread !== null ? `${data.yieldSpread > 0 ? "+" : ""}${data.yieldSpread.toFixed(3)}%` : "--"}</p>
             <p className="text-xs text-slate-600 dark:text-slate-400">1W Change: {formatBps(data.yieldSpreadChange1WBps)}</p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">Relative Weight: {data.yieldEffectiveWeight.toFixed(1)}/50</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">Relative Weight: {data.yieldEffectiveWeight.toFixed(1)}/26</p>
             <StatusBadge label={`Confidence: ${data.yieldConfidence}`} tone={confidenceTone(data.yieldConfidence)} />
             <p className="text-xs text-slate-600 dark:text-slate-400">
               Oldest data: {data.yieldDataAgeDays !== null ? `${data.yieldDataAgeDays} days` : "--"} | Date gap: {data.yieldDataGapDays !== null ? `${data.yieldDataGapDays} days` : "--"}
@@ -205,12 +205,12 @@ export default async function ScoreBreakdown({
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1">
             <p className="text-sm">USD/CNH: <span className={`font-mono font-semibold ${scoreColor(data.usdCnhScore)}`}>{formatScore(data.usdCnhScore)}</span></p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">1H: {formatChange(data.usdCnhChange1H)} | Relative Weight: 35%</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">1H: {formatChange(data.usdCnhChange1H)} | Relative Weight: 15%</p>
           </div>
 
           <div className="pl-3 border-l border-stone-300 dark:border-slate-700 space-y-1">
             <p className="text-sm">USD/SGD: <span className={`font-mono font-semibold ${scoreColor(data.usdSgdScore)}`}>{formatScore(data.usdSgdScore)}</span></p>
-            <p className="text-xs text-slate-600 dark:text-slate-400">1H: {formatChange(data.usdSgdChange1H)} | Relative Weight: 15%</p>
+            <p className="text-xs text-slate-600 dark:text-slate-400">1H: {formatChange(data.usdSgdChange1H)} | Relative Weight: 59%</p>
           </div>
 
           <Note>USD/CNH and USD/SGD proxy broader Asian-FX risk appetite -- a rising dollar against them tends to pressure AUD/THB the same direction.</Note>

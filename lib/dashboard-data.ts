@@ -4,7 +4,7 @@ import { getMacroCompositeData } from "@/lib/macro-composite-data";
 // Bump when scoring logic (thresholds, weights, active factors) changes
 // materially -- fx_score_snapshots keys on this so a backtest can tell
 // which rules produced a given run.
-export const MODEL_VERSION = "1.2.0";
+export const MODEL_VERSION = "1.3.0";
 
 import { supabaseAdmin } from "@/lib/supabase-server";
 import {
@@ -1694,8 +1694,17 @@ export async function getDashboardData(): Promise<DashboardData> {
           yieldSpreadChange1WBps
         );
 
+      // Internal split rebalanced Sep 2026 (MODEL_VERSION 1.3.0) per a
+      // follow-up to AUDTHB-historical-analysis-2026-09.md: 10 years of
+      // monthly data showed USD/SGD correlates with AUD/THB far more
+      // strongly and stably (r=-0.50, both halves) than either the yield
+      // spread (r=0.22, this weight's basis) or USD/CNH (r=-0.13, not
+      // even significant overall) -- the previous split (yield 50 / CNH
+      // 35 / SGD 15) had the strongest and weakest signals almost
+      // reversed. New split (yield 26 / CNH 15 / SGD 59) is proportional
+      // to each factor's |r| from that study.
       yieldEffectiveWeight =
-        50 *
+        26 *
         yieldInfo.multiplier;
     }
   }
@@ -1720,7 +1729,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       weight:
         usdCnhScore !==
         null
-          ? 35
+          ? 15
           : 0,
     },
 
@@ -1731,7 +1740,7 @@ export async function getDashboardData(): Promise<DashboardData> {
       weight:
         usdSgdScore !==
         null
-          ? 15
+          ? 59
           : 0,
     },
   ];
