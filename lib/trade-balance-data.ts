@@ -9,6 +9,17 @@ import { quarterToDate, getGrowthFreshness } from "@/lib/growth-data";
 // Thailand only (per request) -- AUD is a classic commodity-export
 // currency and THB leans heavily on tourism/goods exports, so a
 // current-account swing is at least plausibly informative for both.
+//
+// Tested against this project's own historical data (2026-09-18, see
+// AUDTHB-historical-analysis-2026-09.md "รอบสี่"): Thailand's CAB change
+// doesn't correlate with AUD/THB (r=-0.05, unstable sign across the
+// sample). Australia's is borderline (r=-0.17, stable direction) but the
+// sign runs opposite the naive "better current account -> stronger
+// currency" intuition, and the period where it's strongest (2019-2021)
+// coincides with the iron ore price surge already captured by the
+// Commodity factor -- plausibly the same signal counted twice, not an
+// independent one. Staying monitor-only rather than acting on a
+// borderline, possibly-confounded correlation.
 
 export const TRADE_BALANCE_METRIC_CODE = "BOP_CAB_USD";
 
