@@ -801,12 +801,15 @@ export async function getCommodityData(): Promise<CommodityData> {
       );
   }
 
-  // Commodity = 10% of Full FX Model
+  // Commodity = 8% of Full FX Model (reduced from 10 in MODEL_VERSION
+  // 1.1.0 -- see AUDTHB-historical-analysis-2026-09.md; the 2 points
+  // moved to Risk/VIXY, whose correlation to AUD/THB was the strongest
+  // and most stable found besides AUD/USD itself).
   const commodityEffectiveFxWeight =
     commodityScore !== null
       ? Number(
           (
-            10 *
+            8 *
             (
               commodityCoverage /
               100

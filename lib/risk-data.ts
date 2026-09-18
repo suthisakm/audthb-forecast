@@ -435,7 +435,7 @@ export async function getRiskData(): Promise<RiskData> {
         0,
 
       maxWeight:
-        5,
+        7,
 
       sessionOpen,
     };
@@ -464,7 +464,7 @@ export async function getRiskData(): Promise<RiskData> {
       freshness: "MISSING",
       ageMinutes: null,
       effectiveWeight: 0,
-      maxWeight: 5,
+      maxWeight: 7,
       sessionOpen,
     };
   }
@@ -507,7 +507,7 @@ export async function getRiskData(): Promise<RiskData> {
         0,
 
       maxWeight:
-        5,
+        7,
 
       sessionOpen:
         false,
@@ -632,7 +632,7 @@ export async function getRiskData(): Promise<RiskData> {
     score !== null
       ? Number(
           (
-            5 *
+            7 *
             freshnessMultiplier
           ).toFixed(1)
         )
@@ -661,7 +661,7 @@ export async function getRiskData(): Promise<RiskData> {
     effectiveWeight,
 
     maxWeight:
-      5,
+      7,
 
     sessionOpen,
   };
