@@ -1,4 +1,5 @@
 import type { NewsSentimentSignal, NewsDirection } from "@/lib/news-sentiment-data";
+import { getApiUsageToday } from "@/lib/api-usage-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import InfoTip from "@/components/InfoTip";
 
@@ -57,13 +58,15 @@ function SignalRow({ signal }: { signal: NewsSentimentSignal }) {
   );
 }
 
-export default function NewsSentiment({
+export default async function NewsSentiment({
   signals,
   error,
 }: {
   signals: NewsSentimentSignal[];
   error: string | null;
 }) {
+  const apiUsage = await getApiUsageToday("alpha_vantage");
+
   return (
     <div className="rounded-xl border border-stone-200 dark:border-slate-800 border-t-4 border-t-amber-500 dark:border-t-amber-400 bg-stone-50 dark:bg-slate-900 p-6 h-full shadow-sm transition-colors hover:border-stone-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between gap-3">
@@ -88,6 +91,13 @@ export default function NewsSentiment({
           signals.map((signal) => <SignalRow key={signal.articleUrl} signal={signal} />)
         )}
       </div>
+
+      {apiUsage.limit > 0 && (
+        <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-3 pt-3 border-t border-stone-200 dark:border-slate-800">
+          Alpha Vantage: {apiUsage.used}/{apiUsage.limit} requests used today -- if this hits the limit, News Signals
+          skips updates until it resets.
+        </p>
+      )}
     </div>
   );
 }

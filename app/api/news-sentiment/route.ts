@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase-server";
 import { NEWS_RELEVANCE_PATTERN, type NewsDirection, type NewsMagnitude } from "@/lib/news-sentiment-data";
+import { incrementApiUsage } from "@/lib/api-usage-data";
 
 // =========================================================
 // TYPES
@@ -211,6 +212,11 @@ export async function GET(request: Request) {
       fetchAvNews("FOREX:GBP"),
       fetchAvNews("FOREX:JPY"),
     ]);
+    // Counts against the free tier's daily cap regardless of whether each
+    // call returned useful data -- a rate-limited response still consumed
+    // the request. Best-effort; never blocks the run if it fails to write.
+    await incrementApiUsage("alpha_vantage", 5);
+
     const candidates = dedupeAndFilter([usdFeed, audFeed, thbFeed, gbpFeed, jpyFeed]);
 
     if (candidates.length === 0) {
