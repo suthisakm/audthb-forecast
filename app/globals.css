@@ -19,7 +19,19 @@
   --font-mono: var(--font-geist-mono);
 }
 
+/* Belt-and-suspenders against horizontal scroll on narrow viewports --
+   traced a case where a `position: fixed` element's containing block
+   was computed wider than the actual visual viewport (StickyBar.tsx),
+   letting the page scroll sideways into empty space. Clipping here
+   neutralizes that regardless of which fixed/absolute element causes it
+   next, since `position: fixed` still anchors correctly to the viewport
+   with this in place. */
+html {
+  overflow-x: hidden;
+}
+
 body {
   background: var(--background);
   color: var(--foreground);
+  overflow-x: hidden;
 }
