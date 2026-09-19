@@ -3,64 +3,119 @@
 @custom-variant dark (&:where(.dark, .dark *));
 
 /*
- * Design tokens -- "financial data terminal" register (institutional
- * research desk, not a generic SaaS dashboard). Built from scratch this
- * pass using the design-system + ui-ux-pro-max skills' real palette/type
- * data (Personal Finance Tracker dark palette, Banking/Traditional
- * Finance light palette, Financial Dashboard status colors, Financial
- * Trust + Terminal Mono typography), not by tweaking the prior version.
+ * Design tokens -- "The Nautical Almanac" register: a daily table of
+ * precisely computed figures a navigator would trust their position to.
+ * Replaces the prior "Ghost-Segment Ledger" pass wholesale after the user
+ * rejected its seven-segment instrument readouts as hard to read; chosen
+ * directly from a served decision page (impeccable new-work, direction
+ * seed key c46f8631, re-roll 1) with an explicit "minimal" steer.
  *
- * Primitive -> semantic role (applied consistently via Tailwind's own
- * scale, since every component already speaks in Tailwind classes):
- *   slate-50/900     app background
- *   slate-100/950    inset/nested surface (recap tiles, stat boxes)
- *   white/slate-900  card surface
- *   slate-200/800    hairline border
- *   slate-900/50     primary text
- *   slate-600/400    secondary / muted text
- *   teal-600/400     brand accent -- the ONE signature hue: links,
- *                    section labels, active state, top-border highlight.
- *                    Deliberately not blue/indigo/sky (too close to the
- *                    generic AI-Tailwind default) and not gold/amber
- *                    (reserved below for warning, would collide).
+ * Primitive -> semantic role:
+ *   stone-50/950     app background (was slate; stone is warm-neutral,
+ *                    matches ivory paper / ink instead of cool blue-grey)
+ *   stone-100/900    inset/nested surface (recap tiles, stat groups)
+ *   surface          card surface -- one step lighter than the page in
+ *                    both themes, via CSS variable so no `dark:` prefix
+ *                    is needed at every call site
+ *   stone-200/800    hairline rule between rows and cards
+ *   stone-900/50     primary text
+ *   stone-600/400    secondary / muted text
+ *   brass            the ONE structural accent -- section labels, links,
+ *                    active state, the masthead's rule line. Replaces the
+ *                    prior teal; brass reads as a ledger's ink-stamp
+ *                    color, not a SaaS brand hue.
  *   emerald          positive / bullish / healthy / fresh
  *   red              negative / bearish / stale / error
  *   amber            warning / attention / experimental / monitor-only
- *   slate (mid)      neutral / inactive
+ *   masthead         fixed near-black band for the page header, deliberately
+ *                    the same in both themes (a printed masthead doesn't
+ *                    relight) -- the one surviving "always dark" token
+ *                    from the prior instrument-panel system, now serving
+ *                    the almanac's title band instead of a digit casing.
  *
- * Typography: IBM Plex Sans for headings and UI copy (reads as
- * trustworthy/institutional per the design-system's typography data).
- * JetBrains Mono for every numeric value -- rate, score, percentages,
- * clock -- so figures read like a trading terminal's tape, not prose.
+ * Typography: Inter for headings and UI copy -- a plain workhorse face,
+ * appropriate for an Operate surface per the brief's own guidance. Every
+ * NUMBER on the page (rate, score, percentages, the clock) instead uses
+ * Spectral, a formal serif with real tabular figures, wired through the
+ * existing `font-mono` utility so every already-`font-mono` numeral
+ * across the app repaints without per-file edits. Plain digits in a
+ * ruled column, not a display gimmick -- the direct fix for "the numbers
+ * are hard to read."
  *
- * Radius skews sharp, not bubbly: rounded-md (6px) for panels, rounded
- * (4px) for controls, rounded-sm (2px) for status tags. Cards carry no
- * drop shadow -- depth comes from a 1px border and surface-color steps,
- * the way a report or ledger sits flush rather than floating on a card.
- *
- * Ghost-Segment Ledger pass: dark mode's ground moved off the inherited
- * Tailwind slate scale (which reads measurably blue-navy, not neutral)
- * to a true near-black instrument ground -- `--color-instrument` for the
- * page/casing black and `--color-instrument-surface` for card surfaces
- * one step up from it. Light mode is untouched.
+ * Radius and elevation are unchanged from the prior pass: rounded-md
+ * (6px) panels, rounded (4px) controls, rounded-sm (2px) status tags, no
+ * drop shadows -- depth comes from a 1px border and surface-color steps.
  */
 :root {
-  --background: #f8fafc;
-  --foreground: #0f172a;
+  --background: #f6f1e4;
+  --foreground: #1b1712;
+  --surface: #fbf8ef;
+  --inset: #eee5cf;
+  --brass: #9c6b24;
 }
 
 .dark {
-  --background: #05070a;
-  --foreground: #f8fafc;
+  --background: #14110d;
+  --foreground: #ece4d3;
+  --surface: #1c170f;
+  --inset: #241e14;
+  --brass: #d1a24f;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --color-instrument: #05070a;
-  --color-instrument-surface: #0b0e14;
+  --color-surface: var(--surface);
+  --color-inset: var(--inset);
+  --color-brass: var(--brass);
+  --color-brass-50: #fbf6ec;
+  --color-brass-100: #f5ead1;
+  --color-brass-200: #ecd6a5;
+  --color-brass-300: #dfba6d;
+  --color-brass-400: #cf9c44;
+  --color-brass-500: #b9812e;
+  --color-brass-600: #9c6b24;
+  --color-brass-700: #7d551f;
+  --color-brass-800: #5f4119;
+  --color-brass-900: #4a3315;
+  --color-brass-950: #2b1d0c;
+  --color-masthead: #171310;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
+}
+
+/* Every numeral on the page is set in Spectral (bound to --font-mono
+   below) with true tabular figures, so a column of rates or scores never
+   reflows digit-to-digit -- the plain-numeral fix for the seven-segment
+   display this pass replaced. */
+.font-mono {
+  font-variant-numeric: tabular-nums;
+}
+
+/* ThemeToggle's signature interaction: the icon settles into place after
+   a theme switch, authored as explicit keyframe stops on an exponential
+   ease-out curve (never a spring/elastic timing function -- that reads
+   as dated per the craft floor's bounce-easing rule). */
+@keyframes toggle-settle {
+  0% {
+    transform: scale(0.7);
+  }
+  60% {
+    transform: scale(1.12);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+.animate-toggle-settle {
+  animation: toggle-settle 320ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-toggle-settle {
+    animation: none;
+  }
 }
 
 /* Belt-and-suspenders against horizontal scroll on narrow viewports --

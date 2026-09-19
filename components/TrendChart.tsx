@@ -43,7 +43,7 @@ function Sparkline({
   if (values.length < 2) {
     return (
       <div className="h-[72px] flex items-center">
-        <p className="text-xs text-slate-600 dark:text-slate-400">Not enough history yet.</p>
+        <p className="text-xs text-stone-600 dark:text-stone-400">Not enough history yet.</p>
       </div>
     );
   }
@@ -74,7 +74,7 @@ function Sparkline({
           y2={zeroY}
           strokeWidth={1}
           strokeDasharray="4 3"
-          className="stroke-slate-300 dark:stroke-slate-700"
+          className="stroke-stone-300 dark:stroke-stone-700"
         />
       )}
 
@@ -107,14 +107,14 @@ export default async function TrendChart() {
   );
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="p-6">
       <div className="flex items-center justify-between gap-3">
         <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
-          <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
+          <StatusLight colorClassName="text-brass-500 dark:text-brass-400" />
           7-Day Trend
         </h2>
         {scored.length >= 2 && (
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-xs text-stone-600 dark:text-stone-400">
             {formatDay(scored[0].issuedAt)} -- {formatDay(scored.at(-1)!.issuedAt)}
           </p>
         )}
@@ -126,7 +126,7 @@ export default async function TrendChart() {
         <div className="grid sm:grid-cols-2 gap-6 mt-4">
           <div>
             <div className="flex items-baseline justify-between">
-              <p className="text-xs text-slate-600 dark:text-slate-400 uppercase tracking-wide">Core FX Score</p>
+              <p className="text-xs text-stone-600 dark:text-stone-400 uppercase tracking-wide">Core FX Score</p>
               {scored.length > 0 && (
                 <p className="text-sm font-mono font-semibold">
                   {scored.at(-1)!.coreFxScore > 0 ? "+" : ""}
@@ -136,7 +136,7 @@ export default async function TrendChart() {
             </div>
             <Sparkline
               values={scored.map((p) => p.coreFxScore)}
-              colorClassName="text-teal-600 dark:text-teal-400"
+              colorClassName="text-brass-600 dark:text-brass-400"
               zeroLine
               ariaLabel={
                 scored.length >= 2
@@ -148,14 +148,14 @@ export default async function TrendChart() {
 
           <div>
             <div className="flex items-baseline justify-between">
-              <p className="text-xs text-slate-600 dark:text-slate-400 uppercase tracking-wide">AUD/THB Rate</p>
+              <p className="text-xs text-stone-600 dark:text-stone-400 uppercase tracking-wide">AUD/THB Rate</p>
               {rated.length > 0 && (
                 <p className="text-sm font-mono font-semibold">{rated.at(-1)!.rate.toFixed(4)}</p>
               )}
             </div>
             <Sparkline
               values={rated.map((p) => p.rate)}
-              colorClassName="text-slate-500 dark:text-slate-400"
+              colorClassName="text-stone-500 dark:text-stone-400"
               ariaLabel={
                 rated.length >= 2
                   ? `AUD/THB Rate trend over the last 7 days, from ${rated[0].rate.toFixed(4)} to ${rated.at(-1)!.rate.toFixed(4)}`

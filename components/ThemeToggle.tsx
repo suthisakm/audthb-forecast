@@ -27,6 +27,7 @@ export default function ThemeToggle({
   variant?: "default" | "inverted";
 }) {
   const [isDark, setIsDark] = useState<boolean | null>(null);
+  const [settleKey, setSettleKey] = useState(0);
 
   useEffect(() => {
     setIsDark(document.documentElement.classList.contains("dark"));
@@ -39,21 +40,24 @@ export default function ThemeToggle({
       localStorage.setItem("theme", next ? "dark" : "light");
     } catch {}
     setIsDark(next);
+    setSettleKey((k) => k + 1);
   };
 
   const style =
     variant === "inverted"
-      ? "border-white/30 text-white hover:border-white hover:text-white focus-visible:ring-offset-slate-900"
-      : "border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-teal-400 dark:hover:border-teal-500 hover:text-teal-700 dark:hover:text-teal-400 focus-visible:ring-offset-slate-100 dark:focus-visible:ring-offset-slate-950";
+      ? "border-white/30 text-white hover:border-white hover:text-white focus-visible:ring-offset-stone-900"
+      : "border-stone-200 dark:border-stone-800 text-stone-600 dark:text-stone-400 hover:border-brass-400 dark:hover:border-brass-500 hover:text-brass-700 dark:hover:text-brass-400 focus-visible:ring-offset-stone-100 dark:focus-visible:ring-offset-stone-950";
 
   return (
     <button
       type="button"
       onClick={toggle}
       aria-label="Toggle dark mode"
-      className={`inline-flex h-8 w-8 items-center justify-center rounded border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400 focus-visible:ring-offset-1 transition-colors ${style}`}
+      className={`inline-flex h-8 w-8 items-center justify-center rounded border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-400 focus-visible:ring-offset-1 transition-[color,border-color] duration-150 ease-out active:scale-90 active:duration-75 ${style}`}
     >
-      {isDark === null ? null : isDark ? <SunIcon /> : <MoonIcon />}
+      <span key={settleKey} className={settleKey > 0 ? "inline-flex animate-toggle-settle" : "inline-flex"}>
+        {isDark === null ? null : isDark ? <SunIcon /> : <MoonIcon />}
+      </span>
     </button>
   );
 }

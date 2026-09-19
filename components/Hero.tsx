@@ -4,7 +4,7 @@ import { getConfidence, type ConfidenceLevel } from "@/lib/confidence-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import ScoreGauge from "@/components/ScoreGauge";
 import InfoTip from "@/components/InfoTip";
-import SevenSegmentValue from "@/components/SevenSegmentValue";
+import Figure from "@/components/Figure";
 
 function confidenceTone(level: ConfidenceLevel): BadgeTone {
   if (level === "HIGH") return "emerald";
@@ -25,17 +25,17 @@ function freshnessTone(status: string): BadgeTone {
 }
 
 function changeColor(value: number | null) {
-  if (value === null) return "text-slate-600 dark:text-slate-400";
+  if (value === null) return "text-stone-600 dark:text-stone-400";
   if (value > 0) return "text-emerald-700 dark:text-emerald-400";
   if (value < 0) return "text-red-700 dark:text-red-400";
-  return "text-slate-600 dark:text-slate-400";
+  return "text-stone-600 dark:text-stone-400";
 }
 
-function scoreSegmentColor(score: number | null) {
-  if (score === null) return "fill-slate-500";
-  if (score >= 15) return "fill-emerald-400";
-  if (score <= -15) return "fill-red-400";
-  return "fill-amber-400";
+function scoreTextColor(score: number | null) {
+  if (score === null) return "text-stone-500";
+  if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
+  if (score <= -15) return "text-red-700 dark:text-red-400";
+  return "text-amber-700 dark:text-amber-400";
 }
 
 function coreFeeds(data: DashboardData) {
@@ -49,7 +49,7 @@ function coreFeeds(data: DashboardData) {
 function feedDotColor(status: string) {
   if (status === "FRESH") return "text-emerald-500 dark:text-emerald-400";
   if (status === "DELAYED") return "text-amber-500 dark:text-amber-400";
-  if (status === "MARKET_CLOSED") return "text-slate-400 dark:text-slate-600";
+  if (status === "MARKET_CLOSED") return "text-stone-400 dark:text-stone-600";
   return "text-red-500 dark:text-red-400";
 }
 
@@ -58,12 +58,12 @@ export default async function Hero({ data }: { data: DashboardData }) {
   const confidence = await getConfidence(data);
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 sm:p-8 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="p-6 sm:p-8">
       <div className="grid md:grid-cols-2 gap-8">
         {/* RATE */}
-        <div className="md:border-r border-slate-200 dark:border-slate-800 md:pr-8">
+        <div className="md:border-r border-stone-200 dark:border-stone-800 md:pr-8">
           <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
-            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
+            <p className="text-xs font-medium text-stone-600 dark:text-stone-400 uppercase tracking-widest">
               AUD/THB Spot
             </p>
 
@@ -75,32 +75,44 @@ export default async function Hero({ data }: { data: DashboardData }) {
             )}
           </div>
 
-          <div className="mt-3 inline-flex rounded-md bg-instrument border border-slate-800 px-4 py-3 overflow-x-auto max-w-full">
-            <SevenSegmentValue
+          <div className="mt-2 overflow-x-auto max-w-full">
+            <Figure
               value={data.latestPrice ? Number(data.latestPrice.rate).toFixed(4) : null}
-              litClassName="fill-teal-300"
-              placeholderLength={7}
+              className="text-4xl sm:text-5xl font-semibold tracking-tight"
             />
           </div>
 
-          <div className="flex flex-wrap gap-x-5 gap-y-1 mt-4 text-sm font-mono">
-            <span className={changeColor(data.change1H)}>
-              1H {data.change1H !== null ? `${data.change1H >= 0 ? "+" : ""}${data.change1H.toFixed(2)}%` : "--"}
+          <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 mt-4 text-sm">
+            <span className="inline-flex items-baseline gap-1">
+              1H
+              <Figure
+                value={data.change1H !== null ? `${data.change1H >= 0 ? "+" : ""}${data.change1H.toFixed(2)}%` : null}
+                className={changeColor(data.change1H)}
+              />
             </span>
 
-            <span className={changeColor(data.change4H)}>
-              4H {data.change4H !== null ? `${data.change4H >= 0 ? "+" : ""}${data.change4H.toFixed(2)}%` : "--"}
+            <span className="inline-flex items-baseline gap-1">
+              4H
+              <Figure
+                value={data.change4H !== null ? `${data.change4H >= 0 ? "+" : ""}${data.change4H.toFixed(2)}%` : null}
+                className={changeColor(data.change4H)}
+              />
             </span>
 
-            <span className="text-slate-600 dark:text-slate-400">
-              Range {data.intradayLow !== null && data.intradayHigh !== null
-                ? `${data.intradayLow.toFixed(4)} - ${data.intradayHigh.toFixed(4)}`
-                : "--"}
+            <span className="inline-flex items-baseline gap-1 text-stone-600 dark:text-stone-400">
+              Range
+              <Figure
+                value={
+                  data.intradayLow !== null && data.intradayHigh !== null
+                    ? `${data.intradayLow.toFixed(4)} - ${data.intradayHigh.toFixed(4)}`
+                    : null
+                }
+              />
             </span>
           </div>
 
           {data.latestPrice && (
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-3">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-3">
               Updated{" "}
               {new Date(data.latestPrice.market_timestamp).toLocaleString("en-GB", {
                 timeZone: "Asia/Bangkok",
@@ -114,10 +126,8 @@ export default async function Hero({ data }: { data: DashboardData }) {
             </p>
           )}
 
-          {/* DATA HEALTH -- three small lit/ghost indicators, one per core
-              feed, instead of a narrated "X/3 fresh" sentence: freshness
-              shown as instrument state, matching how the ghost-segment
-              readouts above show missing data, not described in prose. */}
+          {/* DATA HEALTH -- three small dots, one per core feed, instead of
+              a narrated "X/3 fresh" sentence. */}
           <div
             className="flex items-center gap-1.5 mt-1.5"
             aria-label={`Core feed status: ${coreFeeds(data)
@@ -133,11 +143,11 @@ export default async function Hero({ data }: { data: DashboardData }) {
             ))}
           </div>
 
-          <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
-            <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
+          <div className="mt-5 pt-4 border-t border-stone-200 dark:border-stone-800">
+            <p className="text-xs font-medium text-stone-600 dark:text-stone-400 uppercase tracking-widest">
               Daily Forecast
             </p>
-            <p className="text-sm text-slate-600 dark:text-slate-400 mt-1 leading-relaxed">
+            <p className="text-sm text-stone-600 dark:text-stone-400 mt-1 leading-relaxed">
               โมเดลคำนวณคาดการณ์ล่วงหน้า 24 ชม. อยู่เบื้องหลังทุกชั่วโมงอยู่แล้ว
               แต่ยังไม่โชว์ตัวเลขจนกว่า Track Record ด้านล่างจะมีข้อมูลพอยืนยันว่าแม่นกว่าเดา
             </p>
@@ -146,21 +156,18 @@ export default async function Hero({ data }: { data: DashboardData }) {
 
         {/* CORE FX SCORE */}
         <div>
-          <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest inline-flex items-center">
+          <p className="text-xs font-medium text-stone-600 dark:text-stone-400 uppercase tracking-widest inline-flex items-center">
             Core FX Score
             <InfoTip text="One score combining 7 market and economic signals: -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
 
-          <div className="flex flex-wrap items-center gap-3 mt-3">
-            <div className="inline-flex rounded-md bg-instrument border border-slate-800 px-4 py-3">
-              <SevenSegmentValue
-                value={data.coreFxScore !== null ? String(data.coreFxScore) : null}
-                litClassName={scoreSegmentColor(data.coreFxScore)}
-                placeholderLength={3}
-              />
-            </div>
+          <div className="flex flex-wrap items-baseline gap-3 mt-2">
+            <Figure
+              value={data.coreFxScore !== null ? String(data.coreFxScore) : null}
+              className={`text-4xl sm:text-5xl font-semibold tracking-tight ${scoreTextColor(data.coreFxScore)}`}
+            />
 
-            <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{data.coreBias}</p>
+            <p className="text-lg font-semibold text-stone-700 dark:text-stone-300">{data.coreBias}</p>
           </div>
 
           <div className="mt-2 inline-flex items-center">
@@ -183,9 +190,9 @@ export default async function Hero({ data }: { data: DashboardData }) {
             </div>
           )}
 
-          <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
+          <div className="mt-5 pt-4 border-t border-stone-200 dark:border-stone-800">
             <div className="flex items-center justify-between">
-              <p className="text-sm text-slate-600 dark:text-slate-400 inline-flex items-center">
+              <p className="text-sm text-stone-600 dark:text-stone-400 inline-flex items-center">
                 Model Coverage
                 <InfoTip text="How much of the model actually had data this run. Lower means fewer signals than usual." />
               </p>
@@ -194,15 +201,15 @@ export default async function Hero({ data }: { data: DashboardData }) {
               </p>
             </div>
 
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-2">
               Model factors: Price, Cross, Relative Market, Commodity, Macro / Policy, Risk and Mean Reversion.
             </p>
 
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
               Coverage คือสัดส่วนข้อมูลที่มีใช้จริงตอนนี้ ไม่ใช่ความแม่นยำของคะแนน
             </p>
 
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
               Gold ยังไม่รวมในคะแนน แต่ตอนนี้เต็ม 100/100 ได้เมื่อข้อมูลอื่นครบ และจะลดลงถ้าข้อมูลขาดหรือตลาดปิด
             </p>
           </div>

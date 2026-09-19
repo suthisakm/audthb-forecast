@@ -8,7 +8,7 @@ export default function ScoreGauge({ score }: { score: number | null }) {
 
   const markerColor =
     score === null
-      ? "bg-slate-500 border-slate-500"
+      ? "bg-stone-500 border-stone-500"
       : score >= 15
         ? "bg-emerald-500 border-emerald-500"
         : score <= -15
@@ -18,17 +18,17 @@ export default function ScoreGauge({ score }: { score: number | null }) {
   return (
     <div className="mt-3">
       <div className="relative h-2 rounded-full bg-gradient-to-r from-red-400 via-amber-300 to-emerald-400 dark:from-red-500/80 dark:via-amber-500/80 dark:to-emerald-500/80">
-        <div className="absolute inset-y-0 left-1/2 w-px bg-white/70 dark:bg-instrument/60" />
+        <div className="absolute inset-y-0 left-1/2 w-px bg-white/70 dark:bg-background/60" />
 
         {score !== null && (
           <div
-            className={`absolute -top-1 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-slate-50 dark:border-slate-900 ${markerColor}`}
+            className={`absolute -top-1 h-4 w-4 -translate-x-1/2 rounded-full border-2 border-stone-50 dark:border-stone-900 ${markerColor}`}
             style={{ left: `${pct}%` }}
           />
         )}
       </div>
 
-      <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-400 mt-1.5 tabular-nums">
+      <div className="flex justify-between text-[10px] text-stone-600 dark:text-stone-400 mt-1.5 tabular-nums">
         <span>-100</span>
         <span>0</span>
         <span>+100</span>

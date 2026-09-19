@@ -1,24 +1,24 @@
 import type { Metadata } from "next";
-import { IBM_Plex_Sans, JetBrains_Mono } from "next/font/google";
+import { Inter, Spectral } from "next/font/google";
 import "./globals.css";
 
-// IBM Plex Sans: formal/institutional register for headings and UI copy
-// (financial, banking, enterprise) -- deliberately not the generic
-// Inter/system-sans look that reads as a default AI-scaffolded Tailwind
-// site. JetBrains Mono is reserved for every NUMBER on the page (rate,
-// score, percentages, the clock) -- a real terminal/monospace-data font
-// rather than a mono variant of the UI font, so figures read like a
-// trading tape, not prose that happens to be monospaced.
-const plexSans = IBM_Plex_Sans({
+// Inter: a plain workhorse sans for headings and UI copy -- Operate
+// surfaces are well served by a system-stack-adjacent face, so the
+// craft budget goes into the numerals instead. Spectral is reserved for
+// every NUMBER on the page (rate, score, percentages, the clock): a
+// formal serif with real tabular figures, set in ruled columns like a
+// nautical almanac's daily tables -- the direct replacement for the
+// seven-segment instrument readouts the user found hard to read.
+const inter = Inter({
   variable: "--font-geist-sans",
   subsets: ["latin"],
   weight: ["400", "500", "600", "700"],
 });
 
-const jetbrainsMono = JetBrains_Mono({
+const spectral = Spectral({
   variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["400", "500", "600", "700"],
 });
 
 export const metadata: Metadata = {
@@ -44,7 +44,8 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${plexSans.variable} ${jetbrainsMono.variable} h-full antialiased`}
+      className={`${inter.variable} ${spectral.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />

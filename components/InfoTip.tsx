@@ -18,13 +18,13 @@ export default function InfoTip({ text }: { text: string }) {
         }}
         onBlur={() => setOpen(false)}
         aria-label="More info"
-        className="ml-1 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-slate-400 dark:border-slate-600 text-[9px] leading-none text-slate-600 dark:text-slate-400 hover:border-slate-600 dark:hover:border-slate-400 hover:text-slate-700 dark:hover:text-slate-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-50 dark:focus-visible:ring-offset-slate-800"
+        className="ml-1 inline-flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border border-stone-400 dark:border-stone-600 text-[9px] leading-none text-stone-600 dark:text-stone-400 hover:border-stone-600 dark:hover:border-stone-400 hover:text-stone-700 dark:hover:text-stone-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-brass-500 focus-visible:ring-offset-1 focus-visible:ring-offset-stone-50 dark:focus-visible:ring-offset-stone-800"
       >
         i
       </button>
 
       <span
-        className={`pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2.5 text-xs font-normal normal-case tracking-normal leading-relaxed text-slate-700 dark:text-slate-300 shadow-xl transition-opacity ${
+        className={`pointer-events-none absolute bottom-full left-1/2 z-50 mb-2 w-56 -translate-x-1/2 rounded-md border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800 p-2.5 text-xs font-normal normal-case tracking-normal leading-relaxed text-stone-700 dark:text-stone-300 shadow-xl transition-opacity ${
           open ? "opacity-100" : "opacity-0 group-hover:opacity-100"
         }`}
       >

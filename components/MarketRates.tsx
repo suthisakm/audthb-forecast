@@ -4,7 +4,7 @@ import type {
 } from "@/lib/dashboard-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import StatusLight from "@/components/StatusLight";
-import SevenSegmentValue from "@/components/SevenSegmentValue";
+import Figure from "@/components/Figure";
 
 function formatTime(timestamp: string) {
   return new Date(timestamp).toLocaleString(
@@ -48,7 +48,7 @@ function FreshnessBadge({
 
       {freshness.ageMinutes !== null &&
         freshness.status !== "MARKET_CLOSED" && (
-          <p className="text-xs text-slate-600 dark:text-slate-400">
+          <p className="text-xs text-stone-600 dark:text-stone-400">
             {freshness.ageMinutes.toFixed(0)} min ago
           </p>
         )}
@@ -62,9 +62,9 @@ export default function MarketRates({
   data: DashboardData;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="p-6">
       <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
-        <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
+        <StatusLight colorClassName="text-brass-500 dark:text-brass-400" />
         Market Rates
       </h2>
 
@@ -72,22 +72,17 @@ export default function MarketRates({
 
         {/* AUD/THB DIRECT */}
         <div>
-          <p className="text-slate-600 dark:text-slate-400 text-sm">
+          <p className="text-stone-600 dark:text-stone-400 text-sm">
             AUD/THB Direct
           </p>
 
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
-            <SevenSegmentValue
-              value={data.directRate !== null ? data.directRate.toFixed(4) : null}
-              height={26}
-              svgClassName="h-[26px]"
-              litClassName="fill-teal-300"
-              placeholderLength={7}
-            />
-          </div>
+          <Figure
+            value={data.directRate !== null ? data.directRate.toFixed(4) : null}
+            className="text-2xl font-semibold"
+          />
 
           {data.latestDirect && (
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-2">
               {formatTime(
                 data.latestDirect.market_timestamp
               )}
@@ -101,22 +96,17 @@ export default function MarketRates({
 
         {/* AUD/THB CROSS */}
         <div>
-          <p className="text-slate-600 dark:text-slate-400 text-sm">
+          <p className="text-stone-600 dark:text-stone-400 text-sm">
             AUD/THB Cross
           </p>
 
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
-            <SevenSegmentValue
-              value={data.crossRate !== null ? data.crossRate.toFixed(4) : null}
-              height={26}
-              svgClassName="h-[26px]"
-              litClassName="fill-teal-300"
-              placeholderLength={7}
-            />
-          </div>
+          <Figure
+            value={data.crossRate !== null ? data.crossRate.toFixed(4) : null}
+            className="text-2xl font-semibold"
+          />
 
           {data.crossTimestamp && (
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-2">
               Matched:{" "}
               {formatTime(data.crossTimestamp)}
             </p>
@@ -136,7 +126,7 @@ export default function MarketRates({
           </div>
 
           {data.crossTimeGapMinutes !== null && (
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">
               Source gap:{" "}
               {data.crossTimeGapMinutes.toFixed(1)} min
             </p>
@@ -145,22 +135,17 @@ export default function MarketRates({
 
         {/* AUD/USD */}
         <div>
-          <p className="text-slate-600 dark:text-slate-400 text-sm">
+          <p className="text-stone-600 dark:text-stone-400 text-sm">
             AUD/USD
           </p>
 
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
-            <SevenSegmentValue
-              value={data.latestAudUsd ? Number(data.latestAudUsd.rate).toFixed(5) : null}
-              height={26}
-              svgClassName="h-[26px]"
-              litClassName="fill-teal-300"
-              placeholderLength={7}
-            />
-          </div>
+          <Figure
+            value={data.latestAudUsd ? Number(data.latestAudUsd.rate).toFixed(5) : null}
+            className="text-2xl font-semibold"
+          />
 
           {data.latestAudUsd && (
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-2">
               {formatTime(
                 data.latestAudUsd.market_timestamp
               )}
@@ -174,22 +159,17 @@ export default function MarketRates({
 
         {/* USD/THB */}
         <div>
-          <p className="text-slate-600 dark:text-slate-400 text-sm">
+          <p className="text-stone-600 dark:text-stone-400 text-sm">
             USD/THB
           </p>
 
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
-            <SevenSegmentValue
-              value={data.latestUsdThb ? Number(data.latestUsdThb.rate).toFixed(5) : null}
-              height={26}
-              svgClassName="h-[26px]"
-              litClassName="fill-teal-300"
-              placeholderLength={7}
-            />
-          </div>
+          <Figure
+            value={data.latestUsdThb ? Number(data.latestUsdThb.rate).toFixed(5) : null}
+            className="text-2xl font-semibold"
+          />
 
           {data.latestUsdThb && (
-            <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+            <p className="text-xs text-stone-600 dark:text-stone-400 mt-2">
               {formatTime(
                 data.latestUsdThb.market_timestamp
               )}

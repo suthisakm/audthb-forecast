@@ -1,5 +1,5 @@
-// A small lit indicator, like a physical instrument's power/status LED --
-// replaces the colored top-border "accent stripe" convention (a
+// A small marker dot beside a card's own title -- replaces the colored
+// top-border "accent stripe" convention (a
 // well-known AI-generated-UI tell: a thick single-side border clashing
 // with a rounded card corner). One lit dot beside the card's own title
 // reads as "this panel is live and belongs to this category" without the

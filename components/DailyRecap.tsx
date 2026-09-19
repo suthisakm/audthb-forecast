@@ -1,14 +1,14 @@
 import type { DailyRecap } from "@/lib/daily-recap-data";
 import type { DashboardData } from "@/lib/dashboard-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
-import SevenSegmentValue from "@/components/SevenSegmentValue";
+import Figure from "@/components/Figure";
 import StatusLight from "@/components/StatusLight";
 
-function scoreSegmentColor(score: number | null) {
-  if (score === null) return "fill-slate-500";
-  if (score >= 15) return "fill-emerald-400";
-  if (score <= -15) return "fill-red-400";
-  return "fill-amber-400";
+function scoreTextColor(score: number | null) {
+  if (score === null) return "text-stone-500";
+  if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
+  if (score <= -15) return "text-red-700 dark:text-red-400";
+  return "text-amber-700 dark:text-amber-400";
 }
 
 function biasTone(bias: string): BadgeTone {
@@ -18,10 +18,10 @@ function biasTone(bias: string): BadgeTone {
 }
 
 function changeColor(value: number | null) {
-  if (value === null) return "text-slate-600 dark:text-slate-400";
+  if (value === null) return "text-stone-600 dark:text-stone-400";
   if (value > 0) return "text-emerald-700 dark:text-emerald-400";
   if (value < 0) return "text-red-700 dark:text-red-400";
-  return "text-slate-600 dark:text-slate-400";
+  return "text-stone-600 dark:text-stone-400";
 }
 
 // Where today's latest rate sits between today's low and high -- same
@@ -33,15 +33,15 @@ function RangeBar({ min, max, current }: { min: number; max: number; current: nu
 
   return (
     <div className="mt-4">
-      <div className="relative h-1.5 rounded-full bg-slate-200 dark:bg-slate-800">
-        <div className="absolute inset-y-0 left-0 rounded-full bg-teal-600/40 dark:bg-teal-400/40" style={{ width: `${pct}%` }} />
+      <div className="relative h-1.5 rounded-full bg-stone-200 dark:bg-stone-800">
+        <div className="absolute inset-y-0 left-0 rounded-full bg-brass-600/40 dark:bg-brass-400/40" style={{ width: `${pct}%` }} />
         <div
-          className="absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-slate-50 dark:border-slate-900 bg-teal-600 dark:bg-teal-400"
+          className="absolute -top-1 h-3.5 w-3.5 -translate-x-1/2 rounded-full border-2 border-stone-50 dark:border-stone-900 bg-brass-600 dark:bg-brass-400"
           style={{ left: `${pct}%` }}
         />
       </div>
 
-      <div className="flex justify-between text-[10px] text-slate-600 dark:text-slate-400 mt-1 font-mono">
+      <div className="flex justify-between text-[10px] text-stone-600 dark:text-stone-400 mt-1 font-mono">
         <span>{min.toFixed(4)}</span>
         <span>{max.toFixed(4)}</span>
       </div>
@@ -62,12 +62,12 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
 
   if (recap.sampleSize === 0) {
     return (
-      <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+      <div className="p-6">
         <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
-          <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
+          <StatusLight colorClassName="text-brass-500 dark:text-brass-400" />
           Daily Recap
         </h2>
-        <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
+        <p className="text-sm text-stone-600 dark:text-stone-400 mt-2">
           No price snapshots yet today -- check back after the score-snapshot cron has run.
         </p>
       </div>
@@ -88,31 +88,24 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       : null;
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="p-6">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
-            <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
+            <StatusLight colorClassName="text-brass-500 dark:text-brass-400" />
             Daily Recap
           </h2>
-          <p className="text-sm text-slate-600 dark:text-slate-400">
+          <p className="text-sm text-stone-600 dark:text-stone-400">
             AUD/THB today -- {recap.sampleSize} snapshot{recap.sampleSize === 1 ? "" : "s"}
           </p>
         </div>
 
         <div className="text-right">
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5">
-            <SevenSegmentValue
-              value={latestRate !== null ? latestRate.toFixed(4) : null}
-              height={32}
-              svgClassName="h-8"
-              litClassName="fill-teal-300"
-              placeholderLength={7}
-            />
-          </div>
-          <p className={`text-sm font-mono mt-1 ${changeColor(changePct)}`}>
-            {changePct !== null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}% today` : "--"}
-          </p>
+          <Figure value={latestRate !== null ? latestRate.toFixed(4) : null} className="block text-2xl font-semibold" />
+          <Figure
+            value={changePct !== null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}% today` : null}
+            className={`block text-sm mt-1 ${changeColor(changePct)}`}
+          />
         </div>
       </div>
 
@@ -120,62 +113,39 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
         <RangeBar min={minRate} max={maxRate} current={latestRate} />
       )}
 
-      <div className="grid grid-cols-2 gap-3 mt-4">
-        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-instrument p-3">
-          <p className="text-xs text-slate-600 dark:text-slate-400">Open</p>
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1 mt-1">
-            <SevenSegmentValue
-              value={recap.openRate !== null ? recap.openRate.toFixed(4) : null}
-              height={16}
-              svgClassName="h-4"
-              litClassName="fill-slate-100"
-              placeholderLength={7}
-            />
-          </div>
+      <div className="mt-4">
+        <div className="flex items-center justify-between py-2 border-b border-stone-200 dark:border-stone-800">
+          <p className="text-sm text-stone-600 dark:text-stone-400">Open</p>
+          <Figure value={recap.openRate !== null ? recap.openRate.toFixed(4) : null} className="text-base font-semibold" />
         </div>
 
-        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-instrument p-3">
-          <p className="text-xs text-slate-600 dark:text-slate-400">High</p>
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1 mt-1">
-            <SevenSegmentValue
-              value={maxRate !== null ? maxRate.toFixed(4) : null}
-              height={16}
-              svgClassName="h-4"
-              litClassName="fill-emerald-400"
-              placeholderLength={7}
-            />
-          </div>
+        <div className="flex items-center justify-between py-2 border-b border-stone-200 dark:border-stone-800">
+          <p className="text-sm text-stone-600 dark:text-stone-400">High</p>
+          <Figure
+            value={maxRate !== null ? maxRate.toFixed(4) : null}
+            className="text-base font-semibold text-emerald-700 dark:text-emerald-400"
+          />
         </div>
 
-        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-instrument p-3">
-          <p className="text-xs text-slate-600 dark:text-slate-400">Low</p>
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1 mt-1">
-            <SevenSegmentValue
-              value={minRate !== null ? minRate.toFixed(4) : null}
-              height={16}
-              svgClassName="h-4"
-              litClassName="fill-red-400"
-              placeholderLength={7}
-            />
-          </div>
+        <div className="flex items-center justify-between py-2 border-b border-stone-200 dark:border-stone-800">
+          <p className="text-sm text-stone-600 dark:text-stone-400">Low</p>
+          <Figure
+            value={minRate !== null ? minRate.toFixed(4) : null}
+            className="text-base font-semibold text-red-700 dark:text-red-400"
+          />
         </div>
 
-        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-instrument p-3">
-          <p className="text-xs text-slate-600 dark:text-slate-400">Core FX Score</p>
-          <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1 mt-1">
-            <SevenSegmentValue
-              value={latestScore !== null ? String(latestScore) : null}
-              height={16}
-              svgClassName="h-4"
-              litClassName={scoreSegmentColor(latestScore)}
-              placeholderLength={3}
-            />
-          </div>
+        <div className="flex items-center justify-between py-2">
+          <p className="text-sm text-stone-600 dark:text-stone-400">Core FX Score</p>
+          <Figure
+            value={latestScore !== null ? String(latestScore) : null}
+            className={`text-base font-semibold ${scoreTextColor(latestScore)}`}
+          />
         </div>
       </div>
 
-      <div className="mt-3 pt-3 border-t border-slate-200 dark:border-slate-800 flex items-center justify-between gap-3">
-        <p className="text-xs text-slate-600 dark:text-slate-400">Dominant bias today</p>
+      <div className="mt-3 pt-3 border-t border-stone-200 dark:border-stone-800 flex items-center justify-between gap-3">
+        <p className="text-xs text-stone-600 dark:text-stone-400">Dominant bias today</p>
         <StatusBadge label={dominantBias} tone={biasTone(dominantBias)} />
       </div>
     </div>

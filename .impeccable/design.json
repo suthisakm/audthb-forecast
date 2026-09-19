@@ -4,25 +4,25 @@
   "title": "Design System: AUD/THB Forecast Dashboard",
   "extensions": {
     "colorMeta": {
-      "ledger-teal": { "role": "primary", "displayName": "Ledger Teal", "canonical": "#0d9488", "tonalRamp": ["#042f2b", "#134e4a", "#115e59", "#0f766e", "#0d9488", "#2dd4bf", "#5eead4", "#99f6e4"] },
-      "segment-teal-lit": { "role": "primary", "displayName": "Segment Teal (lit-segment fill)", "canonical": "#5eead4", "tonalRamp": ["#042f2b", "#115e59", "#0f766e", "#14b8a6", "#2dd4bf", "#5eead4", "#99f6e4", "#ccfbf1"] },
-      "instrument-ground": { "role": "neutral", "displayName": "Instrument Ground", "canonical": "#05070a", "tonalRamp": ["#05070a", "#0b0e14", "#12161f", "#1c212c", "#2a303c", "#454c59", "#6b7280", "#9ca3af"] },
-      "instrument-surface": { "role": "neutral", "displayName": "Instrument Surface", "canonical": "#0b0e14", "tonalRamp": ["#05070a", "#0b0e14", "#12161f", "#1c212c", "#2a303c", "#454c59", "#6b7280", "#9ca3af"] },
-      "ghost-segment": { "role": "neutral", "displayName": "Ghost Segment", "canonical": "rgba(255,255,255,0.1)", "tonalRamp": ["rgba(255,255,255,0.04)", "rgba(255,255,255,0.06)", "rgba(255,255,255,0.08)", "rgba(255,255,255,0.1)", "rgba(255,255,255,0.14)", "rgba(255,255,255,0.2)", "rgba(255,255,255,0.35)", "rgba(255,255,255,0.55)"] },
+      "brass": { "role": "primary", "displayName": "Brass", "canonical": "#9c6b24", "tonalRamp": ["#2b1d0c", "#4a3315", "#5f4119", "#7d551f", "#9c6b24", "#b9812e", "#cf9c44", "#dfba6d", "#ecd6a5", "#f5ead1", "#fbf6ec"] },
+      "background": { "role": "neutral", "displayName": "Background (ivory/near-black)", "canonical": "#f6f1e4", "tonalRamp": ["#14110d", "#f6f1e4"] },
+      "surface": { "role": "neutral", "displayName": "Sheet Surface", "canonical": "#fbf8ef", "tonalRamp": ["#1c170f", "#fbf8ef"] },
+      "inset": { "role": "neutral", "displayName": "Inset Tile", "canonical": "#eee5cf", "tonalRamp": ["#241e14", "#eee5cf"] },
+      "masthead": { "role": "neutral", "displayName": "Masthead (fixed, non-theme-switching)", "canonical": "#171310", "tonalRamp": ["#171310"] },
       "positive": { "role": "secondary", "displayName": "Positive / Fresh Emerald", "canonical": "#059669", "tonalRamp": ["#022c22", "#064e3b", "#065f46", "#047857", "#059669", "#34d399", "#6ee7b7", "#a7f3d0"] },
       "negative": { "role": "secondary", "displayName": "Negative / Stale Red", "canonical": "#dc2626", "tonalRamp": ["#450a0a", "#7f1d1d", "#991b1b", "#b91c1c", "#dc2626", "#f87171", "#fca5a5", "#fecaca"] },
       "warning": { "role": "secondary", "displayName": "Warning Amber", "canonical": "#d97706", "tonalRamp": ["#451a03", "#78350f", "#92400e", "#b45309", "#d97706", "#fbbf24", "#fcd34d", "#fde68a"] }
     },
     "typographyMeta": {
-      "heading": { "displayName": "IBM Plex Sans / Heading", "purpose": "Card titles, masthead title, section labels." },
-      "body": { "displayName": "IBM Plex Sans / Body", "purpose": "Explanatory copy, factor descriptions." },
-      "numeric": { "displayName": "JetBrains Mono / Secondary Numeric", "purpose": "Non-primary numeric text not rendered as a seven-segment digit (percentages, coverage, timestamps)." }
+      "heading": { "displayName": "Inter / Heading", "purpose": "Row titles, masthead title, section labels." },
+      "body": { "displayName": "Inter / Body", "purpose": "Explanatory copy, factor descriptions." },
+      "numeric": { "displayName": "Spectral / All Numerals", "purpose": "Every rate, score, percentage, and timestamp figure, rendered through Figure.tsx with tabular figures." }
     },
     "shadows": [
       { "name": "floating-overlay", "value": "shadow-xl", "purpose": "Alerts popup and InfoTip tooltip only -- the only elements genuinely overlaying document flow." }
     ],
     "motion": [
-      { "name": "segment-transition", "value": "transition-colors duration-500 ease-out", "purpose": "Seven-segment lit/ghost state changes, so a freshness flip reads as an instrument event rather than a snap." }
+      { "name": "toggle-settle", "value": "animation: toggle-settle 320ms cubic-bezier(0.16, 1, 0.3, 1)", "purpose": "ThemeToggle's icon settles (scale 0.7 -> 1.12 -> 1.0) after every theme switch; guarded by prefers-reduced-motion." }
     ],
     "breakpoints": [
       { "name": "sm", "value": "640px" },
@@ -31,20 +31,28 @@
   },
   "components": [
     {
-      "name": "Seven-Segment Readout",
+      "name": "The Sheet",
+      "kind": "layout",
+      "refersTo": "sheet",
+      "description": "Signature structural device: the entire Market-through-Sources page body is one continuous bordered sheet, ruled into rows and column-groups by hairlines instead of a grid of separately-bordered cards.",
+      "html": "<div class=\"ds-sheet\"><div class=\"ds-row\"><h2 class=\"ds-row-title\"><span class=\"ds-status-light\"></span>Market Rates</h2></div><div class=\"ds-row\">Next row</div></div>",
+      "css": ".ds-sheet { border-radius: 6px; border: 1px solid #e7e0d0; background: #fbf8ef; } .ds-row { padding: 24px; border-bottom: 1px solid #e7e0d0; } .ds-row:last-child { border-bottom: none; }"
+    },
+    {
+      "name": "Figure",
       "kind": "custom",
-      "refersTo": "seven-segment-value",
-      "description": "Signature numeric display: SVG seven-segment digits inside a near-black instrument casing, ghost (unlit) segments for missing/stale values.",
-      "html": "<div class=\"ds-instrument\"><svg class=\"ds-digit\" viewBox=\"0 0 40 70\" aria-hidden=\"true\"><rect x=\"5\" y=\"2\" width=\"30\" height=\"7\" rx=\"3.5\" class=\"ds-seg ds-seg-lit\"/><rect x=\"31\" y=\"11\" width=\"7\" height=\"18.5\" rx=\"3.5\" class=\"ds-seg ds-seg-lit\"/><rect x=\"31\" y=\"40\" width=\"7\" height=\"18.5\" rx=\"3.5\" class=\"ds-seg ds-seg-lit\"/><rect x=\"5\" y=\"61\" width=\"30\" height=\"7\" rx=\"3.5\" class=\"ds-seg ds-seg-lit\"/><rect x=\"2\" y=\"40\" width=\"7\" height=\"18.5\" rx=\"3.5\" class=\"ds-seg ds-seg-ghost\"/><rect x=\"2\" y=\"11\" width=\"7\" height=\"18.5\" rx=\"3.5\" class=\"ds-seg ds-seg-ghost\"/><rect x=\"5\" y=\"31.5\" width=\"30\" height=\"7\" rx=\"3.5\" class=\"ds-seg ds-seg-ghost\"/></svg></div>",
-      "css": ".ds-instrument { display: inline-flex; align-items: flex-end; gap: 4px; background: #05070a; border: 1px solid #1e293b; border-radius: 4px; padding: 12px 16px; } .ds-digit { width: 40px; height: 70px; } .ds-seg { transition: fill 0.5s ease-out; } .ds-seg-lit { fill: #5eead4; } .ds-seg-ghost { fill: rgba(255,255,255,0.1); }"
+      "refersTo": "figure",
+      "description": "Signature numeral component: every rate/score/percentage renders in Spectral with tabular figures via this one span; a null value renders a greyed em dash held in its column, never blank space.",
+      "html": "<span class=\"ds-figure\">142.8317</span><span class=\"ds-figure ds-figure--held\">—</span>",
+      "css": ".ds-figure { font-family: Spectral, serif; font-variant-numeric: tabular-nums; } .ds-figure--held { color: #a8a29e; }"
     },
     {
       "name": "Status Light",
       "kind": "custom",
       "refersTo": "status-light",
-      "description": "Small lit dot preceding a card or section title, marking category/liveness. Replaces a removed colored top-border card-accent convention.",
-      "html": "<h2 class=\"ds-card-title\"><span class=\"ds-status-light\"></span>Market Rates</h2>",
-      "css": ".ds-card-title { display: inline-flex; align-items: center; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; color: #0f172a; } .ds-status-light { display: inline-block; height: 8px; width: 8px; border-radius: 9999px; background: currentColor; color: #0d9488; margin-right: 8px; }"
+      "description": "Small lit dot preceding a row or section title, marking category/liveness. Replaces a colored top-border card-accent convention.",
+      "html": "<h2 class=\"ds-row-title\"><span class=\"ds-status-light\"></span>Market Rates</h2>",
+      "css": ".ds-row-title { display: inline-flex; align-items: center; font-size: 20px; font-weight: 600; letter-spacing: -0.01em; } .ds-status-light { display: inline-block; height: 8px; width: 8px; border-radius: 9999px; background: currentColor; color: #9c6b24; margin-right: 8px; }"
     },
     {
       "name": "Status Tag",
@@ -55,51 +63,43 @@
       "css": ".ds-status-tag { display: inline-flex; align-items: center; border-radius: 2px; border: 1px solid; padding: 2px 6px; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; } .ds-status-tag--emerald { border-color: rgba(5,150,105,0.5); color: #047857; }"
     },
     {
-      "name": "Card",
-      "kind": "card",
-      "refersTo": "card",
-      "description": "Flush bordered panel, no drop shadow; hover shifts border color one step.",
-      "html": "<div class=\"ds-card\"><h2 class=\"ds-card-title\"><span class=\"ds-status-light\"></span>Market Rates</h2></div>",
-      "css": ".ds-card { border-radius: 6px; border: 1px solid #e2e8f0; background: #f8fafc; padding: 24px; transition: border-color 0.2s; } .ds-card:hover { border-color: #cbd5e1; }"
-    },
-    {
       "name": "Icon Button",
       "kind": "button",
       "refersTo": "icon-button",
-      "description": "Theme toggle and similar icon-only controls: bordered, transparent, hover shifts to brand accent.",
+      "description": "Theme toggle and similar icon-only controls: bordered, transparent, hover shifts to brass accent, icon settles via toggle-settle keyframes on theme change.",
       "html": "<button class=\"ds-icon-btn\" aria-label=\"Toggle dark mode\"><svg viewBox=\"0 0 24 24\" width=\"16\" height=\"16\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"1.8\" stroke-linecap=\"round\"><circle cx=\"12\" cy=\"12\" r=\"4\"/><path d=\"M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41\"/></svg></button>",
-      "css": ".ds-icon-btn { display: inline-flex; align-items: center; justify-content: center; height: 32px; width: 32px; border-radius: 4px; border: 1px solid #e2e8f0; background: transparent; color: #475569; transition: color 0.2s, border-color 0.2s; } .ds-icon-btn:hover { border-color: #2dd4bf; color: #0f766e; } .ds-icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px #2dd4bf; }"
+      "css": ".ds-icon-btn { display: inline-flex; align-items: center; justify-content: center; height: 32px; width: 32px; border-radius: 4px; border: 1px solid #e7e0d0; background: transparent; color: #78716c; transition: color 0.15s, border-color 0.15s; } .ds-icon-btn:hover { border-color: #cf9c44; color: #7d551f; } .ds-icon-btn:focus-visible { outline: none; box-shadow: 0 0 0 2px #cf9c44; }"
     }
   ],
   "narrative": {
-    "northStar": "The Ghost-Segment Ledger",
-    "overview": "The dashboard reads as an institutional research desk's instrument panel, not a consumer SaaS product. It carries forward the prior system's ledger discipline (flush bordered surfaces, one brand accent, status colors that never double as decoration) and adds its defining device this pass: every headline number is a real seven-segment instrument readout, built from actual SVG segment geometry (components/SevenSegmentValue.tsx), not a webfont imitation. When a value is missing or stale, the digit cell doesn't disappear or fall back to a dash string -- it renders as a fully-formed digit position with every segment in its dim, unlit \"ghost\" state, so data completeness is legible at the segment level, the same way an idle LED clock still shows all its dark segments. This pass also removed the prior system's colored top-border card accent (a known AI-generated-UI tell) and replaced it with StatusLight -- a small bg-current dot beside a card's own title. The instrument casing itself does not theme-switch; a physical LED readout doesn't have a light mode.",
+    "northStar": "The Nautical Almanac",
+    "overview": "The dashboard reads as a daily almanac page -- a fixed table of precisely computed figures a navigator would trust their position to -- not a SaaS card grid and not the prior instrument-panel register. The whole page body from Market through Sources is one continuous bordered sheet (app/page.tsx), ruled into rows and divide-x column-groups by hairlines instead of separately-bordered cards. Every numeral renders through components/Figure.tsx in Spectral with true tabular figures, wired through the existing font-mono utility -- the direct fix for the prior seven-segment digits the user rejected as hard to read. A missing/stale value is a greyed em dash held in its column, never blank space. The palette moved from cool slate/teal to warm stone/brass; the masthead band alone stays fixed near-black regardless of theme, carrying over the prior system's non-switching casing behavior.",
     "keyCharacteristics": [
-      "Every headline and supporting number renders as a real seven-segment digit display, never a webfont or plain text numeral.",
-      "Missing/stale data is a visibly unlit ghost segment, never a blank string or omitted markup.",
-      "Category/section membership is marked by a small lit dot (StatusLight), never a colored top-border stripe.",
-      "The instrument casing (readout background) stays near-black regardless of page theme; only the page chrome around it switches.",
-      "One brand accent (teal), never reused for status meaning; status colors (emerald/red/amber) never reused as brand/structural color."
+      "The page body is one continuous bordered sheet, ruled into rows and column-groups by hairlines, never a grid of separately-bordered cards.",
+      "Every numeral renders through Figure.tsx in Spectral with tabular figures; a missing/stale value is a greyed em dash held in its column, never blank.",
+      "Row/section membership is marked by a StatusLight dot beside the row's own h2, never a colored top-border stripe.",
+      "Brass is the one structural/decorative accent, never reused for status meaning; status colors never reused as brand/structural color.",
+      "The masthead band stays fixed near-black regardless of page theme; only the page chrome around it switches."
     ],
     "rules": [
-      { "name": "The One Accent Rule", "body": "Teal is the only non-functional color on the page. If a new element needs emphasis and it isn't conveying bullish/bearish/warning/neutral, it gets teal or it gets nothing.", "section": "colors" },
-      { "name": "The Ghost-Segment Rule", "body": "A missing or stale numeric value never renders as \"--\", an empty string, or omitted markup -- it renders the full digit-cell template with every segment in its ghost (unlit) state.", "section": "colors" },
-      { "name": "The Dot-Not-Stripe Rule", "body": "Card/section category membership is marked by a StatusLight dot beside the title, never by a colored top-border or side-border stripe. The stripe convention was tried in the prior system and deliberately removed as a recognizable AI-UI tell.", "section": "colors" },
-      { "name": "The Numbers-Are-Instrument Rule", "body": "The primary numeric readouts render as seven-segment SVG digits, never as typeset text in any font. Secondary numeric text still uses JetBrains Mono, never IBM Plex Sans.", "section": "typography" },
-      { "name": "The Flush-Not-Floating Rule", "body": "An in-flow card never has a shadow or a top-border accent stripe. Category identity comes from the StatusLight dot; apparent elevation comes from a surface-color step, never box-shadow.", "section": "elevation" }
+      { "name": "The One Accent Rule", "body": "Brass is the only non-functional color on the page. If a new element needs emphasis and it isn't conveying bullish/bearish/warning/neutral, it gets brass or it gets nothing.", "section": "colors" },
+      { "name": "The Held-Value Rule", "body": "A missing or stale numeric value never renders as blank space or omitted markup -- Figure.tsx renders a greyed em dash held in its column, so the ruled layout never shifts.", "section": "colors" },
+      { "name": "The Dot-Not-Stripe Rule", "body": "Row/section category membership is marked by a StatusLight dot beside the h2, never by a colored top-border or side-border stripe.", "section": "colors" },
+      { "name": "The One-Numeral-Component Rule", "body": "Every numeric value on the page renders through Figure.tsx in Spectral with tabular figures, never as raw typeset text in Inter.", "section": "typography" },
+      { "name": "The Flush-Not-Floating Rule", "body": "No row or nested tile within the sheet has a shadow or a top-border accent stripe. Row identity comes from the StatusLight dot; apparent elevation comes from a surface-color step, never box-shadow.", "section": "elevation" }
     ],
     "dos": [
-      "Do render every primary numeric readout as a seven-segment SVG digit display, not typeset text.",
-      "Do render a missing/stale value as ghost (unlit) segments at the correct digit length, never as \"--\" or omitted markup.",
-      "Do mark card/section category with a StatusLight dot beside the title.",
-      "Do keep the instrument casing (bg-instrument) and card dark-mode surface (bg-instrument-surface) fixed regardless of theme toggle.",
-      "Do keep teal as the only decorative/structural accent color, and JetBrains Mono for any secondary numeric text not rendered as a segment display."
+      "Do keep the entire Market-through-Sources body as one continuous bordered sheet, ruled into rows/column-groups by hairlines.",
+      "Do render every numeric value through Figure.tsx in Spectral with tabular figures.",
+      "Do render a missing/stale value as a greyed em dash held in its column, never blank or omitted markup.",
+      "Do mark row/section category with a StatusLight dot beside the h2, never a colored top-border stripe.",
+      "Do keep the masthead band fixed regardless of theme toggle, and reserve SectionLabel for rows that group multiple distinct blocks."
     ],
     "donts": [
-      "Don't add a drop shadow to an in-flow card.",
-      "Don't add a colored top-border or side-border accent stripe to a card -- use StatusLight instead. (This is a defect the prior build carried and this redesign corrected; it is recorded here as removed, not as a device to reintroduce.)",
-      "Don't introduce a second brand accent hue alongside teal, or reuse a status color (emerald/red/amber) as a structural/brand color.",
-      "Don't round a status tag past rounded-sm, or fall back to a webfont/text numeral for a primary readout where a seven-segment display is expected."
+      "Don't add a drop shadow to a row or nested tile within the sheet.",
+      "Don't add a colored top-border or side-border accent stripe to a row -- use StatusLight instead.",
+      "Don't introduce a second brand accent hue alongside brass, or reuse a status color as a structural/brand color.",
+      "Don't add a SectionLabel above a single-block row (duplicates its own heading -- a banned kicker/eyebrow pattern), or fall back to a seven-segment/glyph-icon instrument display for a numeric readout."
     ]
   }
 }

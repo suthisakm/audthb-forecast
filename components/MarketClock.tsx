@@ -33,9 +33,9 @@ export default function MarketClock({
     return () => clearInterval(timer);
   }, []);
 
-  const base = variant === "inverted" ? "text-slate-300" : "text-slate-600 dark:text-slate-400";
-  const label = variant === "inverted" ? "text-white" : "text-slate-600 dark:text-slate-300";
-  const divider = variant === "inverted" ? "text-white/30" : "text-slate-300 dark:text-slate-700";
+  const base = variant === "inverted" ? "text-stone-300" : "text-stone-600 dark:text-stone-400";
+  const label = variant === "inverted" ? "text-white" : "text-stone-600 dark:text-stone-300";
+  const divider = variant === "inverted" ? "text-white/30" : "text-stone-300 dark:text-stone-700";
 
   return (
     <div className={`flex items-center gap-3 sm:gap-4 text-xs sm:text-sm tabular-nums ${base}`}>

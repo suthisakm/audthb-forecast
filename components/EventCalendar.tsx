@@ -5,7 +5,7 @@ import StatusLight from "@/components/StatusLight";
 function importanceColor(importance: string) {
   if (importance === "HIGH") return "text-red-700 dark:text-red-400";
   if (importance === "MEDIUM") return "text-amber-700 dark:text-amber-400";
-  return "text-slate-600 dark:text-slate-400";
+  return "text-stone-600 dark:text-stone-400";
 }
 
 function importanceTone(importance: string): BadgeTone {
@@ -27,7 +27,7 @@ function formatEventTime(eventTime: string) {
 
 function EventRow({ event }: { event: CalendarEvent }) {
   return (
-    <div className="flex items-start justify-between gap-3 py-2 border-b border-slate-200 dark:border-slate-800 last:border-b-0">
+    <div className="flex items-start justify-between gap-3 py-2 border-b border-stone-200 dark:border-stone-800 last:border-b-0">
       <div>
         <p className="text-sm">
           <span className={`font-semibold ${importanceColor(event.importance)}`}>
@@ -35,11 +35,11 @@ function EventRow({ event }: { event: CalendarEvent }) {
           </span>{" "}
           {event.eventName}
           {event.referencePeriod ? (
-            <span className="text-slate-600 dark:text-slate-400"> ({event.referencePeriod})</span>
+            <span className="text-stone-600 dark:text-stone-400"> ({event.referencePeriod})</span>
           ) : null}
         </p>
 
-        <p className="text-xs text-slate-600 dark:text-slate-400 mt-0.5">{formatEventTime(event.eventTime)} (Bangkok)</p>
+        <p className="text-xs text-stone-600 dark:text-stone-400 mt-0.5">{formatEventTime(event.eventTime)} (Bangkok)</p>
       </div>
 
       <div className="shrink-0">
@@ -59,19 +59,19 @@ export default function EventCalendar({
   coverageNote: string;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="p-6">
       <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
         <StatusLight colorClassName="text-amber-500 dark:text-amber-400" />
         Event Calendar
       </h2>
 
-      <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{coverageNote}</p>
+      <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">{coverageNote}</p>
 
       <div className="mt-4">
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">Today</p>
+        <p className="text-sm text-stone-600 dark:text-stone-400 mb-1">Today</p>
 
         {today.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-400">No scheduled events today.</p>
+          <p className="text-sm text-stone-600 dark:text-stone-400">No scheduled events today.</p>
         ) : (
           <div>
             {today.map((event) => (
@@ -81,11 +81,11 @@ export default function EventCalendar({
         )}
       </div>
 
-      <div className="mt-4 pt-4 border-t border-slate-200 dark:border-slate-800">
-        <p className="text-sm text-slate-600 dark:text-slate-400 mb-1">This Week</p>
+      <div className="mt-4 pt-4 border-t border-stone-200 dark:border-stone-800">
+        <p className="text-sm text-stone-600 dark:text-stone-400 mb-1">This Week</p>
 
         {thisWeek.length === 0 ? (
-          <p className="text-sm text-slate-600 dark:text-slate-400">No events scheduled this week.</p>
+          <p className="text-sm text-stone-600 dark:text-stone-400">No events scheduled this week.</p>
         ) : (
           <div>
             {thisWeek.map((event) => (

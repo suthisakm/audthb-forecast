@@ -70,7 +70,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
   return (
     <div className="fixed inset-x-4 top-4 z-40 sm:left-1/2 sm:inset-x-auto sm:w-full sm:max-w-2xl sm:-translate-x-1/2">
       <div
-        className={`relative rounded-md border border-red-300 dark:border-red-900/50 bg-red-50/95 dark:bg-instrument-surface/95 backdrop-blur p-4 shadow-xl transition-all duration-200 ${
+        className={`relative rounded-md border border-red-300 dark:border-red-900/50 bg-red-50/95 dark:bg-surface/95 backdrop-blur p-4 shadow-xl transition-all duration-200 ${
           entered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
         }`}
       >
@@ -78,7 +78,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
           type="button"
           onClick={dismiss}
           aria-label="Dismiss alerts"
-          className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-slate-600 dark:text-slate-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-slate-700 dark:hover:text-slate-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-400"
+          className="absolute top-2 right-2 inline-flex h-8 w-8 items-center justify-center rounded-full text-stone-600 dark:text-stone-400 hover:bg-black/5 dark:hover:bg-white/10 hover:text-stone-700 dark:hover:text-stone-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brass-400"
         >
           <CloseIcon />
         </button>
@@ -100,7 +100,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
           {alerts.map((alert) => (
             <div
               key={alert.label}
-              className="rounded-md border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-instrument/60 p-3"
+              className="rounded-md border border-stone-200 dark:border-stone-800 bg-inset p-3"
             >
               <p
                 className={`text-sm font-semibold inline-flex items-center ${
@@ -110,7 +110,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
                 <StatusLight colorClassName={alert.severity === "critical" ? "text-red-500 dark:text-red-400" : "text-amber-500 dark:text-amber-400"} />
                 {alert.label}
               </p>
-              <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{alert.detail}</p>
+              <p className="text-xs text-stone-600 dark:text-stone-400 mt-1">{alert.detail}</p>
             </div>
           ))}
         </div>
