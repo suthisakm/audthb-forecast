@@ -1,4 +1,5 @@
 import { getScoreHistory } from "@/lib/history-data";
+import StatusLight from "@/components/StatusLight";
 
 const CHART_WIDTH = 320;
 const CHART_HEIGHT = 72;
@@ -106,9 +107,12 @@ export default async function TrendChart() {
   );
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-center justify-between gap-3">
-        <h2 className="text-xl font-semibold tracking-tight">7-Day Trend</h2>
+        <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+          <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
+          7-Day Trend
+        </h2>
         {scored.length >= 2 && (
           <p className="text-xs text-slate-600 dark:text-slate-400">
             {formatDay(scored[0].issuedAt)} -- {formatDay(scored.at(-1)!.issuedAt)}

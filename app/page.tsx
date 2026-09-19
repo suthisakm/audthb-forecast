@@ -135,7 +135,7 @@ export default async function Home() {
     await getRecentNewsSignals();
 
   return (
-    <main className="min-h-screen bg-slate-100 dark:bg-slate-950 text-slate-900 dark:text-white">
+    <main className="min-h-screen bg-slate-100 dark:bg-instrument text-slate-900 dark:text-white">
       <RefreshControls />
 
       <StickyBar
@@ -150,7 +150,7 @@ export default async function Home() {
       decorative gradient that just flips color with the toggle. Formal
       register: solid navy, no gradient, single hairline rule under it. */}
 
-      <div className="bg-slate-900 border-b border-teal-900/40">
+      <div className="bg-instrument-surface border-b border-teal-900/40">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 py-6 sm:py-8 flex flex-col sm:flex-row sm:items-start justify-between gap-4">
           <div>
             <div className="flex items-center gap-2">

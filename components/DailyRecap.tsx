@@ -1,24 +1,14 @@
 import type { DailyRecap } from "@/lib/daily-recap-data";
 import type { DashboardData } from "@/lib/dashboard-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
+import SevenSegmentValue from "@/components/SevenSegmentValue";
+import StatusLight from "@/components/StatusLight";
 
-function formatScore(score: number | null) {
-  if (score === null) return "--";
-  return `${score > 0 ? "+" : ""}${score}`;
-}
-
-function scoreColor(score: number | null) {
-  if (score === null) return "text-slate-600 dark:text-slate-400";
-  if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
-  if (score <= -15) return "text-red-700 dark:text-red-400";
-  return "text-amber-700 dark:text-amber-400";
-}
-
-function scoreBorder(score: number | null) {
-  if (score === null) return "border-l-slate-300 dark:border-l-slate-700";
-  if (score >= 15) return "border-l-emerald-500";
-  if (score <= -15) return "border-l-red-500";
-  return "border-l-amber-500";
+function scoreSegmentColor(score: number | null) {
+  if (score === null) return "fill-slate-500";
+  if (score >= 15) return "fill-emerald-400";
+  if (score <= -15) return "fill-red-400";
+  return "fill-amber-400";
 }
 
 function biasTone(bias: string): BadgeTone {
@@ -72,8 +62,11 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
 
   if (recap.sampleSize === 0) {
     return (
-      <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
-        <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
+      <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+        <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+          <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
+          Daily Recap
+        </h2>
         <p className="text-sm text-slate-600 dark:text-slate-400 mt-2">
           No price snapshots yet today -- check back after the score-snapshot cron has run.
         </p>
@@ -95,20 +88,29 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       : null;
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Daily Recap</h2>
+          <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+            <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
+            Daily Recap
+          </h2>
           <p className="text-sm text-slate-600 dark:text-slate-400">
             AUD/THB today -- {recap.sampleSize} snapshot{recap.sampleSize === 1 ? "" : "s"}
           </p>
         </div>
 
         <div className="text-right">
-          <p className="text-3xl font-bold font-mono tabular-nums">
-            {latestRate !== null ? latestRate.toFixed(4) : "--"}
-          </p>
-          <p className={`text-sm font-mono ${changeColor(changePct)}`}>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5">
+            <SevenSegmentValue
+              value={latestRate !== null ? latestRate.toFixed(4) : null}
+              height={32}
+              svgClassName="h-8"
+              litClassName="fill-teal-300"
+              placeholderLength={7}
+            />
+          </div>
+          <p className={`text-sm font-mono mt-1 ${changeColor(changePct)}`}>
             {changePct !== null ? `${changePct >= 0 ? "+" : ""}${changePct.toFixed(2)}% today` : "--"}
           </p>
         </div>
@@ -119,32 +121,56 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
       )}
 
       <div className="grid grid-cols-2 gap-3 mt-4">
-        <div className="rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-slate-300 dark:border-l-slate-700">
+        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-instrument p-3">
           <p className="text-xs text-slate-600 dark:text-slate-400">Open</p>
-          <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums">
-            {recap.openRate !== null ? recap.openRate.toFixed(4) : "--"}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1 mt-1">
+            <SevenSegmentValue
+              value={recap.openRate !== null ? recap.openRate.toFixed(4) : null}
+              height={16}
+              svgClassName="h-4"
+              litClassName="fill-slate-100"
+              placeholderLength={7}
+            />
+          </div>
         </div>
 
-        <div className="rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-emerald-500">
+        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-instrument p-3">
           <p className="text-xs text-slate-600 dark:text-slate-400">High</p>
-          <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-emerald-700 dark:text-emerald-400">
-            {maxRate !== null ? maxRate.toFixed(4) : "--"}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1 mt-1">
+            <SevenSegmentValue
+              value={maxRate !== null ? maxRate.toFixed(4) : null}
+              height={16}
+              svgClassName="h-4"
+              litClassName="fill-emerald-400"
+              placeholderLength={7}
+            />
+          </div>
         </div>
 
-        <div className="rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-red-500">
+        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-instrument p-3">
           <p className="text-xs text-slate-600 dark:text-slate-400">Low</p>
-          <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums text-red-700 dark:text-red-400">
-            {minRate !== null ? minRate.toFixed(4) : "--"}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1 mt-1">
+            <SevenSegmentValue
+              value={minRate !== null ? minRate.toFixed(4) : null}
+              height={16}
+              svgClassName="h-4"
+              litClassName="fill-red-400"
+              placeholderLength={7}
+            />
+          </div>
         </div>
 
-        <div className={`rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 ${scoreBorder(latestScore)}`}>
+        <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-100 dark:bg-instrument p-3">
           <p className="text-xs text-slate-600 dark:text-slate-400">Core FX Score</p>
-          <p className={`text-sm font-semibold font-mono mt-0.5 tabular-nums ${scoreColor(latestScore)}`}>
-            {formatScore(latestScore)}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1 mt-1">
+            <SevenSegmentValue
+              value={latestScore !== null ? String(latestScore) : null}
+              height={16}
+              svgClassName="h-4"
+              litClassName={scoreSegmentColor(latestScore)}
+              placeholderLength={3}
+            />
+          </div>
         </div>
       </div>
 

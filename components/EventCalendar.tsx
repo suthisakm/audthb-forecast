@@ -1,5 +1,6 @@
 import type { CalendarEvent } from "@/lib/event-calendar-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
+import StatusLight from "@/components/StatusLight";
 
 function importanceColor(importance: string) {
   if (importance === "HIGH") return "text-red-700 dark:text-red-400";
@@ -58,8 +59,11 @@ export default function EventCalendar({
   coverageNote: string;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-amber-500 dark:border-t-amber-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
-      <h2 className="text-xl font-semibold tracking-tight">Event Calendar</h2>
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+      <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+        <StatusLight colorClassName="text-amber-500 dark:text-amber-400" />
+        Event Calendar
+      </h2>
 
       <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{coverageNote}</p>
 

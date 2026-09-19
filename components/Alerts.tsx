@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import type { Alert } from "@/lib/alerts-data";
+import StatusLight from "@/components/StatusLight";
 
 const DISMISSED_KEY = "dismissedAlertsKey";
 
@@ -69,7 +70,7 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
   return (
     <div className="fixed inset-x-4 top-4 z-40 sm:left-1/2 sm:inset-x-auto sm:w-full sm:max-w-2xl sm:-translate-x-1/2">
       <div
-        className={`relative rounded-md border border-red-300 dark:border-red-900/50 bg-red-50/95 dark:bg-slate-900/95 backdrop-blur p-4 shadow-xl transition-all duration-200 ${
+        className={`relative rounded-md border border-red-300 dark:border-red-900/50 bg-red-50/95 dark:bg-instrument-surface/95 backdrop-blur p-4 shadow-xl transition-all duration-200 ${
           entered ? "opacity-100 translate-y-0" : "opacity-0 -translate-y-2"
         }`}
       >
@@ -99,15 +100,14 @@ export default function Alerts({ alerts }: { alerts: Alert[] }) {
           {alerts.map((alert) => (
             <div
               key={alert.label}
-              className={`rounded-md bg-white/70 dark:bg-slate-950/60 p-3 border-l-4 ${
-                alert.severity === "critical" ? "border-red-500" : "border-amber-500"
-              }`}
+              className="rounded-md border border-slate-200 dark:border-slate-800 bg-white/70 dark:bg-instrument/60 p-3"
             >
               <p
-                className={`text-sm font-semibold ${
+                className={`text-sm font-semibold inline-flex items-center ${
                   alert.severity === "critical" ? "text-red-700 dark:text-red-400" : "text-amber-700 dark:text-amber-400"
                 }`}
               >
+                <StatusLight colorClassName={alert.severity === "critical" ? "text-red-500 dark:text-red-400" : "text-amber-500 dark:text-amber-400"} />
                 {alert.label}
               </p>
               <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">{alert.detail}</p>

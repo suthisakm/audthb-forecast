@@ -18,7 +18,7 @@ export default function ScoreGauge({ score }: { score: number | null }) {
   return (
     <div className="mt-3">
       <div className="relative h-2 rounded-full bg-gradient-to-r from-red-400 via-amber-300 to-emerald-400 dark:from-red-500/80 dark:via-amber-500/80 dark:to-emerald-500/80">
-        <div className="absolute inset-y-0 left-1/2 w-px bg-white/70 dark:bg-slate-950/60" />
+        <div className="absolute inset-y-0 left-1/2 w-px bg-white/70 dark:bg-instrument/60" />
 
         {score !== null && (
           <div

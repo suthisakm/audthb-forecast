@@ -6,6 +6,8 @@ import { getMacroCompositeData } from "@/lib/macro-composite-data";
 import { getTradeBalanceData } from "@/lib/trade-balance-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import InfoTip from "@/components/InfoTip";
+import SevenSegmentValue from "@/components/SevenSegmentValue";
+import StatusLight from "@/components/StatusLight";
 
 function formatScore(score: number | null) {
   if (score === null) return "--";
@@ -27,11 +29,30 @@ function formatPct(value: number | null, decimals = 2) {
   return `${value > 0 ? "+" : ""}${value.toFixed(decimals)}%`;
 }
 
-function scoreColor(score: number | null) {
-  if (score === null) return "text-slate-600 dark:text-slate-400";
-  if (score > 0) return "text-emerald-700 dark:text-emerald-400";
-  if (score < 0) return "text-red-700 dark:text-red-400";
-  return "text-slate-700 dark:text-slate-300";
+function scoreSegmentColor(score: number | null) {
+  if (score === null) return "fill-slate-500";
+  if (score > 0) return "fill-emerald-400";
+  if (score < 0) return "fill-red-400";
+  return "fill-slate-300";
+}
+
+// Every factor/sub-factor score in this card goes through this one small
+// instrument casing rather than plain text -- the same ghost-segment
+// treatment as the headline numbers, just smaller, so a missing score
+// reads as an unlit readout instead of a plain "--" the rest of the app
+// no longer uses.
+function SegmentScore({ score }: { score: number | null }) {
+  return (
+    <div className="inline-flex rounded bg-instrument border border-slate-800 px-1.5 py-1">
+      <SevenSegmentValue
+        value={score !== null ? String(score) : null}
+        height={18}
+        svgClassName="h-[18px]"
+        litClassName={scoreSegmentColor(score)}
+        placeholderLength={3}
+      />
+    </div>
+  );
 }
 
 function confidenceTone(confidence: YieldConfidence | "HIGH" | "MEDIUM" | "LOW" | "MISSING"): BadgeTone {
@@ -93,9 +114,7 @@ function Factor({
 
         <div className="flex items-center gap-3 shrink-0">
           <span className="text-xs text-slate-600 hidden sm:inline">{weightLabel}</span>
-          <span className={`font-mono font-bold tabular-nums ${scoreColor(score)}`}>
-            {formatScore(score)}
-          </span>
+          <SegmentScore score={score} />
         </div>
       </summary>
 
@@ -126,10 +145,13 @@ export default async function ScoreBreakdown({
   const tradeBalance = await getTradeBalanceData();
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 mt-6 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 mt-6 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold tracking-tight">Score Breakdown</h2>
+          <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+            <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
+            Score Breakdown
+          </h2>
           <p className="text-xs text-slate-600 mt-1">Tap a factor to see how it's calculated.</p>
         </div>
 
@@ -138,9 +160,15 @@ export default async function ScoreBreakdown({
             Core FX Score
             <InfoTip text="One score combining 7 market and economic signals: -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
-          <p className={`text-3xl font-bold font-mono tabular-nums ${scoreColor(data.coreFxScore)}`}>
-            {formatScore(data.coreFxScore)}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-0.5">
+            <SevenSegmentValue
+              value={data.coreFxScore !== null ? String(data.coreFxScore) : null}
+              height={32}
+              svgClassName="h-8"
+              litClassName={scoreSegmentColor(data.coreFxScore)}
+              placeholderLength={3}
+            />
+          </div>
           <p className="text-xs text-slate-600 dark:text-slate-400">{data.coreBias}</p>
         </div>
       </div>
@@ -188,7 +216,10 @@ export default async function ScoreBreakdown({
           <p className="text-sm text-slate-600 dark:text-slate-400">Coverage: {data.relativeMarketCoverage.toFixed(1)}/100 (internal split: Yield 26% / CNH 15% / SGD 59%)</p>
 
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
-            <p className="text-sm">AU-US 2Y Yield: <span className={`font-mono font-semibold ${scoreColor(data.yieldScore)}`}>{formatScore(data.yieldScore)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">AU-US 2Y Yield</p>
+              <SegmentScore score={data.yieldScore} />
+            </div>
             {data.latestYieldSnapshot && (
               <p className="text-xs text-slate-600 dark:text-slate-400">
                 AU 2Y: {Number(data.latestYieldSnapshot.au_2y).toFixed(3)}% ({data.latestYieldSnapshot.au_reference_date}) | US 2Y: {Number(data.latestYieldSnapshot.us_2y).toFixed(3)}% ({data.latestYieldSnapshot.us_reference_date})
@@ -204,12 +235,18 @@ export default async function ScoreBreakdown({
           </div>
 
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1">
-            <p className="text-sm">USD/CNH: <span className={`font-mono font-semibold ${scoreColor(data.usdCnhScore)}`}>{formatScore(data.usdCnhScore)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">USD/CNH</p>
+              <SegmentScore score={data.usdCnhScore} />
+            </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">1H: {formatChange(data.usdCnhChange1H)} | Relative Weight: 15%</p>
           </div>
 
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1">
-            <p className="text-sm">USD/SGD: <span className={`font-mono font-semibold ${scoreColor(data.usdSgdScore)}`}>{formatScore(data.usdSgdScore)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">USD/SGD</p>
+              <SegmentScore score={data.usdSgdScore} />
+            </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">1H: {formatChange(data.usdSgdChange1H)} | Relative Weight: 59%</p>
           </div>
 
@@ -226,7 +263,10 @@ export default async function ScoreBreakdown({
           <p className="text-sm text-slate-600 dark:text-slate-400">Coverage: {data.commodityCoverage.toFixed(1)}/100 (internal split: Brent 55% / Iron Ore 45% -- Gold excluded, monitor only)</p>
 
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
-            <p className="text-sm">Iron Ore: <span className={`font-mono font-semibold ${scoreColor(data.ironOreScore)}`}>{formatScore(data.ironOreScore)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">Iron Ore</p>
+              <SegmentScore score={data.ironOreScore} />
+            </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">Price: {data.ironOrePrice !== null ? `$${data.ironOrePrice.toFixed(2)}` : "--"}</p>
             <p className="text-xs text-slate-600 dark:text-slate-400">24H Change: {formatChange(data.ironOreChange24H)} | Weight: {data.ironOreEffectiveWeight.toFixed(1)}/45</p>
             <StatusBadge label={data.ironOreFreshness} tone={freshnessTone(data.ironOreFreshness)} />
@@ -234,7 +274,10 @@ export default async function ScoreBreakdown({
           </div>
 
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
-            <p className="text-sm">Brent Live: <span className={`font-mono font-semibold ${scoreColor(data.brentLiveScore)}`}>{formatScore(data.brentLiveScore)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">Brent Live</p>
+              <SegmentScore score={data.brentLiveScore} />
+            </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">Price: {data.brentLivePrice !== null ? `$${data.brentLivePrice.toFixed(2)}` : "--"}</p>
             <p className="text-xs text-slate-600 dark:text-slate-400">1H Change: {formatChange(data.brentLiveChange1H)} | Weight: 55/55</p>
             <StatusBadge label={data.brentLiveFreshness} tone={freshnessTone(data.brentLiveFreshness)} />
@@ -283,7 +326,10 @@ export default async function ScoreBreakdown({
 
           {/* POLICY */}
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
-            <p className="text-sm">Policy: <span className={`font-mono font-semibold ${scoreColor(macro.policy.score)}`}>{formatScore(macro.policy.score)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">Policy</p>
+              <SegmentScore score={macro.policy.score} />
+            </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">
               RBA {macro.policy.rates.rba !== null ? `${macro.policy.rates.rba.toFixed(2)}%` : "--"} | Fed {macro.policy.rates.fed !== null ? `${macro.policy.rates.fed.toFixed(2)}%` : "--"} | BOT {macro.policy.rates.bot !== null ? `${macro.policy.rates.bot.toFixed(2)}%` : "--"}
             </p>
@@ -294,7 +340,10 @@ export default async function ScoreBreakdown({
 
           {/* INFLATION */}
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
-            <p className="text-sm">Inflation: <span className={`font-mono font-semibold ${scoreColor(macro.inflation.score)}`}>{formatScore(macro.inflation.score)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">Inflation</p>
+              <SegmentScore score={macro.inflation.score} />
+            </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">Coverage: {macro.inflation.coverage.toFixed(1)}/100</p>
             {(["australia", "unitedStates", "thailand"] as const).map((key) => {
               const country = macro.inflation.countries[key];
@@ -309,7 +358,10 @@ export default async function ScoreBreakdown({
 
           {/* LABOUR */}
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
-            <p className="text-sm">Labour: <span className={`font-mono font-semibold ${scoreColor(macro.labour.score)}`}>{formatScore(macro.labour.score)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">Labour</p>
+              <SegmentScore score={macro.labour.score} />
+            </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">Coverage: {macro.labour.coverage.toFixed(1)}/100</p>
             <div className="flex flex-wrap gap-1.5">
               <StatusBadge label={`AU: ${macro.labour.countries.australia.confidence}`} tone={confidenceTone(macro.labour.countries.australia.confidence)} />
@@ -320,7 +372,10 @@ export default async function ScoreBreakdown({
 
           {/* GROWTH */}
           <div className="pl-3 border-l border-slate-300 dark:border-slate-700 space-y-1.5">
-            <p className="text-sm">Growth (GDP): <span className={`font-mono font-semibold ${scoreColor(macro.growth.score)}`}>{formatScore(macro.growth.score)}</span></p>
+            <div className="flex items-center justify-between gap-2">
+              <p className="text-sm">Growth (GDP)</p>
+              <SegmentScore score={macro.growth.score} />
+            </div>
             <p className="text-xs text-slate-600 dark:text-slate-400">Coverage: {macro.growth.coverage.toFixed(1)}/100</p>
             {(["australia", "unitedStates", "thailand"] as const).map((key) => {
               const country = macro.growth.countries[key];

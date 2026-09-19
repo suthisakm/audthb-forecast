@@ -3,6 +3,8 @@ import type {
   FreshnessInfo,
 } from "@/lib/dashboard-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
+import StatusLight from "@/components/StatusLight";
+import SevenSegmentValue from "@/components/SevenSegmentValue";
 
 function formatTime(timestamp: string) {
   return new Date(timestamp).toLocaleString(
@@ -60,8 +62,9 @@ export default function MarketRates({
   data: DashboardData;
 }) {
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
-      <h2 className="text-xl font-semibold tracking-tight">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+      <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+        <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
         Market Rates
       </h2>
 
@@ -73,11 +76,15 @@ export default function MarketRates({
             AUD/THB Direct
           </p>
 
-          <p className="text-2xl font-bold font-mono mt-1">
-            {data.directRate !== null
-              ? data.directRate.toFixed(4)
-              : "--"}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
+            <SevenSegmentValue
+              value={data.directRate !== null ? data.directRate.toFixed(4) : null}
+              height={26}
+              svgClassName="h-[26px]"
+              litClassName="fill-teal-300"
+              placeholderLength={7}
+            />
+          </div>
 
           {data.latestDirect && (
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
@@ -98,11 +105,15 @@ export default function MarketRates({
             AUD/THB Cross
           </p>
 
-          <p className="text-2xl font-bold font-mono mt-1">
-            {data.crossRate !== null
-              ? data.crossRate.toFixed(4)
-              : "--"}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
+            <SevenSegmentValue
+              value={data.crossRate !== null ? data.crossRate.toFixed(4) : null}
+              height={26}
+              svgClassName="h-[26px]"
+              litClassName="fill-teal-300"
+              placeholderLength={7}
+            />
+          </div>
 
           {data.crossTimestamp && (
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
@@ -138,13 +149,15 @@ export default function MarketRates({
             AUD/USD
           </p>
 
-          <p className="text-2xl font-bold font-mono mt-1">
-            {data.latestAudUsd
-              ? Number(
-                  data.latestAudUsd.rate
-                ).toFixed(5)
-              : "--"}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
+            <SevenSegmentValue
+              value={data.latestAudUsd ? Number(data.latestAudUsd.rate).toFixed(5) : null}
+              height={26}
+              svgClassName="h-[26px]"
+              litClassName="fill-teal-300"
+              placeholderLength={7}
+            />
+          </div>
 
           {data.latestAudUsd && (
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
@@ -165,13 +178,15 @@ export default function MarketRates({
             USD/THB
           </p>
 
-          <p className="text-2xl font-bold font-mono mt-1">
-            {data.latestUsdThb
-              ? Number(
-                  data.latestUsdThb.rate
-                ).toFixed(5)
-              : "--"}
-          </p>
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
+            <SevenSegmentValue
+              value={data.latestUsdThb ? Number(data.latestUsdThb.rate).toFixed(5) : null}
+              height={26}
+              svgClassName="h-[26px]"
+              litClassName="fill-teal-300"
+              placeholderLength={7}
+            />
+          </div>
 
           {data.latestUsdThb && (
             <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">

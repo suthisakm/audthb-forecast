@@ -39,3 +39,11 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# impeccable design skill -- scratch review/QA artifacts, not durable design record
+.impeccable/review/
+.impeccable/questions/
+
+# python bytecode (e.g. bundled skill scripts)
+__pycache__/
+*.pyc

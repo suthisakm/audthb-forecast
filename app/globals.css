@@ -37,6 +37,12 @@
  * (4px) for controls, rounded-sm (2px) for status tags. Cards carry no
  * drop shadow -- depth comes from a 1px border and surface-color steps,
  * the way a report or ledger sits flush rather than floating on a card.
+ *
+ * Ghost-Segment Ledger pass: dark mode's ground moved off the inherited
+ * Tailwind slate scale (which reads measurably blue-navy, not neutral)
+ * to a true near-black instrument ground -- `--color-instrument` for the
+ * page/casing black and `--color-instrument-surface` for card surfaces
+ * one step up from it. Light mode is untouched.
  */
 :root {
   --background: #f8fafc;
@@ -44,13 +50,15 @@
 }
 
 .dark {
-  --background: #020617;
+  --background: #05070a;
   --foreground: #f8fafc;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+  --color-instrument: #05070a;
+  --color-instrument-surface: #0b0e14;
   --font-sans: var(--font-geist-sans);
   --font-mono: var(--font-geist-mono);
 }

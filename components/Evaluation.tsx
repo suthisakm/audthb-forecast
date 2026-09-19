@@ -1,5 +1,6 @@
 import { getEvaluationSummary } from "@/lib/evaluation-data";
 import InfoTip from "@/components/InfoTip";
+import StatusLight from "@/components/StatusLight";
 
 function formatPct(value: number | null) {
   if (value === null) return "--";
@@ -19,8 +20,9 @@ export default async function Evaluation() {
   const summary = await getEvaluationSummary();
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-emerald-500 dark:border-t-emerald-400 bg-slate-50 dark:bg-slate-900 p-6 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+        <StatusLight colorClassName="text-emerald-500 dark:text-emerald-400" />
         Track Record
         <InfoTip text="Checks the forecast against what actually happened, and against a plain 'no change' guess. Needs 20+ resolved forecasts before showing real numbers." />
       </h2>
@@ -34,7 +36,7 @@ export default async function Evaluation() {
       ) : (
         <div className="mt-4 space-y-4">
           {summary.groups.map((g) => (
-            <div key={`${g.horizon}-${g.forecastVersion}`} className="rounded-md bg-slate-100 dark:bg-slate-950 p-4">
+            <div key={`${g.horizon}-${g.forecastVersion}`} className="rounded-md bg-slate-100 dark:bg-instrument p-4">
               <div className="flex items-center justify-between">
                 <p className="text-sm font-semibold">
                   {g.horizon}{" "}

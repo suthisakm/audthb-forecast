@@ -2,6 +2,8 @@ import type { DashboardData, FreshnessInfo } from "@/lib/dashboard-data";
 import { getYahooReference } from "@/lib/yahoo-reference-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import InfoTip from "@/components/InfoTip";
+import StatusLight from "@/components/StatusLight";
+import SevenSegmentValue from "@/components/SevenSegmentValue";
 
 function formatTime(timestamp: string) {
   return new Date(timestamp).toLocaleString("en-GB", {
@@ -56,8 +58,9 @@ export default async function CrossCheck({ data }: { data: DashboardData }) {
     data.audUsdFreshness.status !== "MARKET_CLOSED";
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight inline-flex items-center">
+        <StatusLight colorClassName="text-teal-500 dark:text-teal-400" />
         Cross-Check &amp; Reference
         <InfoTip text="Two independent checks on the AUD/THB Direct feed: a matched-time cross rate computed from AUD/USD x USD/THB, and a second provider (Yahoo) entirely outside Twelve Data." />
       </h2>
@@ -66,13 +69,22 @@ export default async function CrossCheck({ data }: { data: DashboardData }) {
       <div className="mt-4">
         <p className="text-sm text-slate-600 dark:text-slate-400">Matched-Time Cross Gap</p>
 
-        <p className="text-2xl font-bold font-mono mt-1">
-          {data.crossGap !== null && data.crossGapPercent !== null
-            ? `${data.crossGap >= 0 ? "+" : ""}${data.crossGap.toFixed(4)} THB (${
-                data.crossGapPercent >= 0 ? "+" : ""
-              }${data.crossGapPercent.toFixed(3)}%)`
-            : "--"}
-        </p>
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+          <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5">
+            <SevenSegmentValue
+              value={data.crossGap !== null ? data.crossGap.toFixed(4) : null}
+              height={26}
+              svgClassName="h-[26px]"
+              litClassName="fill-teal-300"
+              placeholderLength={6}
+            />
+          </div>
+          <span className="text-sm font-mono text-slate-600 dark:text-slate-400">
+            {data.crossGap !== null && data.crossGapPercent !== null
+              ? `THB (${data.crossGapPercent >= 0 ? "+" : ""}${data.crossGapPercent.toFixed(3)}%)`
+              : ""}
+          </span>
+        </div>
 
         {data.crossDirectReferenceRate !== null && data.crossTimestamp && (
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
@@ -92,7 +104,7 @@ export default async function CrossCheck({ data }: { data: DashboardData }) {
       {/* YAHOO FINANCE REFERENCE -- unofficial, comparison only, never
       scored. */}
       <div className="border-t border-slate-200 dark:border-slate-800 mt-5 pt-4">
-        <div className="flex items-center justify-between gap-3">
+        <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <p className="text-sm text-slate-600 dark:text-slate-400 inline-flex items-center">
             AUD/THB -- Yahoo Finance
             <InfoTip text="A second, independent AUD/THB quote for comparison only. Yahoo has no official public API for this -- it's fetched via the same unofficial endpoint the yfinance community library uses, so outages here are expected and never affect the Core FX Score." />
@@ -100,7 +112,15 @@ export default async function CrossCheck({ data }: { data: DashboardData }) {
           <StatusBadge label="Reference Only" tone="slate" />
         </div>
 
-        <p className="text-2xl font-bold font-mono mt-1">{yahoo.rate !== null ? yahoo.rate.toFixed(4) : "--"}</p>
+        <div className="inline-flex rounded bg-instrument border border-slate-800 px-2 py-1.5 mt-1">
+          <SevenSegmentValue
+            value={yahoo.rate !== null ? yahoo.rate.toFixed(4) : null}
+            height={26}
+            svgClassName="h-[26px]"
+            litClassName="fill-teal-300"
+            placeholderLength={7}
+          />
+        </div>
 
         {yahoo.marketTimestamp && (
           <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">{formatTime(yahoo.marketTimestamp)}</p>

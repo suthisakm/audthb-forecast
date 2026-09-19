@@ -4,6 +4,7 @@ import { getConfidence, type ConfidenceLevel } from "@/lib/confidence-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
 import ScoreGauge from "@/components/ScoreGauge";
 import InfoTip from "@/components/InfoTip";
+import SevenSegmentValue from "@/components/SevenSegmentValue";
 
 function confidenceTone(level: ConfidenceLevel): BadgeTone {
   if (level === "HIGH") return "emerald";
@@ -30,26 +31,26 @@ function changeColor(value: number | null) {
   return "text-slate-600 dark:text-slate-400";
 }
 
-function scoreColor(score: number | null) {
-  if (score === null) return "text-slate-600 dark:text-slate-400";
-  if (score >= 15) return "text-emerald-700 dark:text-emerald-400";
-  if (score <= -15) return "text-red-700 dark:text-red-400";
-  return "text-amber-700 dark:text-amber-400";
+function scoreSegmentColor(score: number | null) {
+  if (score === null) return "fill-slate-500";
+  if (score >= 15) return "fill-emerald-400";
+  if (score <= -15) return "fill-red-400";
+  return "fill-amber-400";
 }
 
 function coreFeeds(data: DashboardData) {
-  return [data.directFreshness.status, data.audUsdFreshness.status, data.usdThbFreshness.status];
+  return [
+    { label: "Direct", status: data.directFreshness.status },
+    { label: "AUD/USD", status: data.audUsdFreshness.status },
+    { label: "USD/THB", status: data.usdThbFreshness.status },
+  ];
 }
 
-function feedHealthCount(data: DashboardData) {
-  return coreFeeds(data).filter((status) => status === "FRESH").length;
-}
-
-function feedHealthDot(data: DashboardData) {
-  const feeds = coreFeeds(data);
-  if (feeds.some((status) => status === "STALE" || status === "MISSING")) return "bg-red-500";
-  if (feeds.every((status) => status === "FRESH")) return "bg-emerald-500";
-  return "bg-amber-500";
+function feedDotColor(status: string) {
+  if (status === "FRESH") return "text-emerald-500 dark:text-emerald-400";
+  if (status === "DELAYED") return "text-amber-500 dark:text-amber-400";
+  if (status === "MARKET_CLOSED") return "text-slate-400 dark:text-slate-600";
+  return "text-red-500 dark:text-red-400";
 }
 
 export default async function Hero({ data }: { data: DashboardData }) {
@@ -57,11 +58,11 @@ export default async function Hero({ data }: { data: DashboardData }) {
   const confidence = await getConfidence(data);
 
   return (
-    <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-600 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 sm:p-8 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
+    <div className="rounded-md border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-instrument-surface p-6 sm:p-8 transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <div className="grid md:grid-cols-2 gap-8">
         {/* RATE */}
         <div className="md:border-r border-slate-200 dark:border-slate-800 md:pr-8">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
               AUD/THB Spot
             </p>
@@ -74,11 +75,13 @@ export default async function Hero({ data }: { data: DashboardData }) {
             )}
           </div>
 
-          <p className="text-5xl sm:text-6xl font-bold font-mono tabular-nums mt-3 leading-none">
-            {data.latestPrice
-              ? Number(data.latestPrice.rate).toFixed(4)
-              : "--"}
-          </p>
+          <div className="mt-3 inline-flex rounded-md bg-instrument border border-slate-800 px-4 py-3 overflow-x-auto max-w-full">
+            <SevenSegmentValue
+              value={data.latestPrice ? Number(data.latestPrice.rate).toFixed(4) : null}
+              litClassName="fill-teal-300"
+              placeholderLength={7}
+            />
+          </div>
 
           <div className="flex flex-wrap gap-x-5 gap-y-1 mt-4 text-sm font-mono">
             <span className={changeColor(data.change1H)}>
@@ -111,13 +114,24 @@ export default async function Hero({ data }: { data: DashboardData }) {
             </p>
           )}
 
-          {/* DATA HEALTH -- kept deliberately understated: a dot and a
-              count, not its own card, since this is a "just so you know"
-              signal, not something that needs to compete for attention. */}
-          <p className="text-[11px] text-slate-600 dark:text-slate-400 mt-1.5 flex items-center gap-1.5">
-            <span className={`inline-block h-1.5 w-1.5 rounded-full ${feedHealthDot(data)}`} />
-            {feedHealthCount(data)}/3 core feeds fresh
-          </p>
+          {/* DATA HEALTH -- three small lit/ghost indicators, one per core
+              feed, instead of a narrated "X/3 fresh" sentence: freshness
+              shown as instrument state, matching how the ghost-segment
+              readouts above show missing data, not described in prose. */}
+          <div
+            className="flex items-center gap-1.5 mt-1.5"
+            aria-label={`Core feed status: ${coreFeeds(data)
+              .map((f) => `${f.label} ${f.status.toLowerCase().replace("_", " ")}`)
+              .join(", ")}`}
+          >
+            {coreFeeds(data).map((f) => (
+              <span
+                key={f.label}
+                title={`${f.label}: ${f.status}`}
+                className={`inline-block h-1.5 w-1.5 rounded-full bg-current ${feedDotColor(f.status)}`}
+              />
+            ))}
+          </div>
 
           <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800">
             <p className="text-xs font-medium text-slate-600 dark:text-slate-400 uppercase tracking-widest">
@@ -137,12 +151,14 @@ export default async function Hero({ data }: { data: DashboardData }) {
             <InfoTip text="One score combining 7 market and economic signals: -100 (bearish AUD) to +100 (bullish AUD). Not a price prediction." />
           </p>
 
-          <div className="flex items-baseline gap-3 mt-3">
-            <p className={`text-5xl sm:text-6xl font-bold font-mono tabular-nums leading-none ${scoreColor(data.coreFxScore)}`}>
-              {data.coreFxScore !== null
-                ? `${data.coreFxScore > 0 ? "+" : ""}${data.coreFxScore}`
-                : "--"}
-            </p>
+          <div className="flex flex-wrap items-center gap-3 mt-3">
+            <div className="inline-flex rounded-md bg-instrument border border-slate-800 px-4 py-3">
+              <SevenSegmentValue
+                value={data.coreFxScore !== null ? String(data.coreFxScore) : null}
+                litClassName={scoreSegmentColor(data.coreFxScore)}
+                placeholderLength={3}
+              />
+            </div>
 
             <p className="text-lg font-semibold text-slate-700 dark:text-slate-300">{data.coreBias}</p>
           </div>
