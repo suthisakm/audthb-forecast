@@ -47,10 +47,10 @@
  * drop shadows -- depth comes from a 1px border and surface-color steps.
  */
 :root {
-  --background: #f6f1e4;
+  --background: #e9decb;
   --foreground: #1b1712;
-  --surface: #fbf8ef;
-  --inset: #eee5cf;
+  --surface: #f1e8d6;
+  --inset: #ddd0b0;
   --brass: #9c6b24;
 }
 
