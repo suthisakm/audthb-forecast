@@ -4,6 +4,7 @@ import StickyBar from "@/components/StickyBar";
 import ThemeToggle from "@/components/ThemeToggle";
 import Hero from "@/components/Hero";
 import MarketRates from "@/components/MarketRates";
+import CrossCheck from "@/components/CrossCheck";
 import ScoreBreakdown from "@/components/ScoreBreakdown";
 import Alerts from "@/components/Alerts";
 import DailyRecap from "@/components/DailyRecap";
@@ -190,9 +191,10 @@ export default async function Home() {
           <Hero data={data} />
           <ActionSummary data={data} />
 
-          <div className="grid lg:grid-cols-2 gap-6 mt-6 items-stretch">
+          <div className="grid lg:grid-cols-3 gap-6 mt-6 items-stretch">
             <DailyRecap recap={dailyRecap} data={data} />
             <MarketRates data={data} />
+            <CrossCheck data={data} />
           </div>
 
           <div className="mt-6">

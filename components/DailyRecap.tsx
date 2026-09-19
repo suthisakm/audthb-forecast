@@ -118,7 +118,7 @@ export default function DailyRecap({ recap, data }: { recap: DailyRecap; data: D
         <RangeBar min={minRate} max={maxRate} current={latestRate} />
       )}
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4">
+      <div className="grid grid-cols-2 gap-3 mt-4">
         <div className="rounded-md bg-slate-100 dark:bg-slate-950 p-3 border-l-2 border-l-slate-300 dark:border-l-slate-700">
           <p className="text-xs text-slate-600 dark:text-slate-400">Open</p>
           <p className="text-sm font-semibold font-mono mt-0.5 tabular-nums">
