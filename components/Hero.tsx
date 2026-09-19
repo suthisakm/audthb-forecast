@@ -75,12 +75,10 @@ export default async function Hero({ data }: { data: DashboardData }) {
             )}
           </div>
 
-          <div className="mt-2 overflow-x-auto max-w-full">
-            <Figure
-              value={data.latestPrice ? Number(data.latestPrice.rate).toFixed(4) : null}
-              className="text-4xl sm:text-5xl font-semibold tracking-tight"
-            />
-          </div>
+          <Figure
+            value={data.latestPrice ? Number(data.latestPrice.rate).toFixed(4) : null}
+            className="block mt-2 text-4xl sm:text-5xl font-semibold tracking-tight"
+          />
 
           <div className="flex flex-wrap items-baseline gap-x-5 gap-y-1 mt-4 text-sm">
             <span className="inline-flex items-baseline gap-1">
