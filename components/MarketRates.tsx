@@ -2,7 +2,9 @@ import type {
   DashboardData,
   FreshnessInfo,
 } from "@/lib/dashboard-data";
+import { getYahooReference } from "@/lib/yahoo-reference-data";
 import StatusBadge, { type BadgeTone } from "@/components/StatusBadge";
+import InfoTip from "@/components/InfoTip";
 
 function formatTime(timestamp: string) {
   return new Date(timestamp).toLocaleString(
@@ -54,11 +56,15 @@ function FreshnessBadge({
   );
 }
 
-export default function MarketRates({
+export default async function MarketRates({
   data,
 }: {
   data: DashboardData;
 }) {
+  const yahoo = await getYahooReference();
+  const yahooDiff =
+    yahoo.rate !== null && data.directRate !== null ? yahoo.rate - data.directRate : null;
+
   return (
     <div className="rounded-md border border-slate-200 dark:border-slate-800 border-t-4 border-t-teal-500 dark:border-t-teal-400 bg-slate-50 dark:bg-slate-900 p-6 h-full transition-colors hover:border-slate-300 dark:hover:border-slate-700">
       <h2 className="text-xl font-semibold tracking-tight">
@@ -213,6 +219,42 @@ export default function MarketRates({
               {formatTime(data.crossTimestamp)}
             </p>
           )}
+      </div>
+
+      {/* YAHOO FINANCE REFERENCE -- unofficial, comparison only, never
+      scored. Kept in its own bordered strip rather than the 4-tile grid
+      above so it doesn't read as a fifth equally-trusted core feed. */}
+      <div className="border-t border-slate-200 dark:border-slate-800 mt-5 pt-4">
+        <div className="flex items-center justify-between gap-3">
+          <p className="text-sm text-slate-600 dark:text-slate-400 inline-flex items-center">
+            AUD/THB -- Yahoo Finance
+            <InfoTip text="A second, independent AUD/THB quote for comparison only. Yahoo has no official public API for this -- it's fetched via the same unofficial endpoint the yfinance community library uses, so outages here are expected and never affect the Core FX Score." />
+          </p>
+          <StatusBadge label="Reference Only" tone="slate" />
+        </div>
+
+        <p className="text-2xl font-bold font-mono mt-1">
+          {yahoo.rate !== null ? yahoo.rate.toFixed(4) : "--"}
+        </p>
+
+        {yahoo.marketTimestamp && (
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-2">
+            {formatTime(yahoo.marketTimestamp)}
+          </p>
+        )}
+
+        <FreshnessBadge freshness={{ status: yahoo.status, ageMinutes: yahoo.ageMinutes }} />
+
+        {yahooDiff !== null && (
+          <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+            vs Twelve Data: {yahooDiff >= 0 ? "+" : ""}
+            {yahooDiff.toFixed(4)} THB
+          </p>
+        )}
+
+        {yahoo.error && (
+          <p className="text-xs text-red-700 dark:text-red-400 mt-1">{yahoo.error}</p>
+        )}
       </div>
 
       {/* WARNING */}

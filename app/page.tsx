@@ -303,6 +303,13 @@ export default async function Home() {
                 Alpha Vantage News + Google Gemini
               </span>
             </p>
+
+            <p>
+              AUD/THB Reference (comparison only):{" "}
+              <span className="text-slate-700 dark:text-slate-300">
+                Yahoo Finance (unofficial)
+              </span>
+            </p>
             </div>
           </div>
         </div>
